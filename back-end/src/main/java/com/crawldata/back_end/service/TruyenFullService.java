@@ -132,4 +132,23 @@ public class TruyenFullService {
         }
         return chapterList;
     }
+
+    //get detail novel
+    public NovelDetail getDetailNovel(String idNovel) throws IOException {
+        String url = "https://truyenfull.vn/"+idNovel;
+        Document doc = Jsoup.connect(url).timeout(5000).get();
+        String name = doc.select("h3[class=title]").first().text();
+        //author
+        String authorName = doc.select("a[itemprop=author]").first().text();
+        //Create author
+        Author author = new Author("hi",authorName);
+        author.setIdSlug(authorName);
+        //chapter
+        int totalChapter= getTotalChapters(url);
+        //image
+        String image = doc.selectFirst("img").attr("src");
+        //description
+        String description = doc.selectFirst("div[itemprop=description]").toString();
+        return new NovelDetail(idNovel,name,image,description,totalChapter,author);
+    }
 }

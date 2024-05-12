@@ -37,4 +37,14 @@ public class NovelController {
         DataResponse result = new DataResponse("success",1,1,"",chapters);
         return ResponseEntity.ok(result);
     }
+
+    //get detail novel
+    @GetMapping("{idNovel}")
+    public ResponseEntity<?> getDetailNovel( @PathVariable("idNovel") String idNovel
+    ) throws IOException
+    {
+       NovelDetail novelDetail = truyenFullService.getDetailNovel(idNovel);
+        DataResponse result = new DataResponse("success",1,1,"",novelDetail);
+        return ResponseEntity.ok(result);
+    }
 }
