@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class dataResponse {
+public class DataResponse {
     String status;
     Integer totalPage;
     Integer currentPage;

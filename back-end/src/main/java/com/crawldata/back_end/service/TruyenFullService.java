@@ -21,84 +21,23 @@ public class TruyenFullService {
     public int getEndPage(String url) throws IOException {
         Document doc = Jsoup.connect(url).timeout(5000).get();
         Elements pages = doc.select("ul[class=pagination pagination-sm] li");
-        int endPage = 0;
-        try {
-            int parsedValue = Integer.parseInt(pages.get(pages.size()-1).text().split(" ")[0]);
-            endPage = parsedValue;
-        } catch (NumberFormatException e) {
-            int parsedValue = Integer.parseInt(pages.get(pages.size() - 2).text().split(" ")[0]);
-            endPage = parsedValue;
-        }
-        return endPage;
-    }
-    public  DetailComic getAComic(String url) throws IOException {
-        Document doc = Jsoup.connect(url).timeout(5000).get();
-        //name
-        Element name = doc.select("h3[class=title]").first();
-        //author
-        Element author = doc.select("a[itemprop=author]").first();
-        //category - not
-        Elements category= doc.select("a[itemprop=genre]");
-        //status
-        Element status= doc.select("span[class=text-primary]").first();
-        if(status ==null)
-        {
-            status = doc.select("span[class=text-success]").first();
-        }
-        if(status ==null)
-        {
-            status = doc.select("span[class=text-warning]").first();
-        }
-        //chapter
-        Elements pages = doc.select("ul[class=pagination pagination-sm] li");
-        StringBuilder linkEndPage = new StringBuilder();
-        //image
-        String coverImage = doc.selectFirst("img").attr("src");
-        for(Element page: pages)
-        {
+        int totalPages = 1 ;
+        if (pages.size()!=0){
+            StringBuilder linkEndPage = new StringBuilder();
+            Element page = pages.get(pages.size()-2);
             if(page.text().equals("Cuối »"))
             {
                 linkEndPage.append(page.select("a").attr("href"));
+                Document docPage= Jsoup.connect(linkEndPage.toString()).timeout(5000).get();
+                Elements allPage = docPage.select("ul[class=pagination pagination-sm] li");
+                totalPages =  Integer.parseInt(allPage.get(allPage.size()-2).text().split(" ")[0]);
+            }
+            else
+            {
+                totalPages =Integer.parseInt( page.text());
             }
         }
-        int endPage = getEndPage(linkEndPage.toString());
-        List<Chapter> chapterList = new ArrayList<>();
-        Elements chapters = doc.select("ul[class=list-chapter] li");
-        for (Element chapter : chapters) {
-            Element linkElement = chapter.selectFirst("a");
-            String topic = linkElement.text();
-            String link = linkElement.attr("href");
-//            Chapter chapterObj = new Chapter(topic,link);
-//            chapterList.add(chapterObj);
-        }
-        return new DetailComic(name.text(),author.text(),category.text(),status.text(),coverImage,chapterList,1,endPage);
-    }
-    //get end page
-
-    //get all link comic of category
-    public Category getComicsCategory(String url) throws IOException {
-        Document doc = Jsoup.connect(url).timeout(5000).get();
-        Elements pages = doc.select("ul[class=pagination pagination-sm] li");
-        Element nameCategory = doc.selectFirst("h2");
-        String lin = pages.get(pages.size()-2).selectFirst("a").attr("href");
-        int endPage =getEndPage(lin);
-        List<ComicCategory> comicList = new ArrayList<>();
-        Document doc2 = Jsoup.connect(url).timeout(5000).get();
-        Elements books = doc2.select("div[itemtype=https://schema.org/Book]");
-        for (Element book : books) {
-            Element titleElement = book.select("a").first();
-            if(titleElement!=null) {
-                String name = titleElement.text();
-                String link = titleElement.attr("href");
-                Element authorElement = book.selectFirst("span[class=author]");
-                String author = authorElement.text();
-                Element coverElement = book.selectFirst("div[data-image]");
-                String coverImage = coverElement.attr("data-image");
-                ComicCategory bookObj = new ComicCategory(name, coverImage, author, link);
-                comicList.add(bookObj);
-            }
-        }
-        return new Category(nameCategory.text(),comicList,1,endPage);
+        return totalPages;
     }
 
     // new version
@@ -175,26 +114,10 @@ public class TruyenFullService {
         Author author = new Author("hi",authorName);
         author.setIdSlug(authorName);
         //chapter
-        Elements pages = doc.select("ul[class=pagination pagination-sm] li");
-        int totalPages =0 ;
-        if (pages.size()!=0){
-            StringBuilder linkEndPage = new StringBuilder();
-            Element page = pages.get(pages.size()-2);
-            if(page.text().equals("Cuối »"))
-            {
-                linkEndPage.append(page.select("a").attr("href"));
-                Document docPage= Jsoup.connect(linkEndPage.toString()).timeout(5000).get();
-                Elements allPage = docPage.select("ul[class=pagination pagination-sm] li");
-                totalPages =  Integer.parseInt(allPage.get(allPage.size()-2).text().split(" ")[0]);
-            }
-            else
-            {
-                totalPages =Integer.parseInt( page.text());
-            }
-        }
+       int totalPages = getEndPage(url);
         List<Chapter> chapterList = new ArrayList<>();
         Integer totalChapters = getTotalChapters(url);
-        for(int i=1;i<totalPages;i++)
+        for(int i=1;i<=totalPages;i++)
         {
             String link = String.format("https://truyenfull.vn/%s/trang-%d",idNovel,i);
             Document docChap= Jsoup.connect(link).timeout(5000).get();

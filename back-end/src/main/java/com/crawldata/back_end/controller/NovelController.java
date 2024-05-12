@@ -16,29 +16,15 @@ import java.util.List;
 @RestController
 @RequestMapping("/truyenfull")
 @RequiredArgsConstructor
-public class comicController {
+public class NovelController {
     private final TruyenFullService truyenFullService;
-    @GetMapping("")
-    public ResponseEntity<Category> getAllCategories(
-    ) throws IOException {
-        Category categories  = truyenFullService.getComicsCategory("https://truyenfull.vn/the-loai/kiem-hiep/");
-        return ResponseEntity.ok(categories);
-    }
-    //get chapter
-    @GetMapping("test")
-    public ResponseEntity<DetailComic> getDetailComic(
-    ) throws IOException {
-        DetailComic comic  = truyenFullService.getAComic("https://truyenfull.vn/thien-tai-tien-dao/");
-        return ResponseEntity.ok(comic);
-    }
-
     //Get detail chapter
     @GetMapping("{idNovel}/{idChapter}")
     public ResponseEntity<?> getContents( @PathVariable("idNovel") String idNovel, @PathVariable("idChapter") String idChapter
     ) throws IOException
     {
         ChapterDetail chapterDetail = truyenFullService.getDetailChapter(idNovel,idChapter);
-        dataResponse result = new dataResponse("success",1,1,"",chapterDetail);
+        DataResponse result = new DataResponse("success",1,1,"",chapterDetail);
         return ResponseEntity.ok(result);
     }
 
@@ -48,7 +34,7 @@ public class comicController {
     ) throws IOException
     {
         List<Chapter> chapters = truyenFullService.getAllChapters(idNovel);
-        dataResponse result = new dataResponse("success",1,1,"",chapters);
+        DataResponse result = new DataResponse("success",1,1,"",chapters);
         return ResponseEntity.ok(result);
     }
 }
