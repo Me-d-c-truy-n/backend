@@ -1,6 +1,7 @@
 package com.crawldata.back_end.service;
 
 import com.crawldata.back_end.dto.*;
+import com.crawldata.back_end.utils.HandleString;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -18,15 +19,6 @@ import java.util.regex.Pattern;
 public class TruyenFullService {
 
 
-    public String convertSlug(String input)
-    {
-        String lowercase = input.toLowerCase();
-        String hyphenated = lowercase.replaceAll("\\s+", "-");
-        String normalized = Normalizer.normalize(hyphenated, Normalizer.Form.NFD);
-        Pattern pattern = Pattern.compile("\\p{InCombiningDiacriticalMarks}+");
-        String slug = pattern.matcher(normalized).replaceAll("");
-        return  slug;
-    }
     //get information of a comic full chapters
     public int getEndPage(String url) throws IOException {
         Document doc = Jsoup.connect(url).timeout(5000).get();
@@ -100,8 +92,7 @@ public class TruyenFullService {
         //Name author
         String nameAuthor =docB.select("a[itemprop=author]").text();
         //Create author
-        Author author = new Author("hi",nameAuthor);
-        author.setIdSlug(nameAuthor);
+        Author author = new Author(HandleString.makeSlug(nameAuthor),nameAuthor);
         //Create detail chapters
         String novelName = doc.select("a[class=truyen-title]").first().text();
         //get chapter
@@ -121,8 +112,7 @@ public class TruyenFullService {
         //author
         String authorName = doc.select("a[itemprop=author]").first().text();
         //Create author
-        Author author = new Author("hi",authorName);
-        author.setIdSlug(authorName);
+        Author author = new Author(HandleString.makeSlug(authorName),authorName);
         //chapter
        int totalPages = getEndPage(url);
         List<Chapter> chapterList = new ArrayList<>();
@@ -151,8 +141,7 @@ public class TruyenFullService {
         //author
         String authorName = doc.select("a[itemprop=author]").first().text();
         //Create author
-        Author author = new Author("hi",authorName);
-        author.setIdSlug(authorName);
+        Author author = new Author(HandleString.makeSlug(authorName),authorName);
         //chapter
         int totalChapter= getTotalChapters(url);
         //image
@@ -169,8 +158,7 @@ public class TruyenFullService {
         Elements novels = doc.select("div[itemtype=https://schema.org/Book]");
         String nameAuthor = novels.get(0).selectFirst("span[class=author]").text();
         //Create author
-        Author author = new Author("hi",nameAuthor);
-        author.setIdSlug(nameAuthor);
+        Author author = new Author(HandleString.makeSlug(nameAuthor),nameAuthor);
         List<Novel> novelList = new ArrayList<>();
         for(Element novel : novels)
         {
@@ -178,7 +166,7 @@ public class TruyenFullService {
             String name = novel.selectFirst("h3").text();
             String link = novel.selectFirst("a").attr("href");
             int totalChapter = getTotalChapters(link);
-            Novel novelObj = new Novel(convertSlug(name),name,image,totalChapter,author);
+            Novel novelObj = new Novel(HandleString.makeSlug(name),name,image,totalChapter,author);
             novelList.add(novelObj);
         }
         return novelList;

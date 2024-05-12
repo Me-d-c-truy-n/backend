@@ -13,13 +13,4 @@ import java.util.regex.Pattern;
 public class Author {
     String id;
     String name;
-    public  void setIdSlug(String nameAuthor)
-    {
-        String lowercase = nameAuthor.toLowerCase();
-        String hyphenated = lowercase.replaceAll("\\s+", "-");
-        String normalized = Normalizer.normalize(hyphenated, Normalizer.Form.NFD);
-        Pattern pattern = Pattern.compile("\\p{InCombiningDiacriticalMarks}+");
-        String slug = pattern.matcher(normalized).replaceAll("");
-        this.id=slug;
-    }
 }
