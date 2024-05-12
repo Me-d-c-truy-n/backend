@@ -47,4 +47,13 @@ public class NovelController {
         DataResponse result = new DataResponse("success",1,1,"",novelDetail);
         return ResponseEntity.ok(result);
     }
+    //get list novel of an author
+    @GetMapping("/tac-gia/{idAuthor}")
+    public ResponseEntity<?> getNovelsAuthor( @PathVariable("idAuthor") String idAuthor
+    ) throws IOException
+    {
+        List<Novel> novels = truyenFullService.getNovelsAuthor(idAuthor);
+        DataResponse result = new DataResponse("success",1,1,"",novels);
+        return ResponseEntity.ok(result);
+    }
 }

@@ -8,6 +8,7 @@ import org.jsoup.select.Elements;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -17,6 +18,15 @@ import java.util.regex.Pattern;
 public class TruyenFullService {
 
 
+    public String convertSlug(String input)
+    {
+        String lowercase = input.toLowerCase();
+        String hyphenated = lowercase.replaceAll("\\s+", "-");
+        String normalized = Normalizer.normalize(hyphenated, Normalizer.Form.NFD);
+        Pattern pattern = Pattern.compile("\\p{InCombiningDiacriticalMarks}+");
+        String slug = pattern.matcher(normalized).replaceAll("");
+        return  slug;
+    }
     //get information of a comic full chapters
     public int getEndPage(String url) throws IOException {
         Document doc = Jsoup.connect(url).timeout(5000).get();
@@ -151,4 +161,27 @@ public class TruyenFullService {
         String description = doc.selectFirst("div[itemprop=description]").toString();
         return new NovelDetail(idNovel,name,image,description,totalChapter,author);
     }
+
+    //get list novel of an author base on id
+    public List<Novel> getNovelsAuthor(String idAuthor) throws IOException {
+        String url = "https://truyenfull.vn/tac-gia/"+idAuthor;
+        Document doc = Jsoup.connect(url).timeout(5000).get();
+        Elements novels = doc.select("div[itemtype=https://schema.org/Book]");
+        String nameAuthor = novels.get(0).selectFirst("span[class=author]").text();
+        //Create author
+        Author author = new Author("hi",nameAuthor);
+        author.setIdSlug(nameAuthor);
+        List<Novel> novelList = new ArrayList<>();
+        for(Element novel : novels)
+        {
+            String image = novel.selectFirst("div[data-image]").attr("data-image");
+            String name = novel.selectFirst("h3").text();
+            String link = novel.selectFirst("a").attr("href");
+            int totalChapter = getTotalChapters(link);
+            Novel novelObj = new Novel(convertSlug(name),name,image,totalChapter,author);
+            novelList.add(novelObj);
+        }
+        return novelList;
+    }
+
 }
