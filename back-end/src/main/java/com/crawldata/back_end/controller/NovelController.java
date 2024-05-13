@@ -22,7 +22,7 @@ public class NovelController {
     ) throws IOException
     {
         ChapterDetail chapterDetail = truyenFullService.getDetailChapter(idNovel,idChapter);
-        DataResponse result = new DataResponse("success",1,1,"",chapterDetail);
+        DataResponse result = new DataResponse("success",1,1,1,"",chapterDetail);
         return ResponseEntity.ok(result);
     }
 
@@ -32,7 +32,7 @@ public class NovelController {
     ) throws IOException
     {
         List<Chapter> chapters = truyenFullService.getAllChapters(idNovel);
-        DataResponse result = new DataResponse("success",1,1,"",chapters);
+        DataResponse result = new DataResponse("success",1,1,chapters.size(),"",chapters);
         return ResponseEntity.ok(result);
     }
 
@@ -42,7 +42,7 @@ public class NovelController {
     ) throws IOException
     {
        NovelDetail novelDetail = truyenFullService.getDetailNovel(idNovel);
-        DataResponse result = new DataResponse("success",1,1,"",novelDetail);
+        DataResponse result = new DataResponse("success",1,1,1,"",novelDetail);
         return ResponseEntity.ok(result);
     }
     //get list novel of an author
@@ -51,7 +51,7 @@ public class NovelController {
     ) throws IOException
     {
         List<Novel> novels = truyenFullService.getNovelsAuthor(idAuthor);
-        DataResponse result = new DataResponse("success",1,1,"",novels);
+        DataResponse result = new DataResponse("success",1,1,novels.size(),"",novels);
         return ResponseEntity.ok(result);
     }
 
@@ -61,7 +61,7 @@ public class NovelController {
     {
         List<Novel> novels = truyenFullService.getAllNovels(page);
         int totalPage = truyenFullService.getEndPage(sourceNovels.kiemHiep);
-        DataResponse result = new DataResponse("success",totalPage,page,"",novels);
+        DataResponse result = new DataResponse("success",totalPage,page,novels.size(),"",novels);
         return ResponseEntity.ok(result);
     }
 }

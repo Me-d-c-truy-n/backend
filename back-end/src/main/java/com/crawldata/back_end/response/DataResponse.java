@@ -11,6 +11,7 @@ public class DataResponse {
     String status;
     Integer totalPage;
     Integer currentPage;
+    Integer perPage;
     String searchValue;
     Object data;
 }
