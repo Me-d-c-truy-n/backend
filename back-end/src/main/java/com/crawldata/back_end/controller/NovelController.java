@@ -2,6 +2,7 @@ package com.crawldata.back_end.controller;
 
 import com.crawldata.back_end.service.TruyenFullService;
 import com.crawldata.back_end.dto.*;
+import com.crawldata.back_end.utils.*;
 import com.crawldata.back_end.response.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -59,7 +60,7 @@ public class NovelController {
     public ResponseEntity<?> getAllNovels(@RequestParam(value = "page",defaultValue = "1") int page) throws IOException
     {
         List<Novel> novels = truyenFullService.getAllNovels(page);
-        int totalPage = truyenFullService.getEndPage("https://truyenfull.vn/the-loai/kiem-hiep/");
+        int totalPage = truyenFullService.getEndPage(sourceNovels.kiemHiep);
         DataResponse result = new DataResponse("success",totalPage,page,"",novels);
         return ResponseEntity.ok(result);
     }

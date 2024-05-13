@@ -2,6 +2,7 @@ package com.crawldata.back_end.service;
 
 import com.crawldata.back_end.dto.*;
 import com.crawldata.back_end.utils.HandleString;
+import com.crawldata.back_end.utils.sourceNovels;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -217,13 +218,11 @@ public class TruyenFullService {
 
     //get all novels
     public List<Novel> getAllNovels(int page) throws IOException {
-        String url = "https://truyenfull.vn/the-loai/kiem-hiep/trang-"+page;
+        String url = sourceNovels.kiemHiep + "trang-"+page;
         List<Novel> novelList = new ArrayList<>();
         Document doc = Jsoup.connect(url).timeout(5000).get();
         Elements novels = doc.select("div[itemtype=https://schema.org/Book]");
-        String nameAuthor = novels.get(0).selectFirst("span[class=author]").text();
-        //Create author
-        Author author = new Author(HandleString.makeSlug(nameAuthor),nameAuthor);
+
         for(Element novel : novels)
         {
             if(!novel.text().equals("")) {
@@ -231,6 +230,9 @@ public class TruyenFullService {
                 String name = novel.selectFirst("h3").text();
                 String link = novel.selectFirst("a").attr("href");
                 int totalChapter = getTotalChapters(link);
+                String nameAuthor = novel.selectFirst("span[class=author]").text();
+                //Create author
+                Author author = new Author(HandleString.makeSlug(nameAuthor),nameAuthor);
                 Novel novelObj = new Novel(HandleString.makeSlug(name), name, image, totalChapter, author);
                 novelList.add(novelObj);
             }
