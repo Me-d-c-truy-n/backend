@@ -60,7 +60,7 @@ public class NovelController {
     public ResponseEntity<?> getAllNovels(@RequestParam(value = "page",defaultValue = "1") int page) throws IOException
     {
         List<Novel> novels = truyenFullService.getAllNovels(page);
-        int totalPage = truyenFullService.getEndPage(sourceNovels.kiemHiep);
+        int totalPage = truyenFullService.getEndPage(SourceNovels.kiemHiep);
         DataResponse result = new DataResponse("success",totalPage,page,novels.size(),"",novels);
         return ResponseEntity.ok(result);
     }

@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class Novel {
     String novelId;
-    String novelName;
+    String name;
     String image;
     Integer total;
     Author author;

@@ -2,7 +2,7 @@ package com.crawldata.back_end.service;
 
 import com.crawldata.back_end.dto.*;
 import com.crawldata.back_end.utils.HandleString;
-import com.crawldata.back_end.utils.sourceNovels;
+import com.crawldata.back_end.utils.SourceNovels;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -10,7 +10,6 @@ import org.jsoup.select.Elements;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -27,11 +26,13 @@ public class TruyenFullService {
         int totalPages = 1 ;
         if (pages.size()!=0){
             StringBuilder linkEndPage = new StringBuilder();
+
             Element page = pages.get(pages.size()-2);
             if(page.text().equals("Cuối »"))
             {
                 linkEndPage.append(page.select("a").attr("href"));
-                Document docPage= Jsoup.connect(linkEndPage.toString()).timeout(5000).get();
+                String linkValid = HandleString.getValidURL(linkEndPage.toString());
+                Document docPage= Jsoup.connect(linkValid).timeout(5000).get();
                 Elements allPage = docPage.select("ul[class=pagination pagination-sm] li");
                 totalPages =  Integer.parseInt(allPage.get(allPage.size()-2).text().split(" ")[0]);
             }
@@ -218,11 +219,10 @@ public class TruyenFullService {
 
     //get all novels
     public List<Novel> getAllNovels(int page) throws IOException {
-        String url = sourceNovels.kiemHiep + "trang-"+page;
+        String url = SourceNovels.kiemHiep + "&page="+page;
         List<Novel> novelList = new ArrayList<>();
         Document doc = Jsoup.connect(url).timeout(5000).get();
         Elements novels = doc.select("div[itemtype=https://schema.org/Book]");
-
         for(Element novel : novels)
         {
             if(!novel.text().equals("")) {
