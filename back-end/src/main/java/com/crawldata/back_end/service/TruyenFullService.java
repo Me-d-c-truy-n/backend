@@ -218,8 +218,8 @@ public class TruyenFullService {
     }
 
     //get all novels
-    public List<Novel> getAllNovels(int page) throws IOException {
-        String url = SourceNovels.kiemHiep + "&page="+page;
+    public List<Novel> getAllNovels(int page,String search) throws IOException {
+        String url = SourceNovels.fullNovels +search+ "&page="+page;
         List<Novel> novelList = new ArrayList<>();
         Document doc = Jsoup.connect(url).timeout(5000).get();
         Elements novels = doc.select("div[itemtype=https://schema.org/Book]");

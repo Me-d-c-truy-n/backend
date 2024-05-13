@@ -57,10 +57,23 @@ public class NovelController {
 
     //get all novel category "Kiem hiep"
     @GetMapping("/ds-truyen")
-    public ResponseEntity<?> getAllNovels(@RequestParam(value = "page",defaultValue = "1") int page) throws IOException
+    public ResponseEntity<?> getAllNovels(@RequestParam(value = "page",defaultValue = "1") int page,@RequestParam(value = "search",defaultValue = "%22") String search) throws IOException
     {
-        List<Novel> novels = truyenFullService.getAllNovels(page);
-        int totalPage = truyenFullService.getEndPage(SourceNovels.kiemHiep);
+        List<Novel> novels = truyenFullService.getAllNovels(page,search);
+        int totalPage = truyenFullService.getEndPage(SourceNovels.fullNovels);
+        DataResponse result = new DataResponse("success",totalPage,page,novels.size(),"",novels);
+        return ResponseEntity.ok(result);
+    }
+    //find author by name novel or author
+    @GetMapping("/tim-kiem")
+    public ResponseEntity<?> findNovels(@RequestParam(value = "page",defaultValue = "1") int page,@RequestParam(value = "search",defaultValue = "%22") String search) throws IOException
+    {
+        List<Novel> novels = truyenFullService.getAllNovels(page,search);
+        int totalPage = truyenFullService.getEndPage(SourceNovels.fullNovels);
+        if(page>totalPage)
+        {
+            page=totalPage;
+        }
         DataResponse result = new DataResponse("success",totalPage,page,novels.size(),"",novels);
         return ResponseEntity.ok(result);
     }

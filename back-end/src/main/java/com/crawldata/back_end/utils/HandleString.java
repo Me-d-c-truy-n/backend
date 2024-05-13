@@ -21,7 +21,6 @@ public class HandleString {
         try {
             // Convert the String and decode the URL into the URL class
             URL url = new URL(URLDecoder.decode(invalidURLString, StandardCharsets.UTF_8.toString()));
-
             // Use the methods of the URL class to achieve a generic solution
             URI uri = new URI(url.getProtocol(), url.getUserInfo(), url.getHost(), url.getPort(), url.getPath(), url.getQuery(), url.getRef());
             // return String or
