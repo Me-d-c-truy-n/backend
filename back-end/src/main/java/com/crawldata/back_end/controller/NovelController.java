@@ -5,10 +5,7 @@ import com.crawldata.back_end.dto.*;
 import com.crawldata.back_end.response.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.util.List;
@@ -59,10 +56,11 @@ public class NovelController {
 
     //get all novel category "Kiem hiep"
     @GetMapping("/ds-truyen")
-    public ResponseEntity<?> getAllNovels() throws IOException
+    public ResponseEntity<?> getAllNovels(@RequestParam(value = "page",defaultValue = "1") int page) throws IOException
     {
-        List<Novel> novels = truyenFullService.getAllNovels();
-        DataResponse result = new DataResponse("success",1,1,"",novels);
+        List<Novel> novels = truyenFullService.getAllNovels(page);
+        int totalPage = truyenFullService.getEndPage("https://truyenfull.vn/the-loai/kiem-hiep/");
+        DataResponse result = new DataResponse("success",totalPage,page,"",novels);
         return ResponseEntity.ok(result);
     }
 }

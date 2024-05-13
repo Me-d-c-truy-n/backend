@@ -216,28 +216,23 @@ public class TruyenFullService {
     }
 
     //get all novels
-    public List<Novel> getAllNovels() throws IOException {
-        String url = "https://truyenfull.vn/the-loai/kiem-hiep/";
-        int endPage = getEndPage(url);
+    public List<Novel> getAllNovels(int page) throws IOException {
+        String url = "https://truyenfull.vn/the-loai/kiem-hiep/trang-"+page;
         List<Novel> novelList = new ArrayList<>();
-        for(int i=1;i<=endPage;i++)
+        Document doc = Jsoup.connect(url).timeout(5000).get();
+        Elements novels = doc.select("div[itemtype=https://schema.org/Book]");
+        String nameAuthor = novels.get(0).selectFirst("span[class=author]").text();
+        //Create author
+        Author author = new Author(HandleString.makeSlug(nameAuthor),nameAuthor);
+        for(Element novel : novels)
         {
-            String urlPage = String.format("https://truyenfull.vn/the-loai/kiem-hiep/trang-%d",i);
-            Document doc = Jsoup.connect(urlPage).timeout(0).get();
-            Elements novels = doc.select("div[itemtype=https://schema.org/Book]");
-            String nameAuthor = novels.get(0).selectFirst("span[class=author]").text();
-            //Create author
-            Author author = new Author(HandleString.makeSlug(nameAuthor),nameAuthor);
-            for(Element novel : novels)
-            {
-                if(!novel.text().equals("")) {
-                    String image = novel.selectFirst("div[data-image]").attr("data-image");
-                    String name = novel.selectFirst("h3").text();
-                    String link = novel.selectFirst("a").attr("href");
-                    int totalChapter = getTotalChapters(link);
-                    Novel novelObj = new Novel(HandleString.makeSlug(name), name, image, totalChapter, author);
-                    novelList.add(novelObj);
-                }
+            if(!novel.text().equals("")) {
+                String image = novel.selectFirst("div[data-image]").attr("data-image");
+                String name = novel.selectFirst("h3").text();
+                String link = novel.selectFirst("a").attr("href");
+                int totalChapter = getTotalChapters(link);
+                Novel novelObj = new Novel(HandleString.makeSlug(name), name, image, totalChapter, author);
+                novelList.add(novelObj);
             }
         }
         return novelList;
