@@ -56,4 +56,13 @@ public class NovelController {
         DataResponse result = new DataResponse("success",1,1,"",novels);
         return ResponseEntity.ok(result);
     }
+
+    //get all novel category "Kiem hiep"
+    @GetMapping("/ds-truyen")
+    public ResponseEntity<?> getAllNovels() throws IOException
+    {
+        List<Novel> novels = truyenFullService.getAllNovels();
+        DataResponse result = new DataResponse("success",1,1,"",novels);
+        return ResponseEntity.ok(result);
+    }
 }

@@ -34,6 +34,14 @@ public class TruyenFullService {
                 Elements allPage = docPage.select("ul[class=pagination pagination-sm] li");
                 totalPages =  Integer.parseInt(allPage.get(allPage.size()-2).text().split(" ")[0]);
             }
+            else if(page.text().equals("Trang tiếp"))
+            {
+                Element pageNext = pages.get(pages.size()-1);
+                linkEndPage.append(pageNext.select("a").attr("href"));
+                Document docPage= Jsoup.connect(linkEndPage.toString()).timeout(5000).get();
+                Elements allPage = docPage.select("ul[class=pagination pagination-sm] li");
+                totalPages =  Integer.parseInt(allPage.get(allPage.size()-1).text().split(" ")[0]);
+                }
             else
             {
                 totalPages =Integer.parseInt( page.text());
@@ -44,7 +52,7 @@ public class TruyenFullService {
 
     // new version
     //get total chapters
-    public Integer getTotalChapters(String url) throws IOException {
+    public Integer  getTotalChapters(String url) throws IOException {
         Document doc = Jsoup.connect(url).timeout(5000).get();
         Elements pages = doc.select("ul[class=pagination pagination-sm] li");
         Integer totalChapters =0 ;
@@ -74,9 +82,44 @@ public class TruyenFullService {
                     System.out.println("No chapter number found");
                 }
             }
+            else if(page.text().equals("Trang tiếp"))
+            {
+                Element pageNext = pages.get(pages.size()-1);
+                linkEndPage.append(pageNext.select("a").attr("href"));
+                Document docPage = Jsoup.connect(linkEndPage.toString()).timeout(5000).get();
+                Elements pageEnd = docPage.select("ul[class=list-chapter] li");
+                String endPage = pageEnd.get(pageEnd.size()-1).text();
+                Pattern pattern = Pattern.compile("\\d+");
+                totalChapters = Integer.valueOf(0);
+                // Match the pattern against the input string
+                Matcher matcher = pattern.matcher(endPage);
+                // Check if a match is found
+                if (matcher.find()) {
+                    // Extract the matched numeric part
+                    String chapterNumber = matcher.group();
+                    totalChapters = Integer.valueOf(chapterNumber);
+                } else {
+                    System.out.println("No chapter number found");
+                }
+            }
             else
             {
-                totalChapters =Integer.valueOf( page.text());
+                linkEndPage.append(page.select("a").attr("href"));
+                Document docPage = Jsoup.connect(linkEndPage.toString()).timeout(5000).get();
+                Elements pageEnd = docPage.select("ul[class=list-chapter] li");
+                String endPage = pageEnd.get(pageEnd.size()-1).text();
+                Pattern pattern = Pattern.compile("\\d+");
+                totalChapters = Integer.valueOf(0);
+                // Match the pattern against the input string
+                Matcher matcher = pattern.matcher(endPage);
+                // Check if a match is found
+                if (matcher.find()) {
+                    // Extract the matched numeric part
+                    String chapterNumber = matcher.group();
+                    totalChapters = Integer.valueOf(chapterNumber);
+                } else {
+                    System.out.println("No chapter number found");
+                }
             }
         }
         return totalChapters;
@@ -121,7 +164,7 @@ public class TruyenFullService {
         {
             String link = String.format("https://truyenfull.vn/%s/trang-%d",idNovel,i);
             Document docChap= Jsoup.connect(link).timeout(5000).get();
-            Elements chapters = doc.select("ul[class=list-chapter] li");
+            Elements chapters = docChap.select("ul[class=list-chapter] li");
             int move =1 ;
             for (Element chapter : chapters) {
                 Element linkElement = chapter.selectFirst("a");
@@ -172,4 +215,31 @@ public class TruyenFullService {
         return novelList;
     }
 
+    //get all novels
+    public List<Novel> getAllNovels() throws IOException {
+        String url = "https://truyenfull.vn/the-loai/kiem-hiep/";
+        int endPage = getEndPage(url);
+        List<Novel> novelList = new ArrayList<>();
+        for(int i=1;i<=endPage;i++)
+        {
+            String urlPage = String.format("https://truyenfull.vn/the-loai/kiem-hiep/trang-%d",i);
+            Document doc = Jsoup.connect(urlPage).timeout(0).get();
+            Elements novels = doc.select("div[itemtype=https://schema.org/Book]");
+            String nameAuthor = novels.get(0).selectFirst("span[class=author]").text();
+            //Create author
+            Author author = new Author(HandleString.makeSlug(nameAuthor),nameAuthor);
+            for(Element novel : novels)
+            {
+                if(!novel.text().equals("")) {
+                    String image = novel.selectFirst("div[data-image]").attr("data-image");
+                    String name = novel.selectFirst("h3").text();
+                    String link = novel.selectFirst("a").attr("href");
+                    int totalChapter = getTotalChapters(link);
+                    Novel novelObj = new Novel(HandleString.makeSlug(name), name, image, totalChapter, author);
+                    novelList.add(novelObj);
+                }
+            }
+        }
+        return novelList;
+    }
 }
