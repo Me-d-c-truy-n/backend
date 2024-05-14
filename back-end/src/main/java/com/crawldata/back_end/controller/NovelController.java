@@ -59,7 +59,7 @@ public class NovelController {
         return ResponseEntity.ok(result);
     }
 
-    //get all novel category "Kiem hiep"
+    //get all novels
     @GetMapping("/ds-truyen")
     public ResponseEntity<?> getAllNovels(@RequestParam(value = "page",defaultValue = "1") int page,@RequestParam(value = "search",defaultValue = "%22") String search) throws IOException
     {
