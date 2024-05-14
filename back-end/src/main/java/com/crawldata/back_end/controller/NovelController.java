@@ -14,12 +14,12 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("server1/truyen")
+@RequestMapping("truyenfull")
 @RequiredArgsConstructor
 public class NovelController {
     private final TruyenFullService truyenFullService;
     //Get detail chapter
-    @GetMapping("{idNovel}/{idChapter}")
+    @GetMapping("/truyen/{idNovel}/{idChapter}")
     public ResponseEntity<?> getContents( @PathVariable("idNovel") String idNovel, @PathVariable("idChapter") String idChapter
     ) throws IOException
     {
@@ -29,7 +29,7 @@ public class NovelController {
     }
 
     //get all chapters of novel
-    @GetMapping("{idNovel}/all")
+    @GetMapping("/truyen/{idNovel}/all")
     public ResponseEntity<?> getAllChapters( @PathVariable("idNovel") String idNovel,@RequestParam(value = "page",defaultValue = "1") int page
     ) throws IOException
     {
@@ -41,7 +41,7 @@ public class NovelController {
     }
 
     //get detail novel
-    @GetMapping("{idNovel}")
+    @GetMapping("/truyen/{idNovel}")
     public ResponseEntity<?> getDetailNovel( @PathVariable("idNovel") String idNovel
     ) throws IOException
     {
