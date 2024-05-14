@@ -213,7 +213,7 @@ public class TruyenFullService {
             String name = novel.selectFirst("h3").text();
             String link = novel.selectFirst("a").attr("href");
             int totalChapter = getTotalChapters(link);
-            Novel novelObj = new Novel(HandleString.makeSlug(name),name,image,totalChapter,author);
+            Novel novelObj = new Novel(HandleString.makeSlug(name),name,image,"",totalChapter,author);
             novelList.add(novelObj);
         }
         return novelList;
@@ -235,8 +235,11 @@ public class TruyenFullService {
                 int totalChapter = getTotalChapters(link);
                 String nameAuthor = novel.selectFirst("span[class=author]").text();
                 //Create author
+                String urlDetail = "https://truyenfull.vn/"+HandleString.makeSlug(name);
+                Document docDetail = ConnectJsoup.connect(urlDetail);
                 Author author = new Author(HandleString.makeSlug(nameAuthor),nameAuthor);
-                Novel novelObj = new Novel(HandleString.makeSlug(name), name, image, totalChapter, author);
+                String description = docDetail.selectFirst("div[itemprop=description]").toString();
+                Novel novelObj = new Novel(HandleString.makeSlug(name), name, image, description,totalChapter, author);
                 novelList.add(novelObj);
             }
         }

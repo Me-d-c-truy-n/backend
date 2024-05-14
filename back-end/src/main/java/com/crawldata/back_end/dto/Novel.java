@@ -11,6 +11,7 @@ public class Novel {
     String novelId;
     String name;
     String image;
+    String description;
     Integer total;
     Author author;
 }

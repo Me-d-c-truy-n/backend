@@ -12,7 +12,19 @@ public class HandleString {
     private static final Pattern WHITESPACE = Pattern.compile("[\\s]");
 
     public static String makeSlug(String input) {
-        String nowhitespace = WHITESPACE.matcher(input).replaceAll("-");
+        String processed = input.replace("Đ", "D").replace("đ", "d")
+                .replace("Ä", "A").replace("ä", "a")
+                .replace("Ö", "O").replace("ö", "o")
+                .replace("Ü", "U").replace("ü", "u")
+                .replace("Á", "A").replace("á", "a")
+                .replace("É", "E").replace("é", "e")
+                .replace("Í", "I").replace("í", "i")
+                .replace("Ó", "O").replace("ó", "o")
+                .replace("Ú", "U").replace("ú", "u")
+                .replace("Ñ", "N").replace("ñ", "n")
+                .replace("Ç", "C").replace("ç", "c")
+                .replace("Å", "A").replace("å", "a");
+        String nowhitespace = WHITESPACE.matcher(processed).replaceAll("-");
         String normalized = Normalizer.normalize(nowhitespace, Normalizer.Form.NFD);
         String slug = NONLATIN.matcher(normalized).replaceAll("");
         return slug.toLowerCase(Locale.ENGLISH);
