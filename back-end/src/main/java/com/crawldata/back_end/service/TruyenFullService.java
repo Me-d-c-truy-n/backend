@@ -166,11 +166,11 @@ public class TruyenFullService {
         String link = String.format("https://truyenfull.vn/%s/trang-%d",idNovel,page);
         Document docChap= ConnectJsoup.connect(link);
         Elements chapters = docChap.select("ul[class=list-chapter] li");
-        int move =1 ;
         for (Element chapter : chapters) {
             Element linkElement = chapter.selectFirst("a");
             String nameChapter = linkElement.text();
-            Chapter chapterObj = new Chapter(idNovel,name,""+(move++),nameChapter,totalChapters,author);
+            String idChapter = nameChapter.split(" ")[1].split(":")[0];
+            Chapter chapterObj = new Chapter(idNovel,name,idChapter,nameChapter,totalChapters,author);
             chapterList.add(chapterObj);
         }
         DataResponse dataResponse = new DataResponse();
