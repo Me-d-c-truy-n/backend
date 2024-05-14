@@ -230,8 +230,7 @@ public class TruyenFullService {
                 String image = novel.selectFirst("div[data-image]").attr("data-image");
                 String name = novel.selectFirst("h3").text();
                 String link = novel.selectFirst("a").attr("href");
-                //make valid link
-                //link = link.replaceAll("\\s", "");
+                link = link.replaceAll("\\s", "");
                 int totalChapter = getTotalChapters(link);
                 String nameAuthor = novel.selectFirst("span[class=author]").text();
                 //Create author
