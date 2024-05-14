@@ -23,8 +23,7 @@ public class HandleString {
             URL url = new URL(URLDecoder.decode(invalidURLString, StandardCharsets.UTF_8.toString()));
             // Use the methods of the URL class to achieve a generic solution
             URI uri = new URI(url.getProtocol(), url.getUserInfo(), url.getHost(), url.getPort(), url.getPath(), url.getQuery(), url.getRef());
-            // return String or
-            // uri.toURL() to return URL object
+            // return String
             return uri.toString();
         } catch (URISyntaxException | UnsupportedEncodingException | MalformedURLException ignored) {
             return null;

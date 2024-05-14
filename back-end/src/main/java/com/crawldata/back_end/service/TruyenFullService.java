@@ -1,5 +1,4 @@
 package com.crawldata.back_end.service;
-
 import com.crawldata.back_end.dto.*;
 import com.crawldata.back_end.utils.HandleString;
 import com.crawldata.back_end.utils.SourceNovels;
@@ -8,7 +7,6 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.stereotype.Service;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,7 +19,7 @@ public class TruyenFullService {
 
     //get information of a comic full chapters
     public int getEndPage(String url) throws IOException {
-        Document doc = Jsoup.connect(url).timeout(5000).get();
+        Document doc = Jsoup.connect(url).timeout(10*1000).get();
         Elements pages = doc.select("ul[class=pagination pagination-sm] li");
         int totalPages = 1 ;
         if (pages.size()!=0){
@@ -32,7 +30,7 @@ public class TruyenFullService {
             {
                 linkEndPage.append(page.select("a").attr("href"));
                 String linkValid = HandleString.getValidURL(linkEndPage.toString());
-                Document docPage= Jsoup.connect(linkValid).timeout(5000).get();
+                Document docPage= Jsoup.connect(linkValid).timeout(10*1000).get();
                 Elements allPage = docPage.select("ul[class=pagination pagination-sm] li");
                 totalPages =  Integer.parseInt(allPage.get(allPage.size()-2).text().split(" ")[0]);
             }
@@ -40,7 +38,7 @@ public class TruyenFullService {
             {
                 Element pageNext = pages.get(pages.size()-1);
                 linkEndPage.append(pageNext.select("a").attr("href"));
-                Document docPage= Jsoup.connect(linkEndPage.toString()).timeout(5000).get();
+                Document docPage= Jsoup.connect(linkEndPage.toString()).timeout(10*1000).get();
                 Elements allPage = docPage.select("ul[class=pagination pagination-sm] li");
                 totalPages =  Integer.parseInt(allPage.get(allPage.size()-1).text().split(" ")[0]);
                 }
@@ -52,10 +50,9 @@ public class TruyenFullService {
         return totalPages;
     }
 
-    // new version
     //get total chapters
     public Integer  getTotalChapters(String url) throws IOException {
-        Document doc = Jsoup.connect(url).timeout(5000).get();
+        Document doc = Jsoup.connect(url).timeout(0).get();
         Elements pages = doc.select("ul[class=pagination pagination-sm] li");
         Integer totalChapters =0 ;
         if(pages.size()==0)
@@ -68,7 +65,7 @@ public class TruyenFullService {
             if(page.text().equals("Cuối »"))
             {
                 linkEndPage.append(page.select("a").attr("href"));
-                Document docPage = Jsoup.connect(linkEndPage.toString()).timeout(5000).get();
+                Document docPage = Jsoup.connect(linkEndPage.toString()).timeout(10*1000).get();
                 Elements pageEnd = docPage.select("ul[class=list-chapter] li");
                 String endPage = pageEnd.get(pageEnd.size()-1).text();
                 Pattern pattern = Pattern.compile("\\d+");
@@ -88,7 +85,7 @@ public class TruyenFullService {
             {
                 Element pageNext = pages.get(pages.size()-1);
                 linkEndPage.append(pageNext.select("a").attr("href"));
-                Document docPage = Jsoup.connect(linkEndPage.toString()).timeout(5000).get();
+                Document docPage = Jsoup.connect(linkEndPage.toString()).timeout(10*1000).get();
                 Elements pageEnd = docPage.select("ul[class=list-chapter] li");
                 String endPage = pageEnd.get(pageEnd.size()-1).text();
                 Pattern pattern = Pattern.compile("\\d+");
@@ -107,7 +104,7 @@ public class TruyenFullService {
             else
             {
                 linkEndPage.append(page.select("a").attr("href"));
-                Document docPage = Jsoup.connect(linkEndPage.toString()).timeout(5000).get();
+                Document docPage = Jsoup.connect(linkEndPage.toString()).timeout(10*1000).get();
                 Elements pageEnd = docPage.select("ul[class=list-chapter] li");
                 String endPage = pageEnd.get(pageEnd.size()-1).text();
                 Pattern pattern = Pattern.compile("\\d+");
@@ -128,10 +125,10 @@ public class TruyenFullService {
     }
     //get detail chapter
    public ChapterDetail getDetailChapter(String idNovel, String idChapter) throws IOException {
-        String urlChapter=String.format("https://truyenfull.vn/%s/%s/",idNovel,idChapter);
+        String urlChapter=String.format("https://truyenfull.vn/%s/chuong-%s/",idNovel,idChapter);
         String urlAuthor = "https://truyenfull.vn/"+idNovel;
-        Document doc = Jsoup.connect(urlChapter).timeout(5000).get();
-        Document docB = Jsoup.connect(urlAuthor).timeout(5000).get();
+        Document doc = Jsoup.connect(urlChapter).timeout(10*1000).get();
+        Document docB = Jsoup.connect(urlAuthor).timeout(10*1000).get();
         String novelID = idNovel;
         String chapterId = idChapter;
         //Name author
@@ -152,7 +149,7 @@ public class TruyenFullService {
     // get list chapters of novel
     public List<Chapter> getAllChapters(String idNovel) throws IOException {
         String url = "https://truyenfull.vn/"+idNovel;
-        Document doc = Jsoup.connect(url).timeout(5000).get();
+        Document doc = Jsoup.connect(url).timeout(10*1000).get();
         String name = doc.select("h3[class=title]").first().text();
         //author
         String authorName = doc.select("a[itemprop=author]").first().text();
@@ -165,7 +162,7 @@ public class TruyenFullService {
         for(int i=1;i<=totalPages;i++)
         {
             String link = String.format("https://truyenfull.vn/%s/trang-%d",idNovel,i);
-            Document docChap= Jsoup.connect(link).timeout(5000).get();
+            Document docChap= Jsoup.connect(link).timeout(10*1000).get();
             Elements chapters = docChap.select("ul[class=list-chapter] li");
             int move =1 ;
             for (Element chapter : chapters) {
@@ -181,7 +178,7 @@ public class TruyenFullService {
     //get detail novel
     public NovelDetail getDetailNovel(String idNovel) throws IOException {
         String url = "https://truyenfull.vn/"+idNovel;
-        Document doc = Jsoup.connect(url).timeout(5000).get();
+        Document doc = Jsoup.connect(url).timeout(10*1000).get();
         String name = doc.select("h3[class=title]").first().text();
         //author
         String authorName = doc.select("a[itemprop=author]").first().text();
@@ -199,7 +196,7 @@ public class TruyenFullService {
     //get list novel of an author base on id
     public List<Novel> getNovelsAuthor(String idAuthor) throws IOException {
         String url = "https://truyenfull.vn/tac-gia/"+idAuthor;
-        Document doc = Jsoup.connect(url).timeout(5000).get();
+        Document doc = Jsoup.connect(url).timeout(10*1000).get();
         Elements novels = doc.select("div[itemtype=https://schema.org/Book]");
         String nameAuthor = novels.get(0).selectFirst("span[class=author]").text();
         //Create author
@@ -221,7 +218,7 @@ public class TruyenFullService {
     public List<Novel> getAllNovels(int page,String search) throws IOException {
         String url = SourceNovels.fullNovels +search+ "&page="+page;
         List<Novel> novelList = new ArrayList<>();
-        Document doc = Jsoup.connect(url).timeout(5000).get();
+        Document doc = Jsoup.connect(url).timeout(10*1000).get();
         Elements novels = doc.select("div[itemtype=https://schema.org/Book]");
         for(Element novel : novels)
         {
@@ -229,6 +226,8 @@ public class TruyenFullService {
                 String image = novel.selectFirst("div[data-image]").attr("data-image");
                 String name = novel.selectFirst("h3").text();
                 String link = novel.selectFirst("a").attr("href");
+                //make valid link
+                //link = link.replaceAll("\\s", "");
                 int totalChapter = getTotalChapters(link);
                 String nameAuthor = novel.selectFirst("span[class=author]").text();
                 //Create author
