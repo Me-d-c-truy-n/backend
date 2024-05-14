@@ -1,6 +1,7 @@
 package com.crawldata.back_end.service;
 import com.crawldata.back_end.dto.*;
 import com.crawldata.back_end.response.DataResponse;
+import com.crawldata.back_end.utils.ConnectJsoup;
 import com.crawldata.back_end.utils.HandleString;
 import com.crawldata.back_end.utils.SourceNovels;
 import org.jsoup.Jsoup;
@@ -22,7 +23,7 @@ public class TruyenFullService {
 
     //get information of a comic full chapters
     public int getEndPage(String url) throws IOException {
-        Document doc = Jsoup.connect(url).timeout(10*1000).get();
+        Document doc = ConnectJsoup.connect(url);
         Elements pages = doc.select("ul[class=pagination pagination-sm] li");
         int totalPages = 1 ;
         if (pages.size()!=0){
@@ -33,7 +34,7 @@ public class TruyenFullService {
             {
                 linkEndPage.append(page.select("a").attr("href"));
                 String linkValid = HandleString.getValidURL(linkEndPage.toString());
-                Document docPage= Jsoup.connect(linkValid).timeout(10*1000).get();
+                Document docPage= ConnectJsoup.connect(linkValid);
                 Elements allPage = docPage.select("ul[class=pagination pagination-sm] li");
                 totalPages =  Integer.parseInt(allPage.get(allPage.size()-2).text().split(" ")[0]);
             }
@@ -41,7 +42,7 @@ public class TruyenFullService {
             {
                 Element pageNext = pages.get(pages.size()-1);
                 linkEndPage.append(pageNext.select("a").attr("href"));
-                Document docPage= Jsoup.connect(linkEndPage.toString()).timeout(10*1000).get();
+                Document docPage= ConnectJsoup.connect(linkEndPage.toString());
                 Elements allPage = docPage.select("ul[class=pagination pagination-sm] li");
                 totalPages =  Integer.parseInt(allPage.get(allPage.size()-1).text().split(" ")[0]);
                 }
@@ -55,7 +56,7 @@ public class TruyenFullService {
 
     //get total chapters
     public Integer  getTotalChapters(String url) throws IOException {
-        Document doc = Jsoup.connect(url).timeout(0).get();
+        Document doc = ConnectJsoup.connect(url);
         Elements pages = doc.select("ul[class=pagination pagination-sm] li");
         Integer totalChapters =0 ;
         if(pages.size()==0)
@@ -68,7 +69,7 @@ public class TruyenFullService {
             if(page.text().equals("Cuối »"))
             {
                 linkEndPage.append(page.select("a").attr("href"));
-                Document docPage = Jsoup.connect(linkEndPage.toString()).timeout(10*1000).get();
+                Document docPage = ConnectJsoup.connect(linkEndPage.toString());
                 Elements pageEnd = docPage.select("ul[class=list-chapter] li");
                 String endPage = pageEnd.get(pageEnd.size()-1).text();
                 Pattern pattern = Pattern.compile("\\d+");
@@ -88,7 +89,7 @@ public class TruyenFullService {
             {
                 Element pageNext = pages.get(pages.size()-1);
                 linkEndPage.append(pageNext.select("a").attr("href"));
-                Document docPage = Jsoup.connect(linkEndPage.toString()).timeout(10*1000).get();
+                Document docPage = ConnectJsoup.connect(linkEndPage.toString());
                 Elements pageEnd = docPage.select("ul[class=list-chapter] li");
                 String endPage = pageEnd.get(pageEnd.size()-1).text();
                 Pattern pattern = Pattern.compile("\\d+");
@@ -107,7 +108,7 @@ public class TruyenFullService {
             else
             {
                 linkEndPage.append(page.select("a").attr("href"));
-                Document docPage = Jsoup.connect(linkEndPage.toString()).timeout(10*1000).get();
+                Document docPage = ConnectJsoup.connect(linkEndPage.toString());
                 Elements pageEnd = docPage.select("ul[class=list-chapter] li");
                 String endPage = pageEnd.get(pageEnd.size()-1).text();
                 Pattern pattern = Pattern.compile("\\d+");
@@ -130,8 +131,8 @@ public class TruyenFullService {
    public ChapterDetail getDetailChapter(String idNovel, String idChapter) throws IOException {
         String urlChapter=String.format("https://truyenfull.vn/%s/chuong-%s/",idNovel,idChapter);
         String urlAuthor = "https://truyenfull.vn/"+idNovel;
-        Document doc = Jsoup.connect(urlChapter).timeout(10*1000).get();
-        Document docB = Jsoup.connect(urlAuthor).timeout(10*1000).get();
+        Document doc = ConnectJsoup.connect(urlChapter);
+        Document docB = ConnectJsoup.connect(urlAuthor);
         String novelID = idNovel;
         String chapterId = idChapter;
         //Name author
@@ -152,7 +153,7 @@ public class TruyenFullService {
     // get list chapters of novel
     public DataResponse getAllChapters(String idNovel, int page) throws IOException {
         String url = "https://truyenfull.vn/"+idNovel;
-        Document doc = Jsoup.connect(url).timeout(10*1000).get();
+        Document doc = ConnectJsoup.connect(url);
         String name = doc.select("h3[class=title]").first().text();
         //author
         String authorName = doc.select("a[itemprop=author]").first().text();
@@ -163,7 +164,7 @@ public class TruyenFullService {
         Integer totalChapters = getTotalChapters(url);
         Integer totalPages = getEndPage(url);
         String link = String.format("https://truyenfull.vn/%s/trang-%d",idNovel,page);
-        Document docChap= Jsoup.connect(link).timeout(10*1000).get();
+        Document docChap= ConnectJsoup.connect(link);
         Elements chapters = docChap.select("ul[class=list-chapter] li");
         int move =1 ;
         for (Element chapter : chapters) {
@@ -182,7 +183,7 @@ public class TruyenFullService {
     //get detail novel
     public NovelDetail getDetailNovel(String idNovel) throws IOException {
         String url = "https://truyenfull.vn/"+idNovel;
-        Document doc = Jsoup.connect(url).timeout(10*1000).get();
+        Document doc = ConnectJsoup.connect(url);
         String name = doc.select("h3[class=title]").first().text();
         //author
         String authorName = doc.select("a[itemprop=author]").first().text();
@@ -200,7 +201,7 @@ public class TruyenFullService {
     //get list novel of an author base on id
     public List<Novel> getNovelsAuthor(String idAuthor) throws IOException {
         String url = "https://truyenfull.vn/tac-gia/"+idAuthor;
-        Document doc = Jsoup.connect(url).timeout(10*1000).get();
+        Document doc = ConnectJsoup.connect(url);
         Elements novels = doc.select("div[itemtype=https://schema.org/Book]");
         String nameAuthor = novels.get(0).selectFirst("span[class=author]").text();
         //Create author
@@ -222,7 +223,7 @@ public class TruyenFullService {
     public List<Novel> getAllNovels(int page,String search) throws IOException {
         String url = SourceNovels.fullNovels +search+ "&page="+page;
         List<Novel> novelList = new ArrayList<>();
-        Document doc = Jsoup.connect(url).timeout(10*1000).get();
+        Document doc = ConnectJsoup.connect(url);
         Elements novels = doc.select("div[itemtype=https://schema.org/Book]");
         for(Element novel : novels)
         {
