@@ -170,7 +170,7 @@ public class TruyenFullService {
         for (Element chapter : chapters) {
             Element linkElement = chapter.selectFirst("a");
             String nameChapter = linkElement.text();
-            Chapter chapterObj = new Chapter(idNovel,name,"chuong-"+(move++),nameChapter,totalChapters,author);
+            Chapter chapterObj = new Chapter(idNovel,name,""+(move++),nameChapter,totalChapters,author);
             chapterList.add(chapterObj);
         }
         DataResponse dataResponse = new DataResponse();
