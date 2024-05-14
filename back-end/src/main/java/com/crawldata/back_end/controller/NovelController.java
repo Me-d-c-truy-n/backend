@@ -9,10 +9,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @RestController
-@RequestMapping("/truyenfull")
+@RequestMapping("server1/truyen")
 @RequiredArgsConstructor
 public class NovelController {
     private final TruyenFullService truyenFullService;
@@ -28,12 +30,14 @@ public class NovelController {
 
     //get all chapters of novel
     @GetMapping("{idNovel}/all")
-    public ResponseEntity<?> getAllChapters( @PathVariable("idNovel") String idNovel
+    public ResponseEntity<?> getAllChapters( @PathVariable("idNovel") String idNovel,@RequestParam(value = "page",defaultValue = "1") int page
     ) throws IOException
     {
-        List<Chapter> chapters = truyenFullService.getAllChapters(idNovel);
-        DataResponse result = new DataResponse("success",1,1,chapters.size(),"",chapters);
-        return ResponseEntity.ok(result);
+        DataResponse data = truyenFullService.getAllChapters(idNovel,page);
+        data.setCurrentPage(page);
+        data.setStatus("success");
+        data.setSearchValue("");
+        return ResponseEntity.ok(data);
     }
 
     //get detail novel

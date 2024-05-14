@@ -1,5 +1,6 @@
 package com.crawldata.back_end.service;
 import com.crawldata.back_end.dto.*;
+import com.crawldata.back_end.response.DataResponse;
 import com.crawldata.back_end.utils.HandleString;
 import com.crawldata.back_end.utils.SourceNovels;
 import org.jsoup.Jsoup;
@@ -9,7 +10,9 @@ import org.jsoup.select.Elements;
 import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -147,7 +150,7 @@ public class TruyenFullService {
     }
 
     // get list chapters of novel
-    public List<Chapter> getAllChapters(String idNovel) throws IOException {
+    public DataResponse getAllChapters(String idNovel, int page) throws IOException {
         String url = "https://truyenfull.vn/"+idNovel;
         Document doc = Jsoup.connect(url).timeout(10*1000).get();
         String name = doc.select("h3[class=title]").first().text();
@@ -156,23 +159,24 @@ public class TruyenFullService {
         //Create author
         Author author = new Author(HandleString.makeSlug(authorName),authorName);
         //chapter
-       int totalPages = getEndPage(url);
         List<Chapter> chapterList = new ArrayList<>();
         Integer totalChapters = getTotalChapters(url);
-        for(int i=1;i<=totalPages;i++)
-        {
-            String link = String.format("https://truyenfull.vn/%s/trang-%d",idNovel,i);
-            Document docChap= Jsoup.connect(link).timeout(10*1000).get();
-            Elements chapters = docChap.select("ul[class=list-chapter] li");
-            int move =1 ;
-            for (Element chapter : chapters) {
-                Element linkElement = chapter.selectFirst("a");
-                String nameChapter = linkElement.text();
-                Chapter chapterObj = new Chapter(idNovel,name,"chuong-"+(move++),nameChapter,totalChapters,author);
-               chapterList.add(chapterObj);
-            }
+        Integer totalPages = getEndPage(url);
+        String link = String.format("https://truyenfull.vn/%s/trang-%d",idNovel,page);
+        Document docChap= Jsoup.connect(link).timeout(10*1000).get();
+        Elements chapters = docChap.select("ul[class=list-chapter] li");
+        int move =1 ;
+        for (Element chapter : chapters) {
+            Element linkElement = chapter.selectFirst("a");
+            String nameChapter = linkElement.text();
+            Chapter chapterObj = new Chapter(idNovel,name,"chuong-"+(move++),nameChapter,totalChapters,author);
+            chapterList.add(chapterObj);
         }
-        return chapterList;
+        DataResponse dataResponse = new DataResponse();
+        dataResponse.setData(chapterList);
+        dataResponse.setTotalPage(totalPages);
+        dataResponse.setPerPage(chapterList.size());
+        return dataResponse;
     }
 
     //get detail novel

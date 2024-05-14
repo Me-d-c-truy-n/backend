@@ -14,4 +14,15 @@ public class DataResponse {
     Integer perPage;
     String searchValue;
     Object data;
+
+    public void setCurrentPage(Integer currentPage) {
+        if(currentPage>totalPage)
+        {
+            this.currentPage=totalPage;
+        }
+        else
+        {
+            this.currentPage=currentPage;
+        }
+    }
 }
