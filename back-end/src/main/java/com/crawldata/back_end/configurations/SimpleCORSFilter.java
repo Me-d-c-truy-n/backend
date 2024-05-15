@@ -1,5 +1,4 @@
 package com.crawldata.back_end.configurations;
-
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

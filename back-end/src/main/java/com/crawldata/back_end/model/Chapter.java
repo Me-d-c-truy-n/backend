@@ -11,7 +11,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Chapter {
-
     /**
      * The unique identifier of the novel to which the chapter belongs.
      */
