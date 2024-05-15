@@ -10,7 +10,6 @@ import java.io.UnsupportedEncodingException;
 public class HandleString {
     private static final Pattern NONLATIN = Pattern.compile("[^\\w-]");
     private static final Pattern WHITESPACE = Pattern.compile("[\\s]");
-
     public static String makeSlug(String input) {
         String processed = input.replace("Đ", "D").replace("đ", "d")
                 .replace("Ä", "A").replace("ä", "a")

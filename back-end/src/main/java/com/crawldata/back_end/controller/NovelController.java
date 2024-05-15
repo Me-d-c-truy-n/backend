@@ -1,31 +1,39 @@
 package com.crawldata.back_end.controller;
-
+import com.crawldata.back_end.plugin.PluginManager;
+import com.crawldata.back_end.plugin_builder.PluginTemplate;
 import com.crawldata.back_end.service.TruyenFullService;
-import com.crawldata.back_end.dto.*;
+import com.crawldata.back_end.model.*;
 import com.crawldata.back_end.utils.*;
 import com.crawldata.back_end.response.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.xeustechnologies.jcl.JclUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-
 @RestController
-@RequestMapping("truyenfull")
 @RequiredArgsConstructor
 public class NovelController {
     private final TruyenFullService truyenFullService;
+    PluginManager pluginManager = new PluginManager();
     //Get detail chapter
-    @GetMapping("/truyen/{idNovel}/{idChapter}")
-    public ResponseEntity<?> getContents( @PathVariable("idNovel") String idNovel, @PathVariable("idChapter") String idChapter
+    @GetMapping("{pluginId}/truyen/{idNovel}/{idChapter}")
+    public ResponseEntity<?> getContents(@PathVariable String pluginId, @PathVariable("idNovel") String idNovel, @PathVariable("idChapter") String idChapter
     ) throws IOException
     {
-        ChapterDetail chapterDetail = truyenFullService.getDetailChapter(idNovel,idChapter);
-        DataResponse result = new DataResponse("success",1,1,1,"",chapterDetail);
-        return ResponseEntity.ok(result);
+        Plugin plugin = pluginManager.get(pluginId);
+        if(plugin != null ){
+            PluginTemplate obj = JclUtils.cast(plugin.getLoadedObject(), PluginTemplate.class);
+            ChapterDetail chapterDetail=obj.getDetailChapter(idNovel,idChapter);
+            DataResponse result = new DataResponse("success",1,1,1,"",chapterDetail);
+            return ResponseEntity.ok(result);
+        } else {
+            DataResponse result = new DataResponse();
+            result.setStatus("error");
+            return ResponseEntity.badRequest().body(result);
+        }
     }
 
     //get all chapters of novel
@@ -45,7 +53,7 @@ public class NovelController {
     public ResponseEntity<?> getDetailNovel( @PathVariable("idNovel") String idNovel
     ) throws IOException
     {
-       NovelDetail novelDetail = truyenFullService.getDetailNovel(idNovel);
+        NovelDetail novelDetail = truyenFullService.getDetailNovel(idNovel);
         DataResponse result = new DataResponse("success",1,1,1,"",novelDetail);
         return ResponseEntity.ok(result);
     }
@@ -64,7 +72,7 @@ public class NovelController {
     public ResponseEntity<?> getAllNovels(@RequestParam(value = "page",defaultValue = "1") int page,@RequestParam(value = "search",defaultValue = "%22") String search) throws IOException
     {
         List<Novel> novels = truyenFullService.getAllNovels(page,search);
-        int totalPage = truyenFullService.getEndPage(SourceNovels.fullNovels+search);
+        int totalPage = truyenFullService.getEndPage(SourceNovels.FULL_NOVELS+search);
         DataResponse result = new DataResponse("success",totalPage,page,novels.size(),"",novels);
         return ResponseEntity.ok(result);
     }
@@ -73,12 +81,9 @@ public class NovelController {
     public ResponseEntity<?> findNovels(@RequestParam(value = "page",defaultValue = "1") int page,@RequestParam(value = "search",defaultValue = "%22") String search) throws IOException
     {
         List<Novel> novels = truyenFullService.getAllNovels(page,search);
-        int totalPage = truyenFullService.getEndPage(SourceNovels.fullNovels);
-        if(page>totalPage)
-        {
-            page=totalPage;
-        }
+        int totalPage = truyenFullService.getEndPage(SourceNovels.FULL_NOVELS);
         DataResponse result = new DataResponse("success",totalPage,page,novels.size(),"",novels);
+        result.setCurrentPage(page);
         return ResponseEntity.ok(result);
     }
 }

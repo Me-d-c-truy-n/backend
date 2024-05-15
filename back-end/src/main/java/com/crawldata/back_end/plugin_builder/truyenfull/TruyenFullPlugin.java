@@ -1,5 +1,7 @@
-package com.crawldata.back_end.service;
+package com.crawldata.back_end.plugin_builder.truyenfull;
+
 import com.crawldata.back_end.model.*;
+import com.crawldata.back_end.plugin_builder.PluginTemplate;
 import com.crawldata.back_end.response.DataResponse;
 import com.crawldata.back_end.utils.ConnectJsoup;
 import com.crawldata.back_end.utils.HandleString;
@@ -7,17 +9,14 @@ import com.crawldata.back_end.utils.SourceNovels;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import org.springframework.stereotype.Service;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-@Service
-public class TruyenFullService {
-
-    //get information of a comic full chapters
+public class TruyenFullPlugin implements PluginTemplate {
     public int getEndPage(String url) throws IOException {
         Document doc = ConnectJsoup.connect(url);
         Elements pages = doc.select("ul[class=pagination pagination-sm] li");
@@ -41,7 +40,7 @@ public class TruyenFullService {
                 Document docPage= ConnectJsoup.connect(linkEndPage.toString());
                 Elements allPage = docPage.select("ul[class=pagination pagination-sm] li");
                 totalPages =  Integer.parseInt(allPage.get(allPage.size()-1).text().split(" ")[0]);
-                }
+            }
             else
             {
                 totalPages =Integer.parseInt( page.text());
@@ -50,7 +49,6 @@ public class TruyenFullService {
         return totalPages;
     }
 
-    //get total chapters
     public Integer  getTotalChapters(String url) throws IOException {
         Document doc = ConnectJsoup.connect(url);
         Elements pages = doc.select("ul[class=pagination pagination-sm] li");
@@ -123,8 +121,8 @@ public class TruyenFullService {
         }
         return totalChapters;
     }
-    //get detail chapter
-   public ChapterDetail getDetailChapter(String idNovel, String idChapter) throws IOException {
+
+    public ChapterDetail getDetailChapter(String idNovel, String idChapter) throws IOException {
         String urlChapter=String.format("https://truyenfull.vn/%s/chuong-%s/",idNovel,idChapter);
         String urlAuthor = "https://truyenfull.vn/"+idNovel;
         Document doc = ConnectJsoup.connect(urlChapter);
@@ -141,7 +139,7 @@ public class TruyenFullService {
         return chapterDetail;
     }
 
-    // get list chapters of novel
+
     public DataResponse getAllChapters(String idNovel, int page) throws IOException {
         String url = "https://truyenfull.vn/"+idNovel;
         Document doc = ConnectJsoup.connect(url);
@@ -168,7 +166,7 @@ public class TruyenFullService {
         return dataResponse;
     }
 
-    //get detail novel
+
     public NovelDetail getDetailNovel(String idNovel) throws IOException {
         String url = "https://truyenfull.vn/"+idNovel;
         Document doc = ConnectJsoup.connect(url);
@@ -181,7 +179,7 @@ public class TruyenFullService {
         return new NovelDetail(idNovel,name,image,description,totalChapter,author);
     }
 
-    //get list novel of an author base on id
+
     public List<Novel> getNovelsAuthor(String idAuthor) throws IOException {
         String url = "https://truyenfull.vn/tac-gia/"+idAuthor;
         Document doc = ConnectJsoup.connect(url);
@@ -201,7 +199,6 @@ public class TruyenFullService {
         return novelList;
     }
 
-    //get all novels
     public List<Novel> getAllNovels(int page,String search) throws IOException {
         String url = SourceNovels.FULL_NOVELS +search+ "&page="+page;
         List<Novel> novelList = new ArrayList<>();

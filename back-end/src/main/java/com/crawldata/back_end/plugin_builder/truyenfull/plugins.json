@@ -1,0 +1,17 @@
+{
+  "metadata": {
+    "id": "truyenfull",
+    "name": "Truyện Full",
+    "url": "https://truyenfull.vn/",
+    "className": "com.crawldata.back-end.plugin_builder.truyenfull.TruyenFullPlugin"
+  },
+  "method": {
+    "getEndPageMethod": "getEndPage",
+    "getTotalChaptersMethod": "getTotalChapters",
+    "getDetailChapterMethod": "getDetailChapter",
+    "getAllChaptersMethod": "getAllChapters",
+    "getDetailNovelMethod": "getDetailNovel",
+    "getNovelsAuthorMethod": "getNovelsAuthor",
+    "getAllNovelsMethod": "getAllNovels"
+  }
+}

@@ -1,4 +1,4 @@
-package com.crawldata.back_end.dto;
+package com.crawldata.back_end.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

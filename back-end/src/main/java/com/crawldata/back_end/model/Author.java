@@ -1,11 +1,8 @@
-package com.crawldata.back_end.dto;
+package com.crawldata.back_end.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.text.Normalizer;
-import java.util.regex.Pattern;
 
 @Data
 @AllArgsConstructor
