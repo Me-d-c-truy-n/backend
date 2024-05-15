@@ -1,70 +1,75 @@
 package com.crawldata.back_end.plugin;
 
-
-import com.crawldata.back_end.model.Plugin;
+import com.crawldata.back_end.model.PluginInformation;
 import com.crawldata.back_end.utils.AppUtils;
 import com.crawldata.back_end.utils.FileUtils;
-
+import lombok.AllArgsConstructor;
+import org.springframework.stereotype.Service;
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.List;
 
+/**
+ * Manages the lifecycle of plugins in the application.
+ */
+@Service
+@AllArgsConstructor
 public class PluginManager {
-    private static PluginManager manager;
-    private static ArrayList<PluginGetter> pluginList;
 
-    public PluginManager() {
-        pluginList = new ArrayList<>();
-    }
-    public static PluginManager getManager() {
-        if (manager == null) {
-            manager = new PluginManager();
-        }
+    private static final String PLUGIN_DIRECTORY = "/plugins";
 
-        return manager;
-    }
+    private List<PluginInformation> plugins = new ArrayList<>();
 
+    private PluginLoader pluginLoader;
+
+    /**
+     * Updates the list of available plugins by loading plugins from the plugin directory.
+     */
     public void updatePlugins() {
-        pluginList.clear();
-        File pluginsDir = new File(FileUtils.validate(AppUtils.curDir + "/plugins"));
+        // Initialize plugin directory
+        File pluginsDir = new File(FileUtils.validate(AppUtils.curDir + PLUGIN_DIRECTORY));
         if (!pluginsDir.exists() || !pluginsDir.isDirectory()) {
             return;
         }
+
+        // Clear existing plugins
+        plugins.clear();
+
+        // Load plugins from JAR files in the directory
         File[] files = pluginsDir.listFiles();
         if (files == null) {
             return;
         }
         for (File file : files) {
             if (file.getName().endsWith(".jar")) {
-                try {
-                    PluginGetter pluginGetter = loadPluginFromJar(file);
-                    if (pluginGetter != null) {
-                        pluginList.add(pluginGetter);
-                    }
-                } catch (IOException e) {
-                    // Handle IOException, if required
-                    e.printStackTrace();
+                PluginInformation pluginInformation = pluginLoader.loadPluginInformation(file);
+                if (pluginInformation != null) {
+                    plugins.add(pluginInformation);
                 }
             }
         }
     }
 
-    private PluginGetter loadPluginFromJar(File jarFile) throws IOException {
-        return new PluginGetter(jarFile);
+
+    /**
+     * Retrieves plugin information by ID.
+     *
+     * @param id The ID of the plugin.
+     * @return The plugin information, or null if not found.
+     */
+    public PluginInformation getPluginById(String id) {
+        return plugins.stream()
+                .filter(plugin -> plugin.getPluginId().equals(id))
+                .findFirst()
+                .orElse(null);
     }
 
-    public Plugin get(String id) {
-        Iterator<PluginGetter> iterator = pluginList.iterator();
-        PluginGetter pluginGetter;
-        do {
-            if (!iterator.hasNext()) {
-                return null;
-            }
-
-            pluginGetter = (PluginGetter)iterator.next();
-        } while(!pluginGetter.isMatch(id));
-
-        return pluginGetter.getPluginObject();
+    /**
+     * Retrieves all available plugins.
+     *
+     * @return The list of available plugins.
+     */
+    public List<PluginInformation> getAllPlugins() {
+        return new ArrayList<>(plugins);
     }
 }

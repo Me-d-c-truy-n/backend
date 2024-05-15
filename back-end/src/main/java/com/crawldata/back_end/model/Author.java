@@ -4,10 +4,21 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Represents an author entity.
+ */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class Author {
-    String id;
+
+    /**
+     * The unique identifier of the author.
+     */
+    String authorId;
+
+    /**
+     * The name of the author.
+     */
     String name;
 }

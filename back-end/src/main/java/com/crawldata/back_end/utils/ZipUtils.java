@@ -1,72 +1,40 @@
 package com.crawldata.back_end.utils;
 
-import org.zeroturnaround.zip.FileSource;
-import org.zeroturnaround.zip.ZipEntrySource;
 import org.zeroturnaround.zip.ZipUtil;
 import java.io.File;
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-
-
+import java.nio.charset.StandardCharsets;
 
 /**
- * Created by Long on 10/1/2016.
+ * Utility class for reading data from zip files.
  */
 public class ZipUtils {
+
+    /**
+     * Private constructor to prevent instantiation of the utility class.
+     */
     private ZipUtils() {
     }
 
-    public static void addFile(String zip, String file) {
-        addFile(new File(FileUtils.validate(zip)), new File(FileUtils.validate(file)));
-    }
-
-    public static void addFile(File zip, File file) {
-        addFile(zip, file, "");
-    }
-
-    public static void addFile(File zip, File file, String path) {
-        if (!file.exists()) return;
-        ZipUtil.addEntry(zip, (path.length() == 0 ? "" : path + "/") + file.getName(), file);
-    }
-
-    public static void addFolders(String zip, String dir) {
-        addFolders(zip, dir, "");
-    }
-
-    public static void addFolders(String zip, String dir, String path) {
-        addFolders(new File(FileUtils.validate(zip)), new File(FileUtils.validate(dir)), path);
-    }
-
-    public static void addFolders(File zip, File dir) {
-        addFolders(zip, dir, "");
-    }
-
-    public static void addFolders(File zip, File dir, String path) {
-        ArrayList<ZipEntrySource> listEntry = new ArrayList<ZipEntrySource>();
-        getListEntrySource(listEntry, dir, path);
-        ZipUtil.addEntries(zip, listEntry.toArray(new ZipEntrySource[listEntry.size()]));
-    }
-
-    private static void getListEntrySource(ArrayList<ZipEntrySource> listEntrySources, File dir, String path) {
-        File[] listFile = dir.listFiles();
-        for (File f : listFile) {
-            if (f.isDirectory())
-                getListEntrySource(listEntrySources, f, path + "/" + f.getName());
-            else
-                listEntrySources.add(new FileSource(path + "/" + f.getName(), f));
-        }
-    }
-
+    /**
+     * Reads the content of a file within a zip archive and returns it as a byte array.
+     *
+     * @param zipfile The zip file from which to read.
+     * @param filepath The path of the file within the zip archive.
+     * @return The content of the file as a byte array.
+     */
     public static byte[] readInZipAsByte(File zipfile, String filepath) {
         return ZipUtil.unpackEntry(zipfile, filepath);
     }
 
+    /**
+     * Reads the content of a file within a zip archive and returns it as a string, assuming UTF-8 encoding.
+     *
+     * @param zipfile The zip file from which to read.
+     * @param filepath The path of the file within the zip archive.
+     * @return The content of the file as a string.
+     */
     public static String readInZipAsString(File zipfile, String filepath) {
-        try {
-            return new String(readInZipAsByte(zipfile, filepath), "UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            return "";
-        }
+        return new String(readInZipAsByte(zipfile, filepath), StandardCharsets.UTF_8);
     }
 }
-

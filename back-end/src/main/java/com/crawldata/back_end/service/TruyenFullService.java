@@ -124,7 +124,7 @@ public class TruyenFullService {
         return totalChapters;
     }
     //get detail chapter
-   public ChapterDetail getDetailChapter(String idNovel, String idChapter) throws IOException {
+   public Chapter getDetailChapter(String idNovel, String idChapter) throws IOException {
         String urlChapter=String.format("https://truyenfull.vn/%s/chuong-%s/",idNovel,idChapter);
         String urlAuthor = "https://truyenfull.vn/"+idNovel;
         Document doc = ConnectJsoup.connect(urlChapter);
@@ -137,8 +137,8 @@ public class TruyenFullService {
         String chapterName = doc.select("a[class=chapter-title]").first().text();
         Elements content = doc.select("div#chapter-c");
         Integer totalChapters = getTotalChapters(urlAuthor);
-        ChapterDetail chapterDetail = new ChapterDetail(novelID,novelName,chapterId,chapterName,totalChapters,author,content.toString());
-        return chapterDetail;
+        Chapter Chapter = new Chapter(novelID,novelName,chapterId,chapterName,totalChapters,author,content.toString());
+        return Chapter;
     }
 
     // get list chapters of novel
@@ -158,7 +158,7 @@ public class TruyenFullService {
             Element linkElement = chapter.selectFirst("a");
             String nameChapter = linkElement.text();
             String idChapter = nameChapter.split(" ")[1].split(":")[0];
-            Chapter chapterObj = new Chapter(idNovel,name,idChapter,nameChapter,totalChapters,author);
+            Chapter chapterObj = new Chapter(idNovel,name,idChapter,nameChapter,totalChapters,author, "");
             chapterList.add(chapterObj);
         }
         DataResponse dataResponse = new DataResponse();
@@ -169,7 +169,7 @@ public class TruyenFullService {
     }
 
     //get detail novel
-    public NovelDetail getDetailNovel(String idNovel) throws IOException {
+    public Novel getDetailNovel(String idNovel) throws IOException {
         String url = "https://truyenfull.vn/"+idNovel;
         Document doc = ConnectJsoup.connect(url);
         String name = doc.select("h3[class=title]").first().text();
@@ -178,10 +178,10 @@ public class TruyenFullService {
         int totalChapter= getTotalChapters(url);
         String image = doc.selectFirst("img").attr("src");
         String description = doc.selectFirst("div[itemprop=description]").toString();
-        return new NovelDetail(idNovel,name,image,description,totalChapter,author);
+        return new Novel(idNovel,name,image,description,totalChapter,author);
     }
 
-    //get list novel of an author base on id
+    //get list novel of an author base on authorId
     public List<Novel> getNovelsAuthor(String idAuthor) throws IOException {
         String url = "https://truyenfull.vn/tac-gia/"+idAuthor;
         Document doc = ConnectJsoup.connect(url);
