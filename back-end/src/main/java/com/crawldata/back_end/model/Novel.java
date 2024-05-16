@@ -41,4 +41,9 @@ public class Novel {
      * The author of the novel.
      */
     Author author;
+
+    /**
+     * The novel's first chapter
+     * **/
+    String firstChapter;
 }

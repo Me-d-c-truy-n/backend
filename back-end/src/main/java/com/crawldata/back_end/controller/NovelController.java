@@ -7,7 +7,6 @@ import com.crawldata.back_end.response.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 
 @RestController
@@ -66,7 +65,7 @@ public class NovelController {
 
     //find author by name novel or author
     @GetMapping("{pluginId}/tim-kiem")
-    public ResponseEntity<?> findNovels(@PathVariable("pluginId") String pluginId, @RequestParam(value = "page",defaultValue = "1") int page,@RequestParam(value = "search",defaultValue = "%22") String search) {
+    public ResponseEntity<?> findNovels(@PathVariable("pluginId") String pluginId, @RequestParam(value = "page",defaultValue = "1") int page,@RequestParam(value = "search",defaultValue = "%22") String search, @RequestParam(name = "orderBy" ,value = "a-z") String orderBy) {
         List<Novel> novels = novelServiceImpl.getAllNovels(pluginId, page, search);
         int totalPage = novelServiceImpl.getNovelTotalPages(pluginId, SourceNovels.FULL_NOVELS);
         DataResponse result = new DataResponse("success",totalPage,page,novels.size(),"",novels);

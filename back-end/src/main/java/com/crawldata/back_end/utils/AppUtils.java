@@ -14,7 +14,7 @@ public class AppUtils {
     private AppUtils() {
     }
 
-    /**
+     /**
      * The current directory path.
      */
     public static String curDir = System.getProperty("user.dir");

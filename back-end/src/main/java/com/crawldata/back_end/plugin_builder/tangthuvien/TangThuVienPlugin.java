@@ -189,12 +189,48 @@ public class TangThuVienPlugin implements PluginFactory {
 
     @Override
     public List<Novel> getAuthorNovels(String authorId) {
-        
-        return List.of();
-    }
 
+        String authorUrl = rootUrl + "/tac-gia?author=" + authorId;
+        String authorName = "";
+        List<Novel> listNovel = new ArrayList<>();
+        try {
+            Document doc = Jsoup.connect(authorUrl).get();
+            Element authorPhotoElement = doc.getElementById("authorId");
+            authorName = authorPhotoElement.child(1).child(0).text();
+            Element bookImgTextElement = doc.getElementsByClass("book-img-text").get(0);
+            Elements bookElements = bookImgTextElement.child(0).children();
+            for(Element bookElement : bookElements)
+            {
+                String novelId;
+                Author author;
+                String novelName;
+                Integer totalChapter;
+                String imageURL;
+                String description;
+
+                if(bookElement.childrenSize() > 1)
+                {
+                    imageURL = bookElement.child(0).child(0).child(0).attr("src");
+                    String novelUrl  = bookElement.child(0).child(0).attr("href");
+                    novelId = getNovelIdFromUrl(novelUrl);
+                    novelName = bookElement.child(1).child(0).text();
+                    author = new Author(authorId, authorName);
+
+                    description = bookElement.child(1).child(2).html();
+                    totalChapter = Integer.parseInt(bookElement.child(1).child(1).child(7).child(0).text());
+                    listNovel.add(new Novel(novelId, novelName, imageURL, description,totalChapter, author));
+                }
+            }
+        }
+        catch (Exception e) {
+            // TODO: handle exception
+            throw new RuntimeException(e);
+        }
+        return listNovel;
+    }
     @Override
     public List<Novel> getAllNovels(int page, String search) {
         return List.of();
     }
+
 }

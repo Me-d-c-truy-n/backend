@@ -27,6 +27,16 @@ public class Chapter {
     String chapterId;
 
     /**
+     the novel's nextChapterId
+     **/
+    private String nextChapterId;
+
+    /**
+     the novel's preChapterId
+     **/
+    private String preChapterId;
+
+    /**
      * The name of the chapter.
      */
     String name;
