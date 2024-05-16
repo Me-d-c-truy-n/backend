@@ -244,15 +244,15 @@ public class TruyenFullPlugin implements PluginFactory {
                 int totalChapter = Integer.parseInt(textChapter[textChapter.length-1]);
                 String nameAuthor = novel.selectFirst("span[class=author]").text();
                 String urlDetail = "https://truyenfull.vn/"+HandleString.makeSlug(name);
-                Document docDetail = null;
-                try {
-                    docDetail = ConnectJsoup.connect(urlDetail);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
+//                Document docDetail = null;
+//                try {
+//                    docDetail = ConnectJsoup.connect(urlDetail);
+//                } catch (IOException e) {
+//                    throw new RuntimeException(e);
+//                }
                 Author author = new Author(HandleString.makeSlug(nameAuthor),nameAuthor);
-                String description = docDetail.selectFirst("div[itemprop=description]").toString();
-                Novel novelObj = new Novel(HandleString.makeSlug(name), name, image, description,totalChapter, author);
+                //String description = docDetail.selectFirst("div[itemprop=description]").toString();
+                Novel novelObj = new Novel(HandleString.makeSlug(name), name, image,"",totalChapter, author);
                 novelList.add(novelObj);
             }
         }
