@@ -1,5 +1,6 @@
 package com.crawldata.back_end.response;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -11,7 +12,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class DataResponse {
-
     /**
      * The status of the response.
      */
@@ -20,27 +20,38 @@ public class DataResponse {
     /**
      * The total number of pages.
      */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     Integer totalPage;
 
     /**
      * The current page number.
      */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     Integer currentPage;
 
     /**
      * The number of items per page.
      */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     Integer perPage;
 
     /**
      * The value used for search, if any.
      */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     String searchValue;
 
     /**
      * The data payload of the response.
      */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     Object data;
+
+    /**
+     * Message for error
+     */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    String message;
 
     /**
      * Sets the current page number, ensuring it does not exceed the total number of pages.

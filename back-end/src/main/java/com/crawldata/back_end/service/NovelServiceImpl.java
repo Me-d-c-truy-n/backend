@@ -15,81 +15,65 @@ import java.util.List;
 @AllArgsConstructor
 public class NovelServiceImpl implements NovelService{
     private PluginManager pluginManager;
-
-
+    private final  String createPluginErrorMessage = "Error when creating plugin";
     @Override
     public PluginFactory getPluginFactory(String pluginId) {
         pluginManager.updatePlugins();
         return pluginManager.getPluginById(pluginId).getPluginObject();
     }
-
     @Override
-    public int getNovelTotalPages(String pluginId, String url) {
+    public DataResponse getNovelChapterDetail(String pluginId, String novelId, String chapterId) {
         PluginFactory pluginFactory = getPluginFactory(pluginId);
         if(pluginFactory == null) {
-            return 0;
-        } else {
-            return pluginFactory.getNovelTotalPages(url);
-        }
-    }
-
-    @Override
-    public Integer getNovelTotalChapters(String pluginId, String url) {
-        PluginFactory pluginFactory = getPluginFactory(pluginId);
-        if(pluginFactory == null) {
-            return null;
-        } else {
-            return pluginFactory.getNovelTotalChapters(url);
-        }
-    }
-
-    @Override
-    public Chapter getNovelChapterDetail(String pluginId, String novelId, String chapterId) {
-        PluginFactory pluginFactory = getPluginFactory(pluginId);
-        if(pluginFactory == null) {
-            return new Chapter();
+            return new DataResponse("error", null, null, null, null, null, createPluginErrorMessage);
         } else {
             return pluginFactory.getNovelChapterDetail(novelId, chapterId);
         }
     }
-
     @Override
     public DataResponse getNovelListChapters(String pluginId, String novelId, int page) {
         PluginFactory pluginFactory = getPluginFactory(pluginId);
         if(pluginFactory == null) {
-            return new DataResponse();
+            return new DataResponse("error", null, null, null, null, null, createPluginErrorMessage);
         } else {
             return pluginFactory.getNovelListChapters(novelId, page);
         }
     }
-
     @Override
-    public Novel getNovelDetail(String pluginId, String novelId) {
+    public DataResponse getNovelDetail(String pluginId, String novelId) {
         PluginFactory pluginFactory = getPluginFactory(pluginId);
         if(pluginFactory == null) {
-            return new Novel();
+            return new DataResponse("error", null, null, null, null, null, createPluginErrorMessage);
         } else {
             return pluginFactory.getNovelDetail(novelId);
         }
     }
-
     @Override
-    public List<Novel> getAuthorNovels(String pluginId, String authorId) {
+    public DataResponse getDetailAuthor(String pluginId, String authorId) {
         PluginFactory pluginFactory = getPluginFactory(pluginId);
         if(pluginFactory == null) {
-            return new ArrayList<>();
+            return new DataResponse("error", null, null, null, null, null, createPluginErrorMessage);
         } else {
-            return pluginFactory.getAuthorNovels(authorId);
+            return pluginFactory.getDetailAuthor(authorId);
+        }
+    }
+    @Override
+    public DataResponse getAllNovels(String pluginId, int page, String search) {
+        PluginFactory pluginFactory = getPluginFactory(pluginId);
+        if (pluginFactory == null) {
+            return new DataResponse("error", null, null, null, null, null, createPluginErrorMessage);
+        } else {
+            return pluginFactory.getAllNovels(page, search);
         }
     }
 
     @Override
-    public List<Novel> getAllNovels(String pluginId, int page, String search) {
+    public DataResponse getSearchedNovels(String pluginId, int page, String key, String orderBy) {
         PluginFactory pluginFactory = getPluginFactory(pluginId);
-        if(pluginFactory == null) {
-            return new ArrayList<>();
+        if (pluginFactory == null) {
+            return new DataResponse("error", null, null, null, null, null, createPluginErrorMessage);
         } else {
-            return pluginFactory.getAllNovels(page, search);
+            return pluginFactory.getNovelSearch(page, key,orderBy);
         }
     }
 }

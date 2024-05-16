@@ -18,7 +18,7 @@ import java.util.regex.Pattern;
 public class TruyenFullService {
 
     //get information of a comic full chapters
-    public int getEndPage(String url) throws IOException {
+    /*public int getEndPage(String url) throws IOException {
         Document doc = ConnectJsoup.connect(url);
         Elements pages = doc.select("ul[class=pagination pagination-sm] li");
         int totalPages = 1 ;
@@ -226,5 +226,5 @@ public class TruyenFullService {
             }
         }
         return novelList;
-    }
+    }*/
 }

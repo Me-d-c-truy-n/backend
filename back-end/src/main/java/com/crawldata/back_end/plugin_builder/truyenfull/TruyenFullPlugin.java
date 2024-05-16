@@ -20,6 +20,30 @@ import java.util.regex.Pattern;
 
 public class TruyenFullPlugin implements PluginFactory {
     @Override
+    public DataResponse getNovelChapterDetail(String novelId, String chapterId) {
+        return null;
+    }
+    @Override
+    public DataResponse getNovelListChapters(String novelId, int page) {
+        return null;
+    }
+    @Override
+    public DataResponse getNovelDetail(String novelId) {
+        return null;
+    }
+    @Override
+    public DataResponse getDetailAuthor(String authorId) {
+        return null;
+    }
+    @Override
+    public DataResponse getAllNovels(int page, String search) {
+        return null;
+    }
+    @Override
+    public DataResponse getNovelSearch(int page, String key, String orderBy) {
+        return null;
+    }
+    /*@Override
     public int getNovelTotalPages(String url) {
         Document doc = null;
         try {
@@ -257,5 +281,7 @@ public class TruyenFullPlugin implements PluginFactory {
             }
         }
         return novelList;
-    }
+    }*/
+
+
 }

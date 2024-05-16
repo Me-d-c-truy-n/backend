@@ -7,18 +7,15 @@ import java.nio.file.FileSystems;
  * Provides methods related to file paths and directory handling.
  */
 public class AppUtils {
-
     /**
      * Private constructor to prevent instantiation of the utility class.
      */
     private AppUtils() {
     }
-
      /**
      * The current directory path.
      */
     public static String curDir = System.getProperty("user.dir");
-
     /**
      * The cache directory path, initialized to the current directory.
      */

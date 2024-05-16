@@ -11,30 +11,14 @@ import java.util.List;
  */
 public interface PluginFactory {
 
-    /**
-     * Retrieves the total number of pages of a novel from the given URL.
-     *
-     * @param url The URL of the novel.
-     * @return The total number of pages of the novel.
-     */
-    public int getNovelTotalPages(String url);
-
-    /**
-     * Retrieves the total number of chapters of a novel from the given URL.
-     *
-     * @param url The URL of the novel.
-     * @return The total number of chapters of the novel.
-     */
-    public Integer getNovelTotalChapters(String url);
-
-    /**
+     /**
      * Retrieves the details of a specific chapter of a novel.
      *
      * @param novelId The ID of the novel.
      * @param chapterId The ID of the chapter.
      * @return The details of the chapter.
      */
-    public Chapter getNovelChapterDetail(String novelId, String chapterId);
+    public DataResponse getNovelChapterDetail(String novelId, String chapterId);
     /**
      * Retrieves a list of chapters for a given novel and page number.
      *
@@ -50,7 +34,7 @@ public interface PluginFactory {
      * @param novelId The ID of the novel.
      * @return The details of the novel.
      */
-    public Novel getNovelDetail(String novelId);
+    public DataResponse getNovelDetail(String novelId);
 
     /**
      * Retrieves the novels written by a specific author.
@@ -58,7 +42,7 @@ public interface PluginFactory {
      * @param authorId The ID of the author.
      * @return The list of novels written by the author.
      */
-    public List<Novel> getAuthorNovels(String authorId);
+    public DataResponse getDetailAuthor(String authorId);
 
     /**
      * Retrieves all novels matching the given search criteria and page number.
@@ -67,5 +51,16 @@ public interface PluginFactory {
      * @param search The search criteria.
      * @return The list of novels.
      */
-    public List<Novel> getAllNovels(int page, String search);
+    public DataResponse getAllNovels(int page, String search);
+
+
+    /**
+     * Retrieves all novels matching the given search criteria and page number.
+     *
+     * @param page The page number.
+     * @param key The search criteria.
+     * @param orderBy The sort option
+     * @return The list of novels.
+     */
+    public DataResponse getNovelSearch(int page, String key, String orderBy);
 }
