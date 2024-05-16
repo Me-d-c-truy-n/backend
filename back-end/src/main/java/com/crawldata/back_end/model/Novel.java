@@ -26,7 +26,6 @@ public class Novel {
      * The URL or path to the image associated with the novel.
      */
     String image;
-
     /**
      * A brief description of the novel.
      */

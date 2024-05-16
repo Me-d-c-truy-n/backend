@@ -31,7 +31,6 @@ public class TruyenFullPlugin implements PluginFactory {
         int totalPages = 1 ;
         if (pages.size()!=0){
             StringBuilder linkEndPage = new StringBuilder();
-
             Element page = pages.get(pages.size()-2);
             if(page.text().equals("Cuối »"))
             {
@@ -81,81 +80,39 @@ public class TruyenFullPlugin implements PluginFactory {
         {
             totalChapters = doc.select("ul[class=list-chapter] li").size();
         }
-        else {
+        else
+        {
             StringBuilder linkEndPage = new StringBuilder();
             Element page = pages.get(pages.size()-2);
-            if(page.text().equals("Cuối »"))
+            Document docPage = null;
+            switch(page.text())
             {
-                linkEndPage.append(page.select("a").attr("href"));
-                Document docPage = null;
-                try {
-                    docPage = ConnectJsoup.connect(linkEndPage.toString());
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-                Elements pageEnd = docPage.select("ul[class=list-chapter] li");
-                String endPage = pageEnd.get(pageEnd.size()-1).text();
-                Pattern pattern = Pattern.compile("\\d+");
-                totalChapters = Integer.valueOf(0);
-                // Match the pattern against the input string
-                Matcher matcher = pattern.matcher(endPage);
-                // Check if a match is found
-                if (matcher.find()) {
-                    // Extract the matched numeric part
-                    String chapterNumber = matcher.group();
-                    totalChapters = Integer.valueOf(chapterNumber);
-                } else {
-                    System.out.println("No chapter number found");
-                }
+                case "Trang tiếp":
+                    Element pageNext = pages.get(pages.size()-1);
+                    linkEndPage.append(pageNext.select("a").attr("href"));
+                    break;
+                default:
+                    linkEndPage.append(page.select("a").attr("href"));
+
             }
-            else if(page.text().equals("Trang tiếp"))
-            {
-                Element pageNext = pages.get(pages.size()-1);
-                linkEndPage.append(pageNext.select("a").attr("href"));
-                Document docPage = null;
-                try {
-                    docPage = ConnectJsoup.connect(linkEndPage.toString());
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-                Elements pageEnd = docPage.select("ul[class=list-chapter] li");
-                String endPage = pageEnd.get(pageEnd.size()-1).text();
-                Pattern pattern = Pattern.compile("\\d+");
-                totalChapters = Integer.valueOf(0);
-                // Match the pattern against the input string
-                Matcher matcher = pattern.matcher(endPage);
-                // Check if a match is found
-                if (matcher.find()) {
-                    // Extract the matched numeric part
-                    String chapterNumber = matcher.group();
-                    totalChapters = Integer.valueOf(chapterNumber);
-                } else {
-                    System.out.println("No chapter number found");
-                }
+            try {
+                docPage = ConnectJsoup.connect(linkEndPage.toString());
+            } catch (IOException e) {
+                throw new RuntimeException(e);
             }
-            else
-            {
-                linkEndPage.append(page.select("a").attr("href"));
-                Document docPage = null;
-                try {
-                    docPage = ConnectJsoup.connect(linkEndPage.toString());
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-                Elements pageEnd = docPage.select("ul[class=list-chapter] li");
-                String endPage = pageEnd.get(pageEnd.size()-1).text();
-                Pattern pattern = Pattern.compile("\\d+");
-                totalChapters = Integer.valueOf(0);
-                // Match the pattern against the input string
-                Matcher matcher = pattern.matcher(endPage);
-                // Check if a match is found
-                if (matcher.find()) {
-                    // Extract the matched numeric part
-                    String chapterNumber = matcher.group();
-                    totalChapters = Integer.valueOf(chapterNumber);
-                } else {
-                    System.out.println("No chapter number found");
-                }
+            Elements pageEnd = docPage.select("ul[class=list-chapter] li");
+            String endPage = pageEnd.get(pageEnd.size()-1).text();
+            Pattern pattern = Pattern.compile("\\d+");
+            totalChapters = Integer.valueOf(0);
+            // Match the pattern against the input string
+            Matcher matcher = pattern.matcher(endPage);
+            // Check if a match is found
+            if (matcher.find()) {
+                // Extract the matched numeric part
+                String chapterNumber = matcher.group();
+                totalChapters = Integer.valueOf(chapterNumber);
+            } else {
+                System.out.println("No chapter number found");
             }
         }
         return totalChapters;
@@ -283,9 +240,8 @@ public class TruyenFullPlugin implements PluginFactory {
             if(!novel.text().equals("")) {
                 String image = novel.selectFirst("div[data-image]").attr("data-image");
                 String name = novel.selectFirst("h3").text();
-                String link = novel.selectFirst("a").attr("href");
-                link = link.replaceAll("\\s", "");
-                int totalChapter = getNovelTotalChapters(link);
+                String[] textChapter = novel.select("a").text().split(" ");
+                int totalChapter = Integer.parseInt(textChapter[textChapter.length-1]);
                 String nameAuthor = novel.selectFirst("span[class=author]").text();
                 String urlDetail = "https://truyenfull.vn/"+HandleString.makeSlug(name);
                 Document docDetail = null;

@@ -58,6 +58,8 @@ public class NovelController {
     @GetMapping("{pluginId}/ds-truyen")
     public ResponseEntity<?> getAllNovels(@PathVariable("pluginId") String pluginId, @RequestParam(value = "page",defaultValue = "1") int page, @RequestParam(value = "search",defaultValue = "%22") String search) {
         List<Novel> novels = novelServiceImpl.getAllNovels(pluginId, page, search);
+        //sort list
+
         int totalPage = novelServiceImpl.getNovelTotalPages(pluginId, SourceNovels.FULL_NOVELS+search);
         DataResponse result = new DataResponse("success",totalPage,page,novels.size(),"",novels);
         return ResponseEntity.ok(result);
