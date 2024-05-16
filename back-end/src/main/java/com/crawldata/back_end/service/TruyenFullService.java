@@ -142,6 +142,7 @@ public class TruyenFullService {
     }
 
     // get list chapters of novel
+
     public DataResponse getAllChapters(String idNovel, int page) throws IOException {
         String url = "https://truyenfull.vn/"+idNovel;
         Document doc = ConnectJsoup.connect(url);

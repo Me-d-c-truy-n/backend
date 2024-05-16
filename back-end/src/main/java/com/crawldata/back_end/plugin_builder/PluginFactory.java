@@ -35,7 +35,6 @@ public interface PluginFactory {
      * @return The details of the chapter.
      */
     public Chapter getNovelChapterDetail(String novelId, String chapterId);
-
     /**
      * Retrieves a list of chapters for a given novel and page number.
      *
