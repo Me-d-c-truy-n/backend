@@ -101,6 +101,7 @@ public class TruyenFullPlugin implements PluginFactory {
             chapterList.add(chapterObj);
         }
         DataResponse dataResponse = new DataResponse();
+        dataResponse.setStatus("success");
         dataResponse.setData(chapterList);
         dataResponse.setTotalPage(totalPages);
         dataResponse.setPerPage(chapterList.size());
