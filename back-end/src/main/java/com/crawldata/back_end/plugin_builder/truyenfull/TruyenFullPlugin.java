@@ -151,7 +151,49 @@ public class TruyenFullPlugin implements PluginFactory {
     }
     @Override
     public DataResponse getNovelListChapters(String novelId, int page) {
-        return null;
+        String url = SourceNovels.NOVEL_MAIN + novelId;
+        Document doc = null;
+        try {
+            doc = ConnectJsoup.connect(url);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        String name = doc.select("h3[class=title]").first().text();
+        String authorName = doc.select("a[itemprop=author]").first().text();
+        Author author = new Author(HandleString.makeSlug(authorName),authorName);
+        List<Chapter> chapterList = new ArrayList<>();
+        Integer totalPages = getNovelTotalPages(url);
+        String link = String.format("https://truyenfull.vn/%s/trang-%d",novelId,page);
+        Document docChap= null;
+        try {
+            docChap = ConnectJsoup.connect(link);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        Elements chapters = docChap.select("ul[class=list-chapter] li");
+        for (Element chapter : chapters) {
+            String nameChapter = chapter.selectFirst("a").text();
+            String linkChapter = chapter.selectFirst("a").attr("href");
+            String idChapter = linkChapter.split("/")[linkChapter.split("/").length-1];
+            String pageChapterLink = url+"/"+idChapter;
+            Document docDetail= null;
+            try {
+                docDetail = ConnectJsoup.connect(pageChapterLink);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            String nextChapterURL = docDetail.select("a[id=next_chap]").attr("href");
+            String idNextChapter = nextChapterURL.split("/").length!=1? nextChapterURL.split("/")[nextChapterURL.split("/").length-1]:"end";
+            String preChapterURL = docDetail.select("a[id=prev_chap]").attr("href");
+            String idPreChapter = preChapterURL.split("/").length != 1? preChapterURL.split("/")[preChapterURL.split("/").length-1]:"end";
+           Chapter chapterObj = new Chapter(novelId,name,idChapter,idNextChapter,idPreChapter,nameChapter,author, "");
+            chapterList.add(chapterObj);
+        }
+        DataResponse dataResponse = new DataResponse();
+        dataResponse.setData(chapterList);
+        dataResponse.setTotalPage(totalPages);
+        dataResponse.setPerPage(chapterList.size());
+        return dataResponse;
     }
     @Override
     public DataResponse getNovelDetail(String novelId) {
