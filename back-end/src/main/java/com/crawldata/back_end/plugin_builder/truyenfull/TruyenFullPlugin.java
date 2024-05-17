@@ -19,6 +19,105 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class TruyenFullPlugin implements PluginFactory {
+
+    /**
+     *Support function
+     */
+    public Integer getNovelTotalChapters(String url) {
+        Document doc = null;
+        try {
+            doc = ConnectJsoup.connect(url);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        Elements pages = doc.select("ul[class=pagination pagination-sm] li");
+        Integer totalChapters =0 ;
+        if(pages.size()==0)
+        {
+            totalChapters = doc.select("ul[class=list-chapter] li").size();
+        }
+        else
+        {
+            StringBuilder linkEndPage = new StringBuilder();
+            Element page = pages.get(pages.size()-2);
+            Document docPage = null;
+            switch(page.text())
+            {
+                case "Trang tiếp":
+                    Element pageNext = pages.get(pages.size()-1);
+                    linkEndPage.append(pageNext.select("a").attr("href"));
+                    break;
+                default:
+                    linkEndPage.append(page.select("a").attr("href"));
+
+            }
+            try {
+                docPage = ConnectJsoup.connect(linkEndPage.toString());
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            Elements pageEnd = docPage.select("ul[class=list-chapter] li");
+            String endPage = pageEnd.get(pageEnd.size()-1).text();
+            Pattern pattern = Pattern.compile("\\d+");
+            totalChapters = Integer.valueOf(0);
+            // Match the pattern against the input string
+            Matcher matcher = pattern.matcher(endPage);
+            // Check if a match is found
+            if (matcher.find()) {
+                // Extract the matched numeric part
+                String chapterNumber = matcher.group();
+                totalChapters = Integer.valueOf(chapterNumber);
+            } else {
+                System.out.println("No chapter number found");
+            }
+        }
+        return totalChapters;
+    }
+    public int getNovelTotalPages(String url) {
+        Document doc = null;
+        try {
+            doc = ConnectJsoup.connect(url);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        Elements pages = doc.select("ul[class=pagination pagination-sm] li");
+        int totalPages = 1 ;
+        if (pages.size()!=0){
+            StringBuilder linkEndPage = new StringBuilder();
+            Element page = pages.get(pages.size()-2);
+            if(page.text().equals("Cuối »"))
+            {
+                linkEndPage.append(page.select("a").attr("href"));
+                String linkValid = HandleString.getValidURL(linkEndPage.toString());
+                Document docPage= null;
+                try {
+                    docPage = ConnectJsoup.connect(linkValid);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+                Elements allPage = docPage.select("ul[class=pagination pagination-sm] li");
+                totalPages =  Integer.parseInt(allPage.get(allPage.size()-2).text().split(" ")[0]);
+            }
+            else if(page.text().equals("Trang tiếp"))
+            {
+                Element pageNext = pages.get(pages.size()-1);
+                linkEndPage.append(pageNext.select("a").attr("href"));
+                Document docPage= null;
+                try {
+                    docPage = ConnectJsoup.connect(linkEndPage.toString());
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+                Elements allPage = docPage.select("ul[class=pagination pagination-sm] li");
+                totalPages =  Integer.parseInt(allPage.get(allPage.size()-1).text().split(" ")[0]);
+            }
+            else
+            {
+                totalPages =Integer.parseInt( page.text());
+            }
+        }
+        return totalPages;
+    }
     @Override
     public DataResponse getNovelChapterDetail(String novelId, String chapterId) {
         return null;
@@ -37,7 +136,41 @@ public class TruyenFullPlugin implements PluginFactory {
     }
     @Override
     public DataResponse getAllNovels(int page, String search) {
-        return null;
+        String url = SourceNovels.FULL_NOVELS +search+ "&page="+page;
+        List<Novel> novelList = new ArrayList<>();
+        Document doc = null;
+        try {
+            doc = ConnectJsoup.connect(url);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        Elements novels = doc.select("div[itemtype=https://schema.org/Book]");
+        for(int i=0;i<novels.size()-12;i++)
+        {
+            Element novel = novels.get(i);
+            if(!novel.text().equals("")) {
+                String image = novel.selectFirst("div[data-image]").attr("data-image");
+                String name = novel.selectFirst("h3").text();
+                String nameAuthor = novel.selectFirst("span[class=author]").text();
+                String urlDetail = "https://truyenfull.vn/"+HandleString.makeSlug(name);
+                Document docDetail = null;
+                try {
+                    docDetail = ConnectJsoup.connect(urlDetail);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+                Author author = new Author(HandleString.makeSlug(nameAuthor),nameAuthor);
+                String firstChapterURL = docDetail.select("ul[class=list-chapter] li").get(0).select("a").attr("href");
+                String idFirstChapter = firstChapterURL.split("/")[firstChapterURL.split("/").length-1];
+                String description = docDetail.selectFirst("div[itemprop=description]").toString();
+                Novel novelObj = new Novel(HandleString.makeSlug(name), name, image,description, author,idFirstChapter);
+                novelList.add(novelObj);
+            }
+        }
+        int totalPages = getNovelTotalPages(url);
+        DataResponse dataResponse = new DataResponse("success",totalPages,page,novelList.size(),search,novelList,"");
+        dataResponse.setCurrentPage(page);
+        return dataResponse;
     }
     @Override
     public DataResponse getNovelSearch(int page, String key, String orderBy) {
