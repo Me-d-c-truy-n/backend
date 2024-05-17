@@ -1,5 +1,3 @@
-package com.crawldata.back_end.plugin_builder.truyenfull;
-
 import com.crawldata.back_end.model.Author;
 import com.crawldata.back_end.model.Chapter;
 import com.crawldata.back_end.model.Novel;
@@ -18,7 +16,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-@Service
 public class TruyenFullPlugin implements PluginFactory {
     public int getNovelTotalPages(String url) {
         Document doc = null;
