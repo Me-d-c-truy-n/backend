@@ -120,7 +120,34 @@ public class TruyenFullPlugin implements PluginFactory {
     }
     @Override
     public DataResponse getNovelChapterDetail(String novelId, String chapterId) {
-        return null;
+        String urlChapter = SourceNovels.NOVEL_MAIN+novelId+"/"+chapterId;
+        String urlAuthor = SourceNovels.NOVEL_MAIN+novelId;
+        Document doc = null;
+        try {
+            doc = ConnectJsoup.connect(urlChapter);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        Document docB = null;
+        try {
+            docB = ConnectJsoup.connect(urlAuthor);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        String nameAuthor = docB.select("a[itemprop=author]").text();
+        Author author = new Author(HandleString.makeSlug(nameAuthor),nameAuthor);
+        String novelName = doc.select("a[class=truyen-title]").first().text();
+        String chapterName = doc.select("a[class=chapter-title]").first().text();
+        Elements content = doc.select("div#chapter-c");
+        String nextChapterURL = doc.select("a[id=next_chap]").attr("href");
+        String idNextChapter = nextChapterURL.split("/").length!=1? nextChapterURL.split("/")[nextChapterURL.split("/").length-1]:"end";
+        String preChapterURL = doc.select("a[id=prev_chap]").attr("href");
+        String idPreChapter = preChapterURL.split("/").length != 1? preChapterURL.split("/")[preChapterURL.split("/").length-1]:"end";
+        Chapter chapterDetail = new Chapter(novelId,novelName,chapterId,idNextChapter,idPreChapter,chapterName,author,content.toString());
+        DataResponse dataResponse = new DataResponse();
+        dataResponse.setStatus("success");
+        dataResponse.setData(chapterDetail);
+        return dataResponse;
     }
     @Override
     public DataResponse getNovelListChapters(String novelId, int page) {
