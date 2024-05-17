@@ -33,6 +33,7 @@ public class PluginManager {
         }
 
         // Clear existing plugins
+        unloadPlugins();
         plugins.clear();
 
         // Load plugins from JAR files in the directory
@@ -50,6 +51,12 @@ public class PluginManager {
         }
     }
 
+    /**
+     * Unloads classes of all plugins.
+     */
+    private void unloadPlugins() {
+        pluginLoader.unloadPluginClasses();
+    }
 
     /**
      * Retrieves plugin information by ID.

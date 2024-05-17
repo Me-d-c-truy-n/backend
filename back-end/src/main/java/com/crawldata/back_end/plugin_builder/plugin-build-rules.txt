@@ -1,0 +1,31 @@
+1. Plugin must implements the interface PluginFactory
+
+2. In "plugin.jar" must contains 2 things: a plugin.json and a .class file
+    2.1. "plugin.json" contains the data with sample below:
+        {
+          "metadata": {
+            "id": "pluginId",
+            "name": "Plugin Name",
+            "url": "https://pluginId.vn/",
+            "className": "pluginClass" - which is the name of the .class file
+          }
+        }
+    2.2. .class file is a .java file which has been compiled
+        To compile .java file, use "javac -cp "..." path-to-java-file", example:
+            javac
+            -cp "C:\...\TKPM-backend\back-end\target\classes;...and many others class path"
+            C:\...\TKPM-backend\back-end\src\main\java\com\crawldata\back_end\plugin_builder\tangthuvien\TangThuVienPlugin.java
+
+3. How to build plugin.jar?
+    3.1. Build project.
+    3.2. Try to run project, checkout the command that Intellij use to run the project, copy the classpath part.
+    3.3. Go to your plugin.java, delete the line declared its package (MUST DO)
+    3.3. Prepared plugin.json and plugin.class follows section 2 (classpath in javac command must get from step 3.2)
+    3.4. Go to File -> Project Structure -> Artifacts -> Click + button, choose Jar -> Empty.
+    3.5. Rename your jar file.
+    3.6. On the right panel, above plugin.jar, click the "+" button with little arrow in the corner.
+    3.7. Choose File.
+    3.8. Find your plugin.json and plugin.class (Usually are in plugin_builder folder) and select them.
+    3.9. Click Ok.
+    3.10. Go to Build -> Build Artifacts -> Choose your jar and build.
+    3.11. Go to "out" folder, copy your plugin.jar and paste it to "plugins" folder.

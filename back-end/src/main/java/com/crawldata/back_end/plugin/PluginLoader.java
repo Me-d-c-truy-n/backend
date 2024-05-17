@@ -11,6 +11,7 @@ import org.xeustechnologies.jcl.JclUtils;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Map;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
@@ -20,7 +21,7 @@ import java.util.jar.JarFile;
 @Component
 public class PluginLoader {
 
-    private static final JarClassLoader jcl = new JarClassLoader();
+    private static JarClassLoader jcl = new JarClassLoader();
 
     /**
      * Loads a plugin class from the specified JAR file.
@@ -82,5 +83,17 @@ public class PluginLoader {
             // Handle error: Unable to read "plugin.json" from the JAR file
             e.printStackTrace();
         }
+    }
+
+    /**
+     * Unloads the all plugin classes.
+     *
+     */
+    public void unloadPluginClasses() {
+        Map<String, Class> loadedClasses = jcl.getLoadedClasses();
+        for(Map.Entry<String, Class> entry : loadedClasses.entrySet()) {
+            jcl.unloadClass(entry.getKey());
+        }
+        jcl = new JarClassLoader();
     }
 }
