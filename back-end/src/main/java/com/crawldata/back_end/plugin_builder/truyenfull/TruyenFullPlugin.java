@@ -177,7 +177,36 @@ public class TruyenFullPlugin implements PluginFactory {
     }
     @Override
     public DataResponse getDetailAuthor(String authorId) {
-        return null;
+        String url =  SourceNovels.NOVEL_MAIN+ "tac-gia/"+authorId;
+        Document doc = null;
+        try {
+            doc = ConnectJsoup.connect(url);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        Elements novels = doc.select("div[itemtype=https://schema.org/Book]");
+        String nameAuthor = novels.get(0).selectFirst("span[class=author]").text();
+        Author author = new Author(HandleString.makeSlug(nameAuthor),nameAuthor);
+        List<Novel> novelList = new ArrayList<>();
+        for(Element novel : novels)
+        {
+            String image = novel.selectFirst("div[data-image]").attr("data-image");
+            String name = novel.selectFirst("h3").text();
+            String link = novel.selectFirst("a").attr("href");
+            Document docDetail = null;
+            try {
+                docDetail = ConnectJsoup.connect(link);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            String firstChapterURL = docDetail.select("ul[class=list-chapter] li").get(0).select("a").attr("href");
+            String idFirstChapter = firstChapterURL.split("/")[firstChapterURL.split("/").length-1];
+            String description = docDetail.selectFirst("div[itemprop=description]").toString();
+            Novel novelObj = new Novel(HandleString.makeSlug(name),name,image,description,author,idFirstChapter);
+            novelList.add(novelObj);
+        }
+        DataResponse dataResponse = new DataResponse("success",1,1,novelList.size(),null,novelList,null);
+        return dataResponse;
     }
     @Override
     public DataResponse getAllNovels(int page, String search) {
