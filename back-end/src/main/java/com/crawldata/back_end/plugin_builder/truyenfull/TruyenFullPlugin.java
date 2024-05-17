@@ -128,7 +128,25 @@ public class TruyenFullPlugin implements PluginFactory {
     }
     @Override
     public DataResponse getNovelDetail(String novelId) {
-        return null;
+        String url = SourceNovels.NOVEL_MAIN+novelId;
+        Document doc = null;
+        try {
+            doc = ConnectJsoup.connect(url);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        String name = doc.select("h3[class=title]").first().text();
+        String authorName = doc.select("a[itemprop=author]").first().text();
+        Author author = new Author(HandleString.makeSlug(authorName),authorName);
+        String firstChapterURL = doc.select("ul[class=list-chapter] li").get(0).select("a").attr("href");
+        String idFirstChapter = firstChapterURL.split("/")[firstChapterURL.split("/").length-1];
+        String image = doc.selectFirst("img").attr("src");
+        String description = doc.selectFirst("div[itemprop=description]").toString();
+        Novel novel = new Novel(novelId,name,image,description,author,idFirstChapter);
+        DataResponse dataResponse = new DataResponse();
+        dataResponse.setData(novel);
+        dataResponse.setStatus("success");
+        return dataResponse;
     }
     @Override
     public DataResponse getDetailAuthor(String authorId) {
