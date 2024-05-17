@@ -1,5 +1,4 @@
 package com.crawldata.back_end.controller;
-
 import com.crawldata.back_end.service.NovelServiceImpl;
 import com.crawldata.back_end.model.*;
 import com.crawldata.back_end.utils.*;
@@ -14,7 +13,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class NovelController {
     private final NovelServiceImpl novelServiceImpl;
-
     //Get detail chapter
     @GetMapping("{pluginId}/truyen/{novelId}/{chapterId}")
     public ResponseEntity<?> getContents(@PathVariable String pluginId, @PathVariable("novelId") String novelId, @PathVariable("chapterId") String chapterId) {
@@ -44,7 +42,7 @@ public class NovelController {
     //get all novels
     @GetMapping("{pluginId}/ds-truyen")
     public ResponseEntity<?> getAllNovels(@PathVariable("pluginId") String pluginId, @RequestParam(value = "page",defaultValue = "1") int page, @RequestParam(value = "search",defaultValue = "%22") String search) {
-        DataResponse dataResponse = novelServiceImpl.getAllNovels(pluginId, page, search);
+       DataResponse dataResponse = novelServiceImpl.getAllNovels(pluginId, page, search);
         return ResponseEntity.ok(dataResponse);
     }
 

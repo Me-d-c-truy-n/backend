@@ -16,6 +16,8 @@
             -cp "C:\...\TKPM-backend\back-end\target\classes;...and many others class path"
             C:\...\TKPM-backend\back-end\src\main\java\com\crawldata\back_end\plugin_builder\tangthuvien\TangThuVienPlugin.java
 
+
+
 3. How to build plugin.jar?
     3.1. Build project.
     3.2. Try to run project, checkout the command that Intellij use to run the project, copy the classpath part.
