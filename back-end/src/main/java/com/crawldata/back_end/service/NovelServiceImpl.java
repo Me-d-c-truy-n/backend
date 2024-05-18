@@ -54,7 +54,7 @@ public class NovelServiceImpl implements NovelService{
         if(pluginFactory == null) {
             return new DataResponse("error", null, null, null, null, null, createPluginErrorMessage);
         } else {
-            return pluginFactory.getDetailAuthor(authorId);
+            return pluginFactory.getAuthorDetail(authorId);
         }
     }
     @Override

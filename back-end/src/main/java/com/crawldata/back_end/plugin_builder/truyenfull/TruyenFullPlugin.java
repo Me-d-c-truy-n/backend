@@ -186,7 +186,7 @@ public class TruyenFullPlugin implements PluginFactory {
         }
     }
     @Override
-    public DataResponse getDetailAuthor(String authorId) {
+    public DataResponse getAuthorDetail(String authorId) {
         String url =  SourceNovels.NOVEL_MAIN+ "tac-gia/"+authorId;
         Document doc = null;
         try {

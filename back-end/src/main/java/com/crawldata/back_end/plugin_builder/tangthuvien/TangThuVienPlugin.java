@@ -178,7 +178,7 @@ public class TangThuVienPlugin implements PluginFactory {
 
 
     @Override
-    public DataResponse getDetailAuthor(String authorId) {
+    public DataResponse getAuthorDetail(String authorId) {
         String authorUrl = rootUrl + "/tac-gia?author=" + authorId;
         String authorName = "";
         List<Novel> listNovel = new ArrayList<>();

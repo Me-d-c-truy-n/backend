@@ -42,7 +42,7 @@ public interface PluginFactory {
      * @param authorId The ID of the author.
      * @return The list of novels written by the author.
      */
-    public DataResponse getDetailAuthor(String authorId);
+    public DataResponse getAuthorDetail(String authorId);
 
     /**
      * Retrieves all novels matching the given search criteria and page number.
