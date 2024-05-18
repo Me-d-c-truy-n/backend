@@ -1,15 +1,10 @@
 package com.crawldata.back_end.service;
 
-import com.crawldata.back_end.model.Chapter;
-import com.crawldata.back_end.model.Novel;
 import com.crawldata.back_end.plugin.PluginManager;
 import com.crawldata.back_end.plugin_builder.PluginFactory;
 import com.crawldata.back_end.response.DataResponse;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Service
 @AllArgsConstructor
