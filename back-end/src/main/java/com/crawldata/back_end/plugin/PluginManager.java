@@ -55,7 +55,7 @@ public class PluginManager {
      * Unloads classes of all plugins.
      */
     private void unloadPlugins() {
-        pluginLoader.unloadPluginClasses();
+        pluginLoader.unloadPluginClasses(plugins);
     }
 
     /**

@@ -1,16 +1,11 @@
 package com.crawldata.back_end.service;
 
-import com.crawldata.back_end.model.Chapter;
-import com.crawldata.back_end.model.Novel;
 import com.crawldata.back_end.plugin.PluginManager;
 import com.crawldata.back_end.plugin_builder.PluginFactory;
 import com.crawldata.back_end.response.DataResponse;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Service
 @AllArgsConstructor
@@ -55,7 +50,7 @@ public class NovelServiceImpl implements NovelService{
         if(pluginFactory == null) {
             return new DataResponse("error", null, null, null, null, null, createPluginErrorMessage);
         } else {
-            return pluginFactory.getDetailAuthor(authorId);
+            return pluginFactory.getAuthorDetail(authorId);
         }
     }
     @Override
