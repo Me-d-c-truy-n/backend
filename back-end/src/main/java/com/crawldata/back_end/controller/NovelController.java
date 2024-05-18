@@ -1,19 +1,25 @@
 package com.crawldata.back_end.controller;
 
+import com.crawldata.back_end.service.ExportServiceImpl;
 import com.crawldata.back_end.service.NovelServiceImpl;
 import com.crawldata.back_end.model.*;
 import com.crawldata.back_end.utils.*;
 import com.crawldata.back_end.response.*;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.io.IOException;
 import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
 public class NovelController {
+
     private final NovelServiceImpl novelServiceImpl;
+    private final ExportServiceImpl exportServiceImpl;
 
     //Get detail chapter
     @GetMapping("{pluginId}/truyen/{novelId}/{chapterId}")
@@ -54,4 +60,13 @@ public class NovelController {
         DataResponse dataResponse = novelServiceImpl.getSearchedNovels(pluginId,page,key, orderBy);
         return ResponseEntity.ok(dataResponse);
     }
+
+    @GetMapping("{pluginId}/tai-truyen/{fileType}/{novelId}/{chapterId}")
+    public void export(@PathVariable("pluginId") String pluginId , @PathVariable(name = "fileType") String fileType,@PathVariable(name = "novelId") String novelId,
+                       @PathVariable(name = "chapterId") String chapterId, HttpServletResponse response) throws IOException {
+        DataResponse dataResponse = novelServiceImpl.getNovelChapterDetail(pluginId, novelId, chapterId);
+        exportServiceImpl.export(fileType, (Chapter) dataResponse.getData(),response);
+    }
+
+
 }
