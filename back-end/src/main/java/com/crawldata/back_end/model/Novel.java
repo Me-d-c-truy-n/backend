@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 /**
  * Represents a novel entity.
@@ -38,4 +39,8 @@ public class Novel {
      * **/
     String firstChapter;
 
+    public String toString()
+    {
+        return novelId + "\n" + name + "\n" + image + "\n" + description + "\n" + author + "\n" + firstChapter;
+    }
 }
