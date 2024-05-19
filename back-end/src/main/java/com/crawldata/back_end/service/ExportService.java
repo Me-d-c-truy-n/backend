@@ -5,6 +5,7 @@ import com.crawldata.back_end.model.Chapter;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
+import java.util.List;
 
 
 /**
@@ -28,4 +29,8 @@ public interface ExportService {
      */
     public void export(String pluginId, Chapter chapter, HttpServletResponse response) throws IOException;
 
+     /**
+     * @return The key novel plugins
+     */
+    List<String> getAllExportPlugins();
 }

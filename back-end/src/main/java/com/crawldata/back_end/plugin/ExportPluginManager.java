@@ -74,6 +74,7 @@ public class ExportPluginManager {
      * @return The list of available export plugins.
      */
     public List<ExportPluginInformation> getAllExportPlugins() {
+        updateExportPlugins();
         return new ArrayList<>(exportPlugins);
     }
 }

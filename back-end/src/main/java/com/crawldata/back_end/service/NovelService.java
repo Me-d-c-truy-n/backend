@@ -21,6 +21,11 @@ public interface NovelService {
      PluginFactory getPluginFactory(String pluginId);
 
     /**
+     * @return The key novel plugins
+     */
+    List<String> getAllNovelPlugins();
+
+    /**
      * Retrieves the detail of a specific chapter in a novel.
      *
      * @param pluginId  The ID of the plugin.

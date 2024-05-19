@@ -2,6 +2,8 @@ package com.crawldata.back_end.service;
 
 import com.crawldata.back_end.export_plugin_builder.ExportPluginFactory;
 import com.crawldata.back_end.model.Chapter;
+import com.crawldata.back_end.model.ExportPluginInformation;
+import com.crawldata.back_end.model.PluginInformation;
 import com.crawldata.back_end.plugin.ExportPluginManager;
 import com.crawldata.back_end.plugin.PluginManager;
 import com.crawldata.back_end.plugin_builder.PluginFactory;
@@ -11,6 +13,8 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @AllArgsConstructor
@@ -34,5 +38,15 @@ public class ExportServiceImpl implements  ExportService{
         } else {
             exportPluginFactory.export(chapter, response);
         }
+    }
+
+    @Override
+    public List<String> getAllExportPlugins() {
+        ArrayList<String> keyExportPlugins = new ArrayList<>();
+        List<ExportPluginInformation> listPlugins = exportPluginManager.getAllExportPlugins();
+        listPlugins.forEach(plugin -> {
+            keyExportPlugins.add(plugin.getPluginId());
+        });
+        return keyExportPlugins;
     }
 }

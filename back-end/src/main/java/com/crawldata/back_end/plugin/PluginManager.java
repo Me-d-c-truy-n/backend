@@ -77,6 +77,7 @@ public class PluginManager {
      * @return The list of available plugins.
      */
     public List<PluginInformation> getAllPlugins() {
+        updatePlugins();
         return new ArrayList<>(plugins);
     }
 }
