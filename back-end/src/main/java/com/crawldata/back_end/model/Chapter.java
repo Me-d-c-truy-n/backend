@@ -43,4 +43,9 @@ public class Chapter {
      * The content of the chapter.
      */
     String content;
+
+    public String toString()
+    {
+        return novelId + "\n" + novelName + "\n" + chapterId + "\n" + preChapterId + "\n" + name + "\n" + author + "\n" + content + "\n" + nextChapterId;
+    }
 }

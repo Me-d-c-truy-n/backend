@@ -18,7 +18,7 @@ public interface PluginFactory {
      * @param chapterId The ID of the chapter.
      * @return The details of the chapter.
      */
-    public DataResponse getNovelChapterDetail(String novelId, String chapterId);
+    public  DataResponse getNovelChapterDetail(String novelId, String chapterId);
     /**
      * Retrieves a list of chapters for a given novel and page number.
      *

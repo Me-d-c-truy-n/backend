@@ -4,6 +4,7 @@ import com.crawldata.back_end.model.Chapter;
 import com.crawldata.back_end.model.Novel;
 import com.crawldata.back_end.plugin_builder.PluginFactory;
 import com.crawldata.back_end.response.DataResponse;
+import jakarta.servlet.http.HttpServletResponse;
 import org.apache.coyote.Response;
 
 import java.util.List;
@@ -14,11 +15,15 @@ import java.util.List;
 public interface NovelService {
      /**
      * Retrieves the plugin factory for the specified plugin ID.
-     *
      * @param pluginId The ID of the plugin.
      * @return The plugin factory.
      */
      PluginFactory getPluginFactory(String pluginId);
+
+    /**
+     * @return The key novel plugins
+     */
+    List<String> getAllNovelPlugins();
 
     /**
      * Retrieves the detail of a specific chapter in a novel.
@@ -77,4 +82,19 @@ public interface NovelService {
      * @return A list of novels matching the search criteria.
      */
     DataResponse getSearchedNovels(String pluginId, int page, String key, String orderBy);
+
+    /**
+     * Retrieves all novels based on search criteria and pagination.
+     *
+     * @param pluginId The ID of the plugin.
+     * @param novelId     The id novel.
+     * @param chapterId  The chapter Id.
+     * @param response   The response to client.
+     * @return file to export for client
+     */
+    //void exportPDF(String pluginId, String novelId, String chapterId,  HttpServletResponse response);
+
+
+
+
 }
