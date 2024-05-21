@@ -5,6 +5,7 @@ import com.crawldata.back_end.model.Novel;
 import com.crawldata.back_end.plugin_builder.PluginFactory;
 import com.crawldata.back_end.response.DataResponse;
 import com.crawldata.back_end.utils.ConnectJsoup;
+import com.crawldata.back_end.utils.DataResponseUtils;
 import com.crawldata.back_end.utils.HandleString;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -51,7 +52,6 @@ public class MeTruyenChuPlugin implements PluginFactory {
      * If the connection fails, it retries the request up to the specified number of times.
      *
      * @param apiUrl The URL of the API to connect to.
-     * @param maxRetries The maximum number of retry attempts.
      * @return The JSON response as a JsonObject, or null if an error occurs after all retries.
      */
     private JsonObject connectAPI(String apiUrl) {
@@ -168,7 +168,7 @@ public class MeTruyenChuPlugin implements PluginFactory {
         String urlChapter = String.format(CHAPTER_DETAIL_API, novelId, chapterId);
         JsonObject novelObject = getNovelDetailBySlug(novelId);
         if(novelObject == null) {
-            return new DataResponse("error", null, null, null, null, null, "Novel not found on this server");
+            return DataResponseUtils.getErrorDataResponse("Novel not found on this server");
         }
         Novel novel = createNovelByJsonData(novelObject);
         Document doc = null;
@@ -178,7 +178,7 @@ public class MeTruyenChuPlugin implements PluginFactory {
             // Extract the script tag containing JSON data
             Element scriptElement = doc.select("script:containsData(window.chapterData)").first();
             if (scriptElement == null) {
-                return new DataResponse("error", null, null, null, null, null, "Chapter data not found");
+                return DataResponseUtils.getErrorDataResponse("Chapter data not found");
             }
             String scriptContent = scriptElement.html();
 
@@ -192,7 +192,7 @@ public class MeTruyenChuPlugin implements PluginFactory {
             // Extract the chapter content
             Element contentElement = doc.select("div[data-x-bind='ChapterContent']").first();
             if (contentElement == null) {
-                return new DataResponse("error", null, null, null, null, null, "Chapter content not found");
+                return DataResponseUtils.getErrorDataResponse("Chapter content not found");
             }
             String content = contentElement.html();
 
@@ -214,7 +214,7 @@ public class MeTruyenChuPlugin implements PluginFactory {
     public DataResponse getNovelListChapters(String novelId, int page) {
         JsonObject novelObject = getNovelDetailBySlug(novelId);
         if (novelObject == null) {
-            return new DataResponse("error", null, null, null, null, null, "Novel not found on this server");
+            return DataResponseUtils.getErrorDataResponse("Novel not found on this server");
         }
         Novel novel = createNovelByJsonData(novelObject);
         String apiUrl = String.format(NOVEL_LIST_CHAPTERS_API, novelObject.get("id").getAsString());
@@ -250,7 +250,7 @@ public class MeTruyenChuPlugin implements PluginFactory {
             Novel novel = createNovelByJsonData(novelObject);
             return new DataResponse("success", null, null, null, null, novel, "");
         } else {
-            return new DataResponse("error", null, null, null, null, null, "Novel not found on this server");
+            return DataResponseUtils.getErrorDataResponse("Novel not found on this server");
         }
     }
 
@@ -283,7 +283,7 @@ public class MeTruyenChuPlugin implements PluginFactory {
                 novelList.add(createNovelByJsonData(novelObject));
             }
         } else {
-            return new DataResponse("error", null, null, null, null, null, "Failed to fetch novels");
+            return DataResponseUtils.getErrorDataResponse("Failed to fetch novels");
         }
         int totalPages = jsonObject.getAsJsonObject("pagination").get("last").getAsInt();
         return new DataResponse("success", totalPages, page, novelList.size(), search, novelList, "");
@@ -302,7 +302,7 @@ public class MeTruyenChuPlugin implements PluginFactory {
                 novelList.add(createNovelByJsonData(novelObject));
             }
         } else {
-            return new DataResponse("error", null, null, null, null, null, "Failed to fetch novels");
+            return DataResponseUtils.getErrorDataResponse("Failed to fetch novels");
         }
         int totalPages = jsonObject.getAsJsonObject("pagination").get("last").getAsInt();
         return new DataResponse("success", totalPages, page, novelList.size(), key, novelList, "");
