@@ -7,7 +7,7 @@
             "id": "pluginId",
             "name": "Plugin Name",
             "url": "https://pluginId.vn/",
-            "className": "pluginClass" - which is the name of the .class file
+            "className": "pluginClass" //which is the name of the .class file
           }
         }
     2.2. .class file is a .java file which has been compiled, which is in "target" folder.

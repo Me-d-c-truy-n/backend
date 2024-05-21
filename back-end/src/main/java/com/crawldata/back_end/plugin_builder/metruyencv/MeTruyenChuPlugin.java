@@ -31,6 +31,11 @@ public class MeTruyenChuPlugin implements PluginFactory {
     private final String NOVEL_SEARCH_API = "https://backend.metruyencv.com/api/books/search?keyword=%s&limit=20&page=%s&sort=-view_count&filter[state]=published";
     private final String CHAPTER_DETAIL_API = "https://metruyencv.com/truyen/%s/%s";
 
+
+    private static final int ITEMS_PER_PAGE = 30;
+    private final int DEFAULT_PAGE_NUMBER = 1;
+    private final int MAX_RETRIES = 3;
+
     /**
      * Reverses a slug string by replacing dashes and spaces with URL-encoded spaces.
      *
@@ -43,51 +48,42 @@ public class MeTruyenChuPlugin implements PluginFactory {
 
     /**
      * Connects to the given API URL and returns the JSON response as a JsonObject.
+     * If the connection fails, it retries the request up to the specified number of times.
      *
      * @param apiUrl The URL of the API to connect to.
-     * @return The JSON response as a JsonObject, or null if an error occurs.
+     * @param maxRetries The maximum number of retry attempts.
+     * @return The JSON response as a JsonObject, or null if an error occurs after all retries.
      */
     private JsonObject connectAPI(String apiUrl) {
-        CloseableHttpClient httpClient = HttpClients.createDefault();
-        try {
-            // Make the GET request
-            HttpGet request = new HttpGet(apiUrl);
-            CloseableHttpResponse response = httpClient.execute(request);
-
-            try {
-                // Get the response entity
-                HttpEntity entity = response.getEntity();
-                if (entity != null) {
-                    // Convert the response to a String
-                    String result = EntityUtils.toString(entity);
-
-                    // Parse the JSON response using Gson
-                    Gson gson = new Gson();
-                    // Parse the JSON response
-                    JsonObject jsonObject = null;
-                    try {
-                        jsonObject = gson.fromJson(result, JsonObject.class);
-                    } catch (Exception e) {
-                        e.printStackTrace();
+        int attempt = 0;
+        while (attempt < MAX_RETRIES) {
+            try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
+                HttpGet request = new HttpGet(apiUrl);
+                try (CloseableHttpResponse response = httpClient.execute(request)) {
+                    HttpEntity entity = response.getEntity();
+                    if (entity != null) {
+                        String result = EntityUtils.toString(entity);
+                        return new Gson().fromJson(result, JsonObject.class);
                     }
-                    return jsonObject;
                 }
             } catch (IOException e) {
                 e.printStackTrace();
-            } finally {
-                response.close();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                httpClient.close();
-            } catch (IOException e) {
-                e.printStackTrace();
+                attempt++;
+                if (attempt >= MAX_RETRIES) {
+                    System.err.println("Failed to connect to API after " + MAX_RETRIES + " attempts.");
+                } else {
+                    System.err.println("Retrying... (" + attempt + "/" + MAX_RETRIES + ")");
+                }
+                try {
+                    Thread.sleep(100); // Wait for 100 milliseconds before retrying
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                }
             }
         }
         return null;
     }
+
 
     /**
      * Retrieves the novel details by its slug.
@@ -99,9 +95,8 @@ public class MeTruyenChuPlugin implements PluginFactory {
         String apiUrl = String.format(FILTER_NOVEL_API, reverseSlugging(slug));
 
         JsonObject jsonObject = connectAPI(apiUrl);
-        if (jsonObject!=null && jsonObject!=null && jsonObject!=null && jsonObject.has("data")) {
+        if (jsonObject!=null && jsonObject.has("data")) {
             JsonArray dataArray = jsonObject.getAsJsonArray("data");
-
             // Loop through the data array to find the matching slug
             for (int i = 0; i < dataArray.size(); i++) {
                 JsonObject novel = dataArray.get(i).getAsJsonObject();
@@ -143,11 +138,38 @@ public class MeTruyenChuPlugin implements PluginFactory {
         return new Chapter(novel.getNovelId(), novel.getName(), chapterId, null, null, name, novel.getAuthor(), "");
     }
 
+    /**
+     * Extracts the chapter ID in the form of "chuong-{index}" from the script content based on the given direction.
+     *
+     * <p>This method searches for the JSON data associated with the specified direction ("next" or "previous")
+     * in the provided script content, parses it, and extracts the chapter index. It then formats the index
+     * as "chuong-{index}" and returns it.</p>
+     *
+     * @param direct the direction to extract the chapter ID from ("next" or "previous").
+     * @param content the script content containing the JSON data.
+     * @return the chapter ID in the form of "chuong-{index}" if found, or {@code null} if the index is not found.
+     */
+    public String extractDirectionalChapterId(String direct, String content) {
+        // Extract JSON data from script content
+        String direction = "\""+direct+"\":";
+        String data = content.substring(
+                content.indexOf(direction) + direction.length(),
+                content.indexOf("}", content.indexOf(direction + "{")) + 1
+        );
+        Gson gson = new Gson();
+        JsonObject jsonObject = gson.fromJson(data, JsonObject.class);
+        Integer index = jsonObject.get("index")!=null?jsonObject.get("index").getAsInt():null;
+
+        return index !=null ? "chuong-" + index : null;
+    }
+
     @Override
     public DataResponse getNovelChapterDetail(String novelId, String chapterId) {
         String urlChapter = String.format(CHAPTER_DETAIL_API, novelId, chapterId);
         JsonObject novelObject = getNovelDetailBySlug(novelId);
-        assert novelObject != null;
+        if(novelObject == null) {
+            return new DataResponse("error", null, null, null, null, null, "Novel not found on this server");
+        }
         Novel novel = createNovelByJsonData(novelObject);
         Document doc = null;
         try {
@@ -155,32 +177,23 @@ public class MeTruyenChuPlugin implements PluginFactory {
 
             // Extract the script tag containing JSON data
             Element scriptElement = doc.select("script:containsData(window.chapterData)").first();
+            if (scriptElement == null) {
+                return new DataResponse("error", null, null, null, null, null, "Chapter data not found");
+            }
             String scriptContent = scriptElement.html();
 
-            // Extract JSON data from script content
-            String nextData = scriptContent.substring(
-                    scriptContent.indexOf("\"next\":") + " \"next\":".length() - 1,
-                    scriptContent.indexOf("}", scriptContent.indexOf("\"next\":{")) + 1
-            );
-            Gson gson = new Gson();
-            JsonObject nextObject = gson.fromJson(nextData, JsonObject.class);
-            // Extract JSON data from script content
-            String previousData = scriptContent.substring(
-                    scriptContent.indexOf("\"previous\":") + " \"previous\":".length() - 1,
-                    scriptContent.indexOf("}", scriptContent.indexOf("\"previous\":{")) + 1
-            );
-            JsonObject previousObject = gson.fromJson(previousData, JsonObject.class);
-            Integer nextIndex = nextObject.get("index")!=null?nextObject.get("index").getAsInt():null;
-            Integer previousIndex = previousObject.get("index")!=null?previousObject.get("index").getAsInt():null;
 
-            String nextChapterId = nextIndex!=null?"chuong-"+nextIndex:null;
-            String preChapterId = previousIndex!=null?"chuong-"+previousIndex:null;
+            String nextChapterId = extractDirectionalChapterId("next", scriptContent);
+            String preChapterId = extractDirectionalChapterId("previous", scriptContent);
 
             // Extract the chapter name
             String chapterName = doc.select("h2.text-center.text-gray-600.text-balance").first().text();
 
             // Extract the chapter content
             Element contentElement = doc.select("div[data-x-bind='ChapterContent']").first();
+            if (contentElement == null) {
+                return new DataResponse("error", null, null, null, null, null, "Chapter content not found");
+            }
             String content = contentElement.html();
 
             // Create chapter details
@@ -200,24 +213,25 @@ public class MeTruyenChuPlugin implements PluginFactory {
     @Override
     public DataResponse getNovelListChapters(String novelId, int page) {
         JsonObject novelObject = getNovelDetailBySlug(novelId);
-        assert novelObject != null;
+        if (novelObject == null) {
+            return new DataResponse("error", null, null, null, null, null, "Novel not found on this server");
+        }
         Novel novel = createNovelByJsonData(novelObject);
         String apiUrl = String.format(NOVEL_LIST_CHAPTERS_API, novelObject.get("id").getAsString());
         JsonObject jsonObject = connectAPI(apiUrl);
         List<Chapter> chapterList = new ArrayList<>();
 
-        final int limit = 30; // items per page
         int totalPages = 1;
         int totalItems = 0;
 
         if (jsonObject != null && jsonObject.has("data")) {
             JsonArray dataArray = jsonObject.getAsJsonArray("data");
             totalItems = dataArray.size();
-            totalPages = (int) Math.ceil((double) totalItems / limit);
+            totalPages = (int) Math.ceil((double) totalItems / ITEMS_PER_PAGE);
 
             // Calculate the start and end indices for the requested page
-            int startIndex = (page - 1) * limit;
-            int endIndex = Math.min(startIndex + limit, totalItems);
+            int startIndex = (page - 1) * ITEMS_PER_PAGE;
+            int endIndex = Math.min(startIndex + ITEMS_PER_PAGE, totalItems);
 
             // Loop through the data and get the subset for the requested page
             for (int i = startIndex; i < endIndex; i++) {
@@ -234,12 +248,9 @@ public class MeTruyenChuPlugin implements PluginFactory {
         JsonObject novelObject = getNovelDetailBySlug(novelId);
         if (novelObject != null) {
             Novel novel = createNovelByJsonData(novelObject);
-            DataResponse dataResponse = new DataResponse();
-            dataResponse.setData(novel);
-            dataResponse.setStatus("success");
-            return dataResponse;
+            return new DataResponse("success", null, null, null, null, novel, "");
         } else {
-            return new DataResponse("error", null, null, null, null, null, "Can't get novel detail");
+            return new DataResponse("error", null, null, null, null, null, "Novel not found on this server");
         }
     }
 
@@ -248,7 +259,6 @@ public class MeTruyenChuPlugin implements PluginFactory {
         String apiUrl = String.format(AUTHOR_DETAIL_API, authorId.split("-")[0]);
         JsonObject jsonObject = connectAPI(apiUrl);
         List<Novel> novelList = new ArrayList<>();
-        assert jsonObject != null;
         if (jsonObject!=null && jsonObject.has("data")) {
             JsonArray dataArray = jsonObject.getAsJsonArray("data");
             // Loop through the data
@@ -257,7 +267,7 @@ public class MeTruyenChuPlugin implements PluginFactory {
                 novelList.add(createNovelByJsonData(novelObject));
             }
         }
-        return new DataResponse("success", 1, 1, novelList.size(), null, novelList, null);
+        return new DataResponse("success", DEFAULT_PAGE_NUMBER, DEFAULT_PAGE_NUMBER, novelList.size(), null, novelList, null);
     }
 
     @Override
@@ -265,7 +275,6 @@ public class MeTruyenChuPlugin implements PluginFactory {
         String apiUrl = String.format(ALL_NOVELS_API, page);
         JsonObject jsonObject = connectAPI(apiUrl);
         List<Novel> novelList = new ArrayList<>();
-        assert jsonObject != null;
         if (jsonObject!=null && jsonObject.has("data")) {
             JsonArray dataArray = jsonObject.getAsJsonArray("data");
             // Loop through the data
@@ -274,9 +283,7 @@ public class MeTruyenChuPlugin implements PluginFactory {
                 novelList.add(createNovelByJsonData(novelObject));
             }
         } else {
-            DataResponse dataResponse = new DataResponse();
-            dataResponse.setStatus("error");
-            return dataResponse;
+            return new DataResponse("error", null, null, null, null, null, "Failed to fetch novels");
         }
         int totalPages = jsonObject.getAsJsonObject("pagination").get("last").getAsInt();
         return new DataResponse("success", totalPages, page, novelList.size(), search, novelList, "");
@@ -287,7 +294,6 @@ public class MeTruyenChuPlugin implements PluginFactory {
         String apiUrl = String.format(NOVEL_SEARCH_API, reverseSlugging(key), page);
         JsonObject jsonObject = connectAPI(apiUrl);
         List<Novel> novelList = new ArrayList<>();
-        assert jsonObject != null;
         if (jsonObject!=null && jsonObject.has("data")) {
             JsonArray dataArray = jsonObject.getAsJsonArray("data");
             // Loop through the data
@@ -295,6 +301,8 @@ public class MeTruyenChuPlugin implements PluginFactory {
                 JsonObject novelObject = dataArray.get(i).getAsJsonObject();
                 novelList.add(createNovelByJsonData(novelObject));
             }
+        } else {
+            return new DataResponse("error", null, null, null, null, null, "Failed to fetch novels");
         }
         int totalPages = jsonObject.getAsJsonObject("pagination").get("last").getAsInt();
         return new DataResponse("success", totalPages, page, novelList.size(), key, novelList, "");
