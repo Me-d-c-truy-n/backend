@@ -22,7 +22,7 @@ public class GlobalExceptionHandler  extends ResponseEntityExceptionHandler {
     @ResponseBody
     public DataResponse handleGenericException(Exception ex)
     {
-        DataResponse error = new DataResponse("success", null,null,null,null,null,ex.getMessage());
+        DataResponse error = new DataResponse("Error", null,null,null,null,null,ex.getMessage());
         LOGGER.error(ex.getMessage(), ex);
         return error;
     }
