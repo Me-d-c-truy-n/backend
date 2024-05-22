@@ -19,7 +19,7 @@ public class PdfPlugin implements ExportPluginFactory {
     public void export(Chapter chapter, HttpServletResponse response) throws IOException {
         response.setContentType("application/pdf");
         String headerkey = "Content-Disposition";
-        String headervalue = "attachment; filename=" + chapter.getNovelName() + "_" + chapter.getName()  + ".pdf";
+        String headervalue = "attachment; filename=\"" + chapter.getNovelName() + "_" + chapter.getName()  + ".pdf\"";
         response.setHeader(headerkey, headervalue);
         exportImpl(chapter,response);
     }
