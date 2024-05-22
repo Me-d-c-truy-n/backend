@@ -1,4 +1,3 @@
-package com.crawldata.back_end.export_plugin_builder.pdf;
 
 import com.crawldata.back_end.export_plugin_builder.ExportPluginFactory;
 import com.crawldata.back_end.model.Chapter;
