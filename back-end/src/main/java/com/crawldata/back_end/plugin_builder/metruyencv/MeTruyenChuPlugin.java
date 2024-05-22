@@ -206,7 +206,7 @@ public class MeTruyenChuPlugin implements PluginFactory {
 
             return dataResponse;
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            return DataResponseUtils.getErrorDataResponse(e.getMessage());
         }
     }
 

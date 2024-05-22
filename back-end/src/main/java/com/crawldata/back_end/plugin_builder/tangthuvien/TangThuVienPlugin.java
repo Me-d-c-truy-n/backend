@@ -103,6 +103,7 @@ public class TangThuVienPlugin implements PluginFactory {
             maxCurrentChapter = getNumberFromChapterId(getChapterIdFromUrl(newestChapterUrl));
 
         } catch (Exception e) {
+            e.printStackTrace();
             return DataResponseUtils.getErrorDataResponse(getDetailNovelErrorMessage);
         }
 
@@ -175,7 +176,6 @@ public class TangThuVienPlugin implements PluginFactory {
                 if (count > totalChaptersPerPage || (page - 1) * totalChaptersPerPage + count > total) {
                     break;
                 }
-                System.out.println(chapterElement.html());
                 String chapterId = getChapterIdFromUrl(chapterElement.child(1).attr("href")) + "";
                 String chapterName = chapterElement.child(1).child(0).text();
                 listChapters.add(new Chapter(novelId, novelName, chapterId,nextChapterId,preChapterId, chapterName,  author, null));

@@ -26,7 +26,7 @@ public class ConnectJsoup {
                         .timeout(DEFAULT_TIMEOUT)
                         .get();
             } catch (IOException e) {
-                e.printStackTrace();
+                System.out.println("Failed to connect to " + url);
                 attempt++;
                 if (attempt >= MAX_RETRIES) {
                     throw e; // Rethrow the exception if max retries are reached
