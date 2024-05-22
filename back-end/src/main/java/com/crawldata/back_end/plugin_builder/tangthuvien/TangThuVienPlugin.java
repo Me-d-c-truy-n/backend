@@ -1,6 +1,6 @@
-package com.crawldata.back_end.plugin_builder.tangthuvien;
 
-import com.crawldata.back_end.exception_handler.GlobalExceptionHandler;
+
+
 import com.crawldata.back_end.model.Author;
 import com.crawldata.back_end.model.Chapter;
 import com.crawldata.back_end.model.Novel;
@@ -13,7 +13,6 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.util.*;
 
@@ -27,6 +26,11 @@ public class TangThuVienPlugin implements PluginFactory {
         // Split the query parameters by "=" to separate the parameter name from the value
         String[] queryParams = parts[1].split("=");
         // The value of the "author" parameter is the second part
+        // In case, the url is ".....?author="
+        if(queryParams.length == 1)
+        {
+            return null;
+        }
         return queryParams[1];
     }
     private String getNovelIdFromUrl(String url)
@@ -56,10 +60,42 @@ public class TangThuVienPlugin implements PluginFactory {
         return totalElements / numPerPage + 1;
     }
 
-    public Integer getNumberFromChapterId(String chapterId)
-    {
-        String[] parts = chapterId.split("-");
-        return Integer.parseInt(parts[parts.length-1]);
+
+
+
+    public List<String> getAdjacentChapters(String storyId, String currentChapterId) throws IOException {
+        List<String> adjacentChapters = new ArrayList<>();
+        String preChapter = null;
+        String nextChapter = null;
+
+        // Url to get all list novel's chapters
+        String getAllListChapterUrl = rootUrl + "/story/chapters?story_id=" + storyId;
+        Document doc = Jsoup.connect(getAllListChapterUrl).get();
+        Elements chapterElements = doc.getElementsByTag("li");
+        Integer count = 0;
+        for (Element chapterElement : chapterElements) {
+            String chapterId = getChapterIdFromUrl(chapterElement.child(1).attr("href")).trim();
+            if(chapterId.equals(currentChapterId))
+            {
+                if(count == 0)
+                {
+                    nextChapter = getChapterIdFromUrl(chapterElements.get(count+1).child(1).attr("href"));
+                }
+                else if(count == chapterElements.size()-1)
+                {
+                    preChapter = getChapterIdFromUrl(chapterElements.get(count-1).child(1).attr("href"));
+                }
+                else {
+                    nextChapter = getChapterIdFromUrl(chapterElements.get(count+1).child(1).attr("href"));
+                    preChapter = getChapterIdFromUrl(chapterElements.get(count-1).child(1).attr("href"));
+                }
+                break;
+            }
+            count++;
+        }
+        adjacentChapters.add(preChapter);
+        adjacentChapters.add(nextChapter);
+        return adjacentChapters;
     }
 
     @Override
@@ -71,10 +107,9 @@ public class TangThuVienPlugin implements PluginFactory {
         String content = "";
         String novelDetailUrl = "";
         String chapterDetailUrl = "";
-        Integer maxCurrentChapter;
-        Integer minCurrentChapter;
         String preChapterId = null;
         String nextChapterId = null;
+        String storyId = "";
 
         try {
             novelDetailUrl = rootUrl + "/doc-truyen/" + novelId;
@@ -93,47 +128,26 @@ public class TangThuVienPlugin implements PluginFactory {
             Element contentNavElement = doc.select(".content-nav-wrap.cf").get(0);
             total =  getTotalChapterFromText(contentNavElement.child(0).child(0).child(1).child(0).text());
 
-            // Get maxCurrentChapter, get minCurrentChapter
-            Element listChaptersElement = doc.select("ul.cf").get(1);
-            String firstChapterUrl = listChaptersElement.child(1).child(0).attr("href");
-            minCurrentChapter = getNumberFromChapterId(getChapterIdFromUrl(firstChapterUrl));
-
-            Element listNewestChapterElement = doc.select("ul.cf").get(0);
-            String newestChapterUrl =  listNewestChapterElement.child(0).child(0).attr("href");
-            maxCurrentChapter = getNumberFromChapterId(getChapterIdFromUrl(newestChapterUrl));
-
+            // Get preChapter and nextChapter of the novel
+            Element storyHiddenElement = doc.getElementById("story_id_hidden");
+            storyId = storyHiddenElement.val();
+            List<String> adjacentChapters = getAdjacentChapters(storyId, chapterId);
+            preChapterId = adjacentChapters.get(0);
+            nextChapterId = adjacentChapters.get(1);
         } catch (Exception e) {
             LOGGER.error(e.getMessage(),e);
             return DataResponseUtils.getErrorDataResponse(e.getMessage());
         }
-
         try {
             chapterDetailUrl = novelDetailUrl + "/" + chapterId;
             Document doc = Jsoup.connect(chapterDetailUrl).get();
             Element novelTitleElement = doc.select(".col-xs-12.chapter").get(0);
             chapterName = novelTitleElement.child(1).text();
             content = doc.select(".box-chap").get(0).html();
-
-            // get preChapter and nextChapter
-            Integer currentNumberChapterId = getNumberFromChapterId(chapterId);
-            if(currentNumberChapterId > minCurrentChapter && currentNumberChapterId < maxCurrentChapter)
-            {
-                preChapterId = "chuong-" + (currentNumberChapterId-1);
-                nextChapterId = "chuong-" + (currentNumberChapterId + 1);
-            }
-            else if(currentNumberChapterId.equals(minCurrentChapter) && currentNumberChapterId < maxCurrentChapter )
-            {
-                nextChapterId =  "chuong-" + (currentNumberChapterId + 1);
-            }
-            else if(currentNumberChapterId.equals(maxCurrentChapter) && currentNumberChapterId > minCurrentChapter)
-            {
-                preChapterId = "chuong-" + (currentNumberChapterId-1);
-            }
         } catch (Exception e) {
             LOGGER.error(e.getMessage(),e);
             return DataResponseUtils.getErrorDataResponse(e.getMessage());
         }
-
         Chapter detailChapter = new Chapter(novelId, novelName,chapterId,nextChapterId,preChapterId, chapterName,  author, content);
         return new DataResponse("success", null, null,null,null, detailChapter, null);
     }
@@ -222,6 +236,7 @@ public class TangThuVienPlugin implements PluginFactory {
             // get first chapter id
             Element listChaptersElement = doc.select("ul.cf").get(1);
             String firstChapterUrl = listChaptersElement.child(1).child(0).attr("href");
+
             firstChapterId = getChapterIdFromUrl(firstChapterUrl);
         } catch (Exception e) {
             LOGGER.error(e.getMessage(),e);
@@ -302,14 +317,12 @@ public class TangThuVienPlugin implements PluginFactory {
                 imageURL = bookElement.child(0).child(0).child(0).attr("src");
                 novelName = bookElement.child(1).child(0).child(0).text();
 
-
                 String authorName = bookElement.child(1).child(1).child(1).text();
                 String authorUrlWebSite =  bookElement.child(1).child(1).child(1).attr("href");
                 String authorId = getAuthorIdFromUrl(authorUrlWebSite);
                 author = new Author(authorId, authorName);
                 totalChapter = Integer.parseInt(bookElement.child(1).child(1).child(7).child(0).text());
                 description =  bookElement.child(1).child(2).html();
-
                 lsNovel.add(new Novel(novelId, novelName, imageURL, description, author, null));
             }
         } catch (Exception e)
@@ -371,4 +384,6 @@ public class TangThuVienPlugin implements PluginFactory {
         });
         return new DataResponse("success", totalPage,page, null, key, lsNovels, null);
     }
+
+
 }
