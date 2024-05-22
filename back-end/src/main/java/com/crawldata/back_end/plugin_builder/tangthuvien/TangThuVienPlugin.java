@@ -109,9 +109,10 @@ public class TangThuVienPlugin implements PluginFactory {
         try {
             chapterDetailUrl = novelDetailUrl + "/" + chapterId;
             Document doc = Jsoup.connect(chapterDetailUrl).get();
+            doc.outputSettings(new Document.OutputSettings().prettyPrint(false));//makes html() preserve linebreaks and spacing
             Element novelTitleElement = doc.select(".col-xs-12.chapter").get(0);
             chapterName = novelTitleElement.child(1).text();
-            content = doc.select(".box-chap").get(0).html();
+            content = doc.select(".box-chap").get(0).html().replaceAll("\\r\\n", "<br>");
 
             // get preChapter and nextChapter
             Integer currentNumberChapterId = getNumberFromChapterId(chapterId);
@@ -171,7 +172,6 @@ public class TangThuVienPlugin implements PluginFactory {
                     continue;
                 }
                 count++;
-                System.out.println("Count : " + (page - 1) * totalChaptersPerPage + count + " , Total : " + total);
                 if (count > totalChaptersPerPage || (page - 1) * totalChaptersPerPage + count > total) {
                     break;
                 }
