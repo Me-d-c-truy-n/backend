@@ -13,6 +13,7 @@ import org.xeustechnologies.jcl.JclUtils;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 import java.util.Map;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
@@ -84,10 +85,11 @@ public class ExportPluginLoader {
      * Unloads the all plugin classes.
      *
      */
-    public void unloadPluginClasses() {
-        Map<String, Class> loadedClasses = jcl.getLoadedClasses();
-        for(Map.Entry<String, Class> entry : loadedClasses.entrySet()) {
-            jcl.unloadClass(entry.getKey());
+    public void unloadPluginClasses(List<ExportPluginInformation> plugins) {
+        for(ExportPluginInformation plugin : plugins) {
+            if(jcl.getLoadedClasses().containsKey(plugin.getClassName())){
+                jcl.unloadClass(plugin.getClassName());
+            }
         }
         jcl = new JarClassLoader();
     }

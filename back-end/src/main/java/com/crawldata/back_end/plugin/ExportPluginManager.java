@@ -53,7 +53,7 @@ public class ExportPluginManager {
      * Unloads classes of all export plugins.
      */
     private void unloadExportPlugins() {
-        exportPluginLoader.unloadPluginClasses();
+        exportPluginLoader.unloadPluginClasses(exportPlugins);
     }
 
     /**

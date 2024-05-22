@@ -141,9 +141,10 @@ public class TangThuVienPlugin implements PluginFactory {
         try {
             chapterDetailUrl = novelDetailUrl + "/" + chapterId;
             Document doc = Jsoup.connect(chapterDetailUrl).get();
+            doc.outputSettings(new Document.OutputSettings().prettyPrint(false));//makes html() preserve linebreaks and spacing
             Element novelTitleElement = doc.select(".col-xs-12.chapter").get(0);
             chapterName = novelTitleElement.child(1).text();
-            content = doc.select(".box-chap").get(0).html();
+            content = doc.select(".box-chap").get(0).html().replaceAll("\\r\\n", "<br>").replaceAll("\\n", "<br>");;
         } catch (Exception e) {
             LOGGER.error(e.getMessage(),e);
             return DataResponseUtils.getErrorDataResponse(e.getMessage());
@@ -187,11 +188,9 @@ public class TangThuVienPlugin implements PluginFactory {
                     continue;
                 }
                 count++;
-                System.out.println("Count : " + (page - 1) * totalChaptersPerPage + count + " , Total : " + total);
                 if (count > totalChaptersPerPage || (page - 1) * totalChaptersPerPage + count > total) {
                     break;
                 }
-                System.out.println(chapterElement.html());
                 String chapterId = getChapterIdFromUrl(chapterElement.child(1).attr("href")) + "";
                 String chapterName = chapterElement.child(1).child(0).text();
                 listChapters.add(new Chapter(novelId, novelName, chapterId,nextChapterId,preChapterId, chapterName,  author, null));
