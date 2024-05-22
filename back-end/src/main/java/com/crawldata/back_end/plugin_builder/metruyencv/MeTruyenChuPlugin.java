@@ -67,9 +67,9 @@ public class MeTruyenChuPlugin implements PluginFactory {
                     }
                 }
             } catch (IOException e) {
-                e.printStackTrace();
                 attempt++;
                 if (attempt >= MAX_RETRIES) {
+                    e.printStackTrace();
                     System.err.println("Failed to connect to API after " + MAX_RETRIES + " attempts.");
                 } else {
                     System.err.println("Retrying... (" + attempt + "/" + MAX_RETRIES + ")");
@@ -206,6 +206,7 @@ public class MeTruyenChuPlugin implements PluginFactory {
 
             return dataResponse;
         } catch (IOException e) {
+            e.printStackTrace();
             return DataResponseUtils.getErrorDataResponse(e.getMessage());
         }
     }
