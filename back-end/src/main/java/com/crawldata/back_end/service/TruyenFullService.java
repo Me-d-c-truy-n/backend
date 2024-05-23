@@ -49,7 +49,40 @@ public class TruyenFullService {
         }
         return totalPages;
     }
-
+//    public DataResponse getAllNovels(int page, String search) {
+//        String url = HandleString.getValidURL(SourceNovels.FULL_NOVELS +search+ "&page="+page);
+//        List<Novel> novelList = new ArrayList<>();
+//        Document doc = null;
+//        try {
+//            doc = ConnectJsoup.connect(url);
+//            Elements novels = doc.select("div[itemtype=https://schema.org/Book]");
+//                for (int i = 0; i < novels.size()&&i<18; i++) {
+//                    Element novel = novels.get(i);
+//                    if (!novel.text().equals("")) {
+//                        String image = novel.selectFirst("div[data-image]").attr("data-image");
+//                        String novelUrl =novel.selectFirst("a").attr("href");
+//                        String idNovel = getEndSlugFromUrl(novelUrl);
+//                        String nameNovel = novel.selectFirst("h3").text();
+//                        String nameAuthor = novel.selectFirst("span[class=author]").text();
+//                        String urlDetail = SourceNovels.NOVEL_MAIN + idNovel;
+//                        doc = ConnectJsoup.connect(urlDetail);
+//                        Author author = new Author(HandleString.makeSlug(nameAuthor), nameAuthor);
+//                        if(novel.select("span[class=book-text]").size()==1) continue;
+//                        String idFirstChapter = "chuong-1";
+//                        String description = doc.selectFirst("div[itemprop=description]").toString();
+//                        Novel novelObj = new Novel(idNovel, nameNovel, image, description, author, idFirstChapter);
+//                        novelList.add(novelObj);
+//                    }
+//                }
+//            int totalPages = getNovelTotalPages(url);
+//            DataResponse dataResponse = new DataResponse("success", totalPages, page, novelList.size(), search, novelList, "");
+//            dataResponse.setCurrentPage(page);
+//            return dataResponse;
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            return DataResponseUtils.getErrorDataResponse(e.getMessage());
+//        }
+  //  }
     //get total chapters
     public Integer  getTotalChapters(String url) throws IOException {
         Document doc = ConnectJsoup.connect(url);
