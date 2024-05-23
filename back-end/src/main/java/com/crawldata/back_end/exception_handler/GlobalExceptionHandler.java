@@ -26,5 +26,4 @@ public class GlobalExceptionHandler  extends ResponseEntityExceptionHandler {
         LOGGER.error(ex.getMessage(), ex);
         return error;
     }
-    
 }

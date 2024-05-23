@@ -4,6 +4,7 @@ import com.crawldata.back_end.model.Novel;
 import com.crawldata.back_end.plugin_builder.PluginFactory;
 import com.crawldata.back_end.response.DataResponse;
 import com.crawldata.back_end.utils.ConnectJsoup;
+import com.crawldata.back_end.utils.DataResponseUtils;
 import com.crawldata.back_end.utils.HandleString;
 import com.crawldata.back_end.utils.SourceNovels;
 import org.jsoup.nodes.Document;
@@ -122,8 +123,9 @@ public class TruyenFullPlugin implements PluginFactory {
         dataResponse.setStatus("success");
         dataResponse.setData(chapterDetail);
         return dataResponse;
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return DataResponseUtils.getErrorDataResponse(e.getMessage());
         }
     }
 
@@ -157,8 +159,9 @@ public class TruyenFullPlugin implements PluginFactory {
         dataResponse.setTotalPage(totalPages);
         dataResponse.setPerPage(chapterList.size());
         return dataResponse;
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return DataResponseUtils.getErrorDataResponse(e.getMessage());
         }
     }
     @Override
@@ -179,8 +182,9 @@ public class TruyenFullPlugin implements PluginFactory {
         dataResponse.setData(novel);
         dataResponse.setStatus("success");
         return dataResponse;
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return DataResponseUtils.getErrorDataResponse(e.getMessage());
         }
     }
     @Override
@@ -209,8 +213,9 @@ public class TruyenFullPlugin implements PluginFactory {
         DataResponse dataResponse = new DataResponse("success",1,1,novelList.size(),null,novelList,null);
         return dataResponse;
         }
-        catch (IOException e) {
-            throw new RuntimeException(e);
+        catch (Exception e) {
+            e.printStackTrace();
+            return DataResponseUtils.getErrorDataResponse(e.getMessage());
         }
     }
     @Override
@@ -243,8 +248,9 @@ public class TruyenFullPlugin implements PluginFactory {
             DataResponse dataResponse = new DataResponse("success", totalPages, page, novelList.size(), search, novelList, "");
             dataResponse.setCurrentPage(page);
             return dataResponse;
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return DataResponseUtils.getErrorDataResponse(e.getMessage());
         }
     }
     @Override
@@ -283,8 +289,9 @@ public class TruyenFullPlugin implements PluginFactory {
         dataResponse.setCurrentPage(page);
         return dataResponse;
         }
-        catch (IOException e) {
-            throw new RuntimeException(e);
+        catch (Exception e) {
+            e.printStackTrace();
+            return DataResponseUtils.getErrorDataResponse(e.getMessage());
         }
     }
 }
