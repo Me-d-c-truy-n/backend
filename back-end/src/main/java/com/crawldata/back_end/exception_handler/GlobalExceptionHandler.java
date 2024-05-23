@@ -1,6 +1,7 @@
 package com.crawldata.back_end.exception_handler;
 
 import com.crawldata.back_end.response.DataResponse;
+import com.crawldata.back_end.utils.DataResponseUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,7 +23,7 @@ public class GlobalExceptionHandler  extends ResponseEntityExceptionHandler {
     @ResponseBody
     public DataResponse handleGenericException(Exception ex)
     {
-        DataResponse error = new DataResponse("error", null,null,null,null,null,ex.getMessage());
+        DataResponse error = DataResponseUtils.getErrorDataResponse(ex.getMessage());
         LOGGER.error(ex.getMessage(), ex);
         return error;
     }

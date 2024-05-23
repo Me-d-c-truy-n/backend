@@ -1,24 +1,27 @@
 
 import com.crawldata.back_end.export_plugin_builder.ExportPluginFactory;
 import com.crawldata.back_end.model.Chapter;
-import com.lowagie.text.Document;
-import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.core.io.ClassPathResource;
+import com.lowagie.text.*;
 import com.lowagie.text.Font;
-import com.lowagie.text.PageSize;
-import com.lowagie.text.Paragraph;
+import com.lowagie.text.html.simpleparser.HTMLWorker;
+import jakarta.servlet.http.HttpServletResponse;
+import org.jsoup.Jsoup;
+import org.springframework.core.io.ClassPathResource;
 import com.lowagie.text.pdf.BaseFont;
 import com.lowagie.text.pdf.PdfWriter;
 
 import java.awt.*;
+import java.awt.List;
 import java.io.IOException;
+import java.io.StringReader;
+import java.util.ArrayList;
 
 public class PdfPlugin implements ExportPluginFactory {
     @Override
     public void export(Chapter chapter, HttpServletResponse response) throws IOException {
         response.setContentType("application/pdf");
         String headerkey = "Content-Disposition";
-        String headervalue = "attachment; filename=" + chapter.getNovelName() + "_" + chapter.getName()  + ".pdf";
+        String headervalue = "attachment; filename=\"" + chapter.getNovelName() + "_" + chapter.getName()  + ".pdf\"";
         response.setHeader(headerkey, headervalue);
         exportImpl(chapter,response);
     }
@@ -48,7 +51,7 @@ public class PdfPlugin implements ExportPluginFactory {
         authorName.setSpacingAfter(20);
         document.add(authorName);
 
-        Paragraph content = new Paragraph(chapter.getContent(), font);
+        Paragraph content = new Paragraph(chapter.getContent().replaceAll("<br>","\n"), font);
         content.setAlignment(Paragraph.ALIGN_JUSTIFIED);
         document.add(content);
         document.close();

@@ -92,7 +92,9 @@ public class PluginLoader {
      */
     public void unloadPluginClasses(List<PluginInformation> plugins) {
         for(PluginInformation plugin : plugins) {
-            jcl.unloadClass(plugin.getClassName());
+            if(jcl.getLoadedClasses().containsKey(plugin.getClassName())){
+                jcl.unloadClass(plugin.getClassName());
+            }
         }
         jcl = new JarClassLoader();
     }
