@@ -4,20 +4,28 @@ import com.crawldata.back_end.model.Chapter;
 import com.crawldata.back_end.model.Novel;
 import com.crawldata.back_end.plugin_builder.PluginFactory;
 import com.crawldata.back_end.response.DataResponse;
+import com.crawldata.back_end.utils.AppUtils;
 import com.crawldata.back_end.utils.ConnectJsoup;
 import com.crawldata.back_end.utils.DataResponseUtils;
 import com.crawldata.back_end.utils.HandleString;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import io.github.bonigarcia.wdm.WebDriverManager;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
+import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
+import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -31,7 +39,7 @@ public class MeTruyenChuPlugin implements PluginFactory {
     private final String ALL_NOVELS_API = "https://backend.metruyencv.com/api/books?include=author&sort=-view_count&limit=20&page=%s&filter[state]=published";
     private final String NOVEL_SEARCH_API = "https://backend.metruyencv.com/api/books/search?keyword=%s&limit=20&page=%s&sort=-view_count&filter[state]=published";
     private final String CHAPTER_DETAIL_API = "https://metruyencv.com/truyen/%s/%s";
-
+    private static final String CHROME_DRIVER_PATH = "/plugins/chromedriver.exe";
 
     private static final int ITEMS_PER_PAGE = 30;
     private final int DEFAULT_PAGE_NUMBER = 1;
@@ -171,6 +179,10 @@ public class MeTruyenChuPlugin implements PluginFactory {
             return DataResponseUtils.getErrorDataResponse("Novel not found on this server");
         }
         Novel novel = createNovelByJsonData(novelObject);
+
+
+
+
         Document doc = null;
         try {
             doc = ConnectJsoup.connect(urlChapter);
@@ -194,10 +206,41 @@ public class MeTruyenChuPlugin implements PluginFactory {
             if (contentElement == null) {
                 return DataResponseUtils.getErrorDataResponse("Chapter content not found");
             }
-            String content = contentElement.html();
+            StringBuilder content = new StringBuilder(contentElement.html());
+
+            if(content.length() <2000) {
+                // Initialize Selenium WebDriver in headless mode
+                System.out.println(AppUtils.curDir+CHROME_DRIVER_PATH);
+                System.setProperty("webdriver.chrome.driver", AppUtils.curDir+CHROME_DRIVER_PATH);
+                ChromeOptions options = new ChromeOptions();
+                options.addArguments("--headless");
+                options.addArguments("--disable-gpu");
+                options.addArguments("--window-size=1920,1080");
+                WebDriver driver = new ChromeDriver(options);
+                driver.get(urlChapter);
+
+                // Scroll and load more content
+                JavascriptExecutor js = (JavascriptExecutor) driver;
+                // Scroll to bottom
+                js.executeScript("window.scrollTo(0, document.body.scrollHeight);");
+                Thread.sleep(500);
+                // Check if more content has loaded
+                doc = Jsoup.parse(driver.getPageSource());
+                Element loadMoreElement = doc.getElementById("load-more");
+
+                if(loadMoreElement!=null && !loadMoreElement.html().isEmpty()) {
+                    // Remove all <canvas> tags within the loadMoreElement
+                    Elements canvasElements = loadMoreElement.select("canvas");
+                    for (Element canvas : canvasElements) {
+                        canvas.remove();
+                    }
+                    // Append new content
+                    content.append(loadMoreElement.html());
+                }
+            }
 
             // Create chapter details
-            Chapter chapterDetail = new Chapter(novelId, novel.getName(), chapterId, nextChapterId, preChapterId, chapterName, novel.getAuthor(), content);
+            Chapter chapterDetail = new Chapter(novelId, novel.getName(), chapterId, nextChapterId, preChapterId, chapterName, novel.getAuthor(), content.toString());
 
             // Prepare response
             DataResponse dataResponse = new DataResponse();
@@ -205,7 +248,7 @@ public class MeTruyenChuPlugin implements PluginFactory {
             dataResponse.setData(chapterDetail);
 
             return dataResponse;
-        } catch (IOException e) {
+        } catch (IOException | InterruptedException e) {
             e.printStackTrace();
             return DataResponseUtils.getErrorDataResponse(e.getMessage());
         }
