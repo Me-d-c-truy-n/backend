@@ -24,6 +24,7 @@ import java.util.concurrent.Future;
 
 
 
+
 public class TruyenFullPlugin implements PluginFactory {
     public int getNovelTotalPages(String url) {
         Document doc = null;
@@ -248,7 +249,7 @@ public class TruyenFullPlugin implements PluginFactory {
             for (int i = 0; i < novels.size() && i < 18; i++) {
                 Element novel = novels.get(i);
                 if (!novel.text().equals("")) {
-                    String image = novel.selectFirst("div[data-image]").attr("data-image");
+                   // String image = novel.selectFirst("div[data-image]").attr("data-image");
                     String novelUrl = novel.selectFirst("a").attr("href");
                     String idNovel = getEndSlugFromUrl(novelUrl);
                     String nameNovel = novel.selectFirst("h3").text();
@@ -265,6 +266,7 @@ public class TruyenFullPlugin implements PluginFactory {
                             try {
                                 Document detailDoc = ConnectJsoup.connect(urlDetail);
                                 String description = detailDoc.selectFirst("div[itemprop=description]").toString();
+                                String image = detailDoc.selectFirst("img").attr("src");
                                 return new Novel(idNovel, nameNovel, image, description, author, idFirstChapter);
                             } catch (Exception e) {
                                 retryCount++;
@@ -315,7 +317,6 @@ public class TruyenFullPlugin implements PluginFactory {
         {
             Element novel = novels.get(i);
             if(!novel.text().equals("")) {
-                String image = novel.selectFirst("div[data-image]").attr("data-image");
                 String novelUrl =novel.selectFirst("a").attr("href");
                 String idNovel = getEndSlugFromUrl(novelUrl);
                 String name = novel.selectFirst("h3").text();
@@ -330,6 +331,7 @@ public class TruyenFullPlugin implements PluginFactory {
                     while (retryCount < maxRetries) {
                         try {
                             Document detailDoc = ConnectJsoup.connect(urlDetail);
+                            String image = detailDoc.selectFirst("img").attr("src");
                             String description = detailDoc.selectFirst("div[itemprop=description]").toString();
                             return new Novel(idNovel, name, image, description, author, idFirstChapter);
                         } catch (Exception e) {
