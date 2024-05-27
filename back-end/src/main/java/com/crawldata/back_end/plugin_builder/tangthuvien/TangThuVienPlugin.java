@@ -1,6 +1,3 @@
-
-
-
 import com.crawldata.back_end.model.Author;
 import com.crawldata.back_end.model.Chapter;
 import com.crawldata.back_end.model.Novel;
@@ -59,9 +56,6 @@ public class TangThuVienPlugin implements PluginFactory {
         }
         return totalElements / numPerPage + 1;
     }
-
-
-
 
     public List<String> getAdjacentChapters(String storyId, String currentChapterId) throws IOException {
         List<String> adjacentChapters = new ArrayList<>();
@@ -375,14 +369,6 @@ public class TangThuVienPlugin implements PluginFactory {
             LOGGER.error(e.getMessage(),e);
             return DataResponseUtils.getErrorDataResponse(e.getMessage());
         }
-        Collections.sort(lsNovels, new Comparator<Novel>() {
-            @Override
-            public int compare(Novel o1, Novel o2) {
-                return orderBy.equals("z-a") ?  o2.getName().compareToIgnoreCase(o1.getName()) : o1.getName().compareToIgnoreCase(o2.getName());
-            }
-        });
         return new DataResponse("success", totalPage,page, null, key, lsNovels, null);
     }
-
-
 }
