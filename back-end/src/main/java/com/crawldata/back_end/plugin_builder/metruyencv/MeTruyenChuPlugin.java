@@ -180,9 +180,6 @@ public class MeTruyenChuPlugin implements PluginFactory {
         }
         Novel novel = createNovelByJsonData(novelObject);
 
-
-
-
         Document doc = null;
         try {
             doc = ConnectJsoup.connect(urlChapter);
@@ -210,7 +207,7 @@ public class MeTruyenChuPlugin implements PluginFactory {
 
             if(content.length() <2000) {
                 // Initialize Selenium WebDriver in headless mode
-                System.out.println(AppUtils.curDir+CHROME_DRIVER_PATH);
+                System.out.println("metruyencv is using chrome driver");
                 System.setProperty("webdriver.chrome.driver", AppUtils.curDir+CHROME_DRIVER_PATH);
                 ChromeOptions options = new ChromeOptions();
                 options.addArguments("--headless");
@@ -235,7 +232,7 @@ public class MeTruyenChuPlugin implements PluginFactory {
                         canvas.remove();
                     }
                     // Append new content
-                    content.append(loadMoreElement.html());
+                    content.append(loadMoreElement.html().replaceAll("\\n", "").replaceAll("(<br>){3,}", "<br><br>"));
                 }
             }
 
