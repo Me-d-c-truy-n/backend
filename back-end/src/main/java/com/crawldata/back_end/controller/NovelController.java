@@ -68,5 +68,11 @@ public class NovelController {
         exportServiceImpl.export(fileType, (Chapter) dataResponse.getData(),response);
     }
 
+    @GetMapping("{pluginId}/tai-truyen/{novelId}/{fileType}")
+    public void export(@PathVariable("pluginId") String pluginId , @PathVariable(name = "fileType") String fileType,@PathVariable(name = "novelId") String novelId,
+                       HttpServletResponse response) throws IOException {
+        exportServiceImpl.export(fileType, pluginId, novelId, response);
+    }
+
 
 }

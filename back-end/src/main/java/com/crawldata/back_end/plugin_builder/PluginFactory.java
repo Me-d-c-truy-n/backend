@@ -29,6 +29,17 @@ public interface PluginFactory {
     public DataResponse getNovelListChapters(String novelId, int page);
 
     /**
+     * Retrieves a list of all chapters for a given novel.
+     *
+     * @param novelId The ID of the novel.
+     * @param page The page number.
+     * @return The list of chapters.
+     */
+    public default DataResponse getNovelListChapters(String novelId) {
+        return getNovelListChapters(novelId, 1);
+    }
+
+    /**
      * Retrieves the details of a novel.
      *
      * @param novelId The ID of the novel.

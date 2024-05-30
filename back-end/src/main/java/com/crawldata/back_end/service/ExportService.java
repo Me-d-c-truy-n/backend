@@ -29,6 +29,15 @@ public interface ExportService {
      */
     public void export(String pluginId, Chapter chapter, HttpServletResponse response) throws IOException;
 
+    /**
+     * Export novel
+     * @param pluginId The ID of the novel.
+     * @param novelId The ID of the novel.
+     * @param chapterId The ID of the chapter.
+     * @param response response for client
+     */
+    public void export(String fileType, String pluginId, String novelId, HttpServletResponse response) throws IOException;
+
      /**
      * @return The key novel plugins
      */

@@ -285,6 +285,30 @@ public class MeTruyenChuPlugin implements PluginFactory {
     }
 
     @Override
+    public DataResponse getNovelListChapters(String novelId) {
+        JsonObject novelObject = getNovelDetailBySlug(novelId);
+        if (novelObject == null) {
+            return DataResponseUtils.getErrorDataResponse("Novel not found on this server");
+        }
+        Novel novel = createNovelByJsonData(novelObject);
+        String apiUrl = String.format(NOVEL_LIST_CHAPTERS_API, novelObject.get("id").getAsString());
+        JsonObject jsonObject = connectAPI(apiUrl);
+        List<Chapter> chapterList = new ArrayList<>();
+
+
+        if (jsonObject != null && jsonObject.has("data")) {
+            JsonArray dataArray = jsonObject.getAsJsonArray("data");
+            // Loop through the data
+            for (int i = 0; i < dataArray.size(); i++) {
+                JsonObject chapterObject = dataArray.get(i).getAsJsonObject();
+                chapterList.add(createChapterByJsonData(chapterObject, novel));
+            }
+        }
+
+        return new DataResponse("success", DEFAULT_PAGE_NUMBER, DEFAULT_PAGE_NUMBER, chapterList.size(), null, chapterList, "");
+    }
+
+    @Override
     public DataResponse getNovelDetail(String novelId) {
         JsonObject novelObject = getNovelDetailBySlug(novelId);
         if (novelObject != null) {

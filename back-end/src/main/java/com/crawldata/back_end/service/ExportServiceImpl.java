@@ -1,6 +1,7 @@
 package com.crawldata.back_end.service;
 
 import com.crawldata.back_end.export_plugin_builder.ExportPluginFactory;
+import com.crawldata.back_end.export_plugin_builder.epub.EpubPlugin;
 import com.crawldata.back_end.model.Chapter;
 import com.crawldata.back_end.model.ExportPluginInformation;
 import com.crawldata.back_end.model.PluginInformation;
@@ -22,9 +23,12 @@ public class ExportServiceImpl implements  ExportService{
 
     private ExportPluginManager exportPluginManager;
     private final String createPluginErrorMessage = "Error when creating plugin";
-
+    private final NovelService novelService;
     @Override
     public ExportPluginFactory getExportPluginFactory(String pluginId) {
+        if(pluginId.equals("epub")) {
+            return new EpubPlugin();
+        }
         exportPluginManager.updateExportPlugins();
         return exportPluginManager.getExportPluginById(pluginId).getExportPluginObject();
     }
@@ -37,6 +41,16 @@ public class ExportServiceImpl implements  ExportService{
             //return new DataResponse("error", null, null, null, null, null, createPluginErrorMessage);
         } else {
             exportPluginFactory.export(chapter, response);
+        }
+    }
+
+    @Override
+    public void export(String fileType, String pluginId, String novelId, HttpServletResponse response) throws IOException {
+        ExportPluginFactory exportPluginFactory = getExportPluginFactory(fileType);
+        if(exportPluginFactory == null) {
+            //return new DataResponse("error", null, null, null, null, null, createPluginErrorMessage);
+        } else {
+            exportPluginFactory.export(novelService.getPluginFactory(pluginId), novelId, response);
         }
     }
 
