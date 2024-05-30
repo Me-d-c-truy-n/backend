@@ -17,7 +17,6 @@ import java.util.*;
 
 public class TangThuVienPlugin implements PluginFactory {
     private static String rootUrl = "https://truyen.tangthuvien.vn/";
-    private static Integer totalChaptersPerPage = 75;
     private static final Logger LOGGER = LoggerFactory.getLogger(TangThuVienPlugin.class);
 
     private String getAuthorIdFromUrl(String url) {
