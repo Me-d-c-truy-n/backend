@@ -1,4 +1,3 @@
-package com.crawldata.back_end.export_plugin_builder.epub;
 
 import com.crawldata.back_end.export_plugin_builder.ExportPluginFactory;
 import com.crawldata.back_end.model.Chapter;
@@ -12,13 +11,11 @@ import lombok.NoArgsConstructor;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.jsoup.parser.ParseSettings;
 import org.jsoup.parser.Parser;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
-import org.zeroturnaround.zip.ZipUtil;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -48,7 +45,6 @@ public class EpubPlugin implements ExportPluginFactory {
     private List<Chapter> chapterList;
     @Override
     public void export(PluginFactory plugin, String novelId, HttpServletResponse response) throws IOException {
-
         //read untitled.epub to use it as template.
         String epubJarFilePath = AppUtils.curDir + "/export_plugins/epub.jar";
         try (JarFile jarFile = new JarFile(epubJarFilePath)) {
@@ -71,6 +67,11 @@ public class EpubPlugin implements ExportPluginFactory {
         }
     }
 
+    /**
+     * Retrieves and sets the novel information and chapter list from the plugin.
+     * @param plugin The plugin factory instance.
+     * @param novelId The ID of the novel to retrieve information for.
+     */
     private void getNovelInfo(PluginFactory plugin, String novelId) {
         pluginFactory = plugin;
         DataResponse dataResponse = pluginFactory.getNovelDetail(novelId);
@@ -88,10 +89,15 @@ public class EpubPlugin implements ExportPluginFactory {
         }
     }
 
+    /**
+     * Modifies the EPUB file based on the novel and chapter information.
+     * @param epubFilePath The file path of the EPUB to modify.
+     * @throws IOException If an I/O error occurs.
+     */
     private void modifyEpubFile(String epubFilePath) throws IOException {
         File tempFile = File.createTempFile("epub", ".epub");
         try (ZipFile zipFile = new ZipFile(epubFilePath);
-             ZipOutputStream zos = new ZipOutputStream(new java.io.FileOutputStream(tempFile))) {
+             ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(tempFile))) {
             Enumeration<? extends ZipEntry> entries = zipFile.entries();
 
             while (entries.hasMoreElements()) {
@@ -143,6 +149,13 @@ public class EpubPlugin implements ExportPluginFactory {
         System.out.println("Export " + novel.getName() + " - " + novel.getAuthor().getName() + ".epub success");
     }
 
+    /**
+     * Modifies the cover.xhtml file in the EPUB.
+     * @param zos The ZipOutputStream to write the modified file to.
+     * @param entry The original ZipEntry of the file.
+     * @param is The InputStream of the original file content.
+     * @throws IOException If an I/O error occurs.
+     */
     private void modifyCoverXhtml(ZipOutputStream zos, ZipEntry entry, InputStream is) throws IOException {
         Document document = Jsoup.parse(is, "UTF-8", "", Parser.xmlParser());
 
@@ -159,6 +172,12 @@ public class EpubPlugin implements ExportPluginFactory {
         zos.write(document.outerHtml().getBytes());
     }
 
+    /**
+     * Replaces the epublogo.png image in the EPUB with a new one.
+     * @param zos The ZipOutputStream to write the modified file to.
+     * @param entry The original ZipEntry of the file.
+     * @throws IOException If an I/O error occurs.
+     */
     private void modifyEpubLogo(ZipOutputStream zos, ZipEntry entry) throws IOException {
         // Use the image URL from the novel object
         String imageUrl = novel.getImage();
@@ -167,12 +186,25 @@ public class EpubPlugin implements ExportPluginFactory {
         zos.write(newImage);
     }
 
+    /**
+     * Downloads an image from the specified URL.
+     * @param imageUrl The URL of the image to download.
+     * @return A byte array containing the image data.
+     * @throws IOException If an I/O error occurs.
+     */
     private byte[] downloadImage(String imageUrl) throws IOException {
         try (InputStream in = new URL(imageUrl).openStream()) {
             return in.readAllBytes();
         }
     }
 
+    /**
+     * Modifies the title_page.xhtml file in the EPUB.
+     * @param zos The ZipOutputStream to write the modified file to.
+     * @param entry The original ZipEntry of the file.
+     * @param is The InputStream of the original file content.
+     * @throws IOException If an I/O error occurs.
+     */
     private void modifyTitlePageXhtml(ZipOutputStream zos, ZipEntry entry, InputStream is) throws IOException {
         Document document = Jsoup.parse(is, "UTF-8", "", Parser.xmlParser());
         Element titleElement = document.getElementsByTag("h1").first();
@@ -188,6 +220,13 @@ public class EpubPlugin implements ExportPluginFactory {
         zos.write(document.outerHtml().getBytes());
     }
 
+    /**
+     * Modifies the toc.ncx file in the EPUB.
+     * @param zos The ZipOutputStream to write the modified file to.
+     * @param entry The original ZipEntry of the file.
+     * @param is The InputStream of the original file content.
+     * @throws IOException If an I/O error occurs.
+     */
     private void modifyTocNcx(ZipOutputStream zos, ZipEntry entry, InputStream is) throws IOException {
         try {
             // Create a DocumentBuilder to parse XML
@@ -242,7 +281,13 @@ public class EpubPlugin implements ExportPluginFactory {
         }
     }
 
-
+    /**
+     * Modifies the toc.xhtml file in the EPUB.
+     * @param zos The ZipOutputStream to write the modified file to.
+     * @param entry The original ZipEntry of the file.
+     * @param is The InputStream of the original file content.
+     * @throws IOException If an I/O error occurs.
+     */
     private void modifyTocXhtml(ZipOutputStream zos, ZipEntry entry, InputStream is) throws IOException {
         Document document = Jsoup.parse(is, "UTF-8", "", Parser.xmlParser());
         Element divElement = document.getElementsByTag("div").first();
@@ -250,21 +295,21 @@ public class EpubPlugin implements ExportPluginFactory {
         List<String> defaultText = Arrays.asList("Cover", "Title Page", "Copyright", "Mục lục");
         if (divElement != null) {
             for(int i = 0; i<defaultElement.size(); i++) {
-                Element liElement = document.createElement("li");
                 Element aElement = document.createElement("a");
+//                Element liElement = document.createElement("li");
                 aElement.attr("href", defaultElement.get(i));
                 aElement.text(defaultText.get(i));
-                liElement.appendChild(aElement);
-                divElement.appendChild(liElement);
+//                aElement.appendChild(liElement);
+                divElement.appendChild(new Element("p").appendChild(aElement));
             }
 
             for(Chapter chapter : chapterList) {
-                Element liElement = document.createElement("li");
                 Element aElement = document.createElement("a");
+//                Element liElement = document.createElement("li");
                 aElement.attr("href", "text/"+chapter.getChapterId()+".xhtml");
                 aElement.text(chapter.getName().trim());
-                liElement.appendChild(aElement);
-                divElement.appendChild(liElement);
+//                aElement.appendChild(liElement);
+                divElement.appendChild(new Element("p").appendChild(aElement));
             }
 
         }
@@ -272,6 +317,13 @@ public class EpubPlugin implements ExportPluginFactory {
         zos.write(document.outerHtml().getBytes());
     }
 
+    /**
+     * Modifies the content.opf file in the EPUB.
+     * @param zos The ZipOutputStream to write the modified file to.
+     * @param entry The original ZipEntry of the file.
+     * @param is The InputStream of the original file content.
+     * @throws IOException If an I/O error occurs.
+     */
     private void modifyContentOpf(ZipOutputStream zos, ZipEntry entry, InputStream is) throws IOException {
         Document document = Jsoup.parse(is, "UTF-8", "", Parser.xmlParser());
         Element titleElement = document.getElementsByTag("dc:title").first();
@@ -302,24 +354,39 @@ public class EpubPlugin implements ExportPluginFactory {
         zos.write(document.outerHtml().getBytes());
     }
 
+    /**
+     * Modifies a chapter xhtml file in the EPUB.
+     * @param zos The ZipOutputStream to write the modified file to.
+     * @param originalEntry The original ZipEntry of the file.
+     * @param is The InputStream of the original file content.
+     * @param chapter The chapter information to modify the file with.
+     * @throws IOException If an I/O error occurs.
+     */
     private void modifyAndSaveChapterXhtml(ZipOutputStream zos, ZipEntry originalEntry, InputStream is, Chapter chapter) throws IOException {
         // Parse the original chap01.xhtml content
         Document document = Jsoup.parse(is, "UTF-8", "", Parser.xmlParser());
 
         // Make the necessary modifications to the chapter content
-        Element titleElement = document.getElementsByTag("title").first();
-        if (titleElement != null) {
-            titleElement.text(chapter.getName());
-        }
-
         Element bodyElement = document.getElementsByTag("body").first();
         if (bodyElement != null) {
-            // Assuming chapter content is stored in the 'content' field
             DataResponse dataResponse = pluginFactory.getNovelChapterDetail(novel.getNovelId(), chapter.getChapterId());
-            if(dataResponse != null && dataResponse.getStatus().equals("success")) {
+            if (dataResponse != null && dataResponse.getStatus().equals("success")) {
                 Chapter data = (Chapter) dataResponse.getData();
-                bodyElement.html(data.getContent());
+
+                // Set title element
+                Element titleElement = bodyElement.getElementsByTag("h2").first();
+                if(titleElement != null) {
+                    titleElement.text(data.getName().trim());
+                }
+
+                // Set the HTML content of the content container
+                Element contentElement = bodyElement.getElementsByTag("div").first();
+                if(contentElement != null) {
+                    contentElement.html(data.getContent().replaceAll("<br>", "<br></br>"));
+                }
             }
+
+
         }
 
         // Create a new entry for the modified chapter
@@ -330,6 +397,12 @@ public class EpubPlugin implements ExportPluginFactory {
         zos.write(document.outerHtml().getBytes("UTF-8"));
     }
 
+    /**
+     * Sends the modified EPUB file to the client and deletes the file from the server.
+     * @param fileName The file path of the EPUB to send.
+     * @param response The HttpServletResponse to send the file to.
+     * @throws IOException If an I/O error occurs.
+     */
     private void sendFileToClientAndDelete(String fileName, HttpServletResponse response) throws IOException {
         File file = new File(fileName);
 
@@ -355,6 +428,11 @@ public class EpubPlugin implements ExportPluginFactory {
         }
     }
 
+    /**
+     * Encode the EPUB file name
+     * @param fileName The file path of the EPUB to send.
+     * @return the encoded name
+     */
     private String encodeFileName(String fileName) {
         try {
             return URLEncoder.encode(fileName, "UTF-8").replace("+", "%20");
