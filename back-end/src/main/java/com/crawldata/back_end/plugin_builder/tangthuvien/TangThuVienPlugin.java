@@ -1,4 +1,3 @@
-package com.crawldata.back_end.plugin_builder.tangthuvien;
 
 import com.crawldata.back_end.model.Author;
 import com.crawldata.back_end.model.Chapter;
@@ -18,6 +17,8 @@ import java.util.*;
 public class TangThuVienPlugin implements PluginFactory {
     private static String rootUrl = "https://truyen.tangthuvien.vn/";
     private static final Logger LOGGER = LoggerFactory.getLogger(TangThuVienPlugin.class);
+    private static final Integer totalChaptersPerPage = 75;
+
 
     private String getAuthorIdFromUrl(String url) {
         String[] parts = url.split("\\?");
@@ -149,7 +150,7 @@ public class TangThuVienPlugin implements PluginFactory {
     }
 
     @Override
-    public DataResponse getNovelListChapters(String novelId, int page) {
+    public DataResponse getNovelListChapters(String novelId) {
         String detailNovelUrl = rootUrl + "/doc-truyen/" + novelId;
         String listChaptersUrl;
         String novelName = "";
@@ -193,7 +194,7 @@ public class TangThuVienPlugin implements PluginFactory {
     }
 
 
-    /*@Override
+    @Override
     public DataResponse getNovelListChapters(String novelId, int page) {
         String detailNovelurl = rootUrl + "/doc-truyen/" + novelId;
         String listChaptersUrl;
@@ -241,7 +242,7 @@ public class TangThuVienPlugin implements PluginFactory {
         // Calculate total page
         Integer totalPage = calculateTotalPage(total, totalChaptersPerPage);
         return new DataResponse("success",totalPage, page, totalChaptersPerPage, null , listChapters, null);
-    }*/
+    }
 
 
 
