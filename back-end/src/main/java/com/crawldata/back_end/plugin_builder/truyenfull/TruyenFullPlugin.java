@@ -25,6 +25,7 @@ import java.util.concurrent.Future;
 
 
 
+@Service
 public class TruyenFullPlugin implements PluginFactory {
     public int getNovelTotalPages(String url) {
         Document doc = null;
@@ -175,6 +176,44 @@ public class TruyenFullPlugin implements PluginFactory {
         dataResponse.setTotalPage(totalPages);
         dataResponse.setPerPage(chapterList.size());
         return dataResponse;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return DataResponseUtils.getErrorDataResponse(e.getMessage());
+        }
+    }
+    @Override
+    public DataResponse getNovelListChapters(String novelId) {
+        String url = SourceNovels.NOVEL_MAIN + novelId;
+        Document doc = null;
+        try {
+            doc = ConnectJsoup.connect(url);
+            String name = doc.select("h3[class=title]").first().text();
+            String authorName = doc.select("a[itemprop=author]").first().text();
+            Author author = new Author(HandleString.makeSlug(authorName),authorName);
+            List<Chapter> chapterList = new ArrayList<>();
+            Integer totalPages = getNovelTotalPages(url);
+            for(int i=1;i<= totalPages.intValue();i++)
+            {
+                String link = String.format("https://truyenfull.vn/%s/trang-%d",novelId,i);
+                doc = ConnectJsoup.connect(link);
+                Elements chapters = doc.select("ul[class=list-chapter] li");
+                int endChapter = getChapterEnd(SourceNovels.NOVEL_MAIN+novelId);
+                for (Element chapter : chapters) {
+                    String nameChapter = chapter.selectFirst("a").text();
+                    String linkChapter = chapter.selectFirst("a").attr("href");
+                    String idChapter = linkChapter.split("/")[linkChapter.split("/").length-1];
+                    String idPreChapter = getValidPreChapter(idChapter);
+                    String idNextChapter = getValidNextChapter(idChapter,endChapter);
+                    Chapter chapterObj = new Chapter(novelId,name,idChapter,idNextChapter,idPreChapter,nameChapter,author, "");
+                    chapterList.add(chapterObj);
+                }
+            }
+            DataResponse dataResponse = new DataResponse();
+            dataResponse.setStatus("success");
+            dataResponse.setData(chapterList);
+            dataResponse.setTotalPage(1);
+            dataResponse.setPerPage(chapterList.size());
+            return dataResponse;
         } catch (Exception e) {
             e.printStackTrace();
             return DataResponseUtils.getErrorDataResponse(e.getMessage());
