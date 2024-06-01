@@ -1,4 +1,5 @@
 package com.crawldata.back_end.controller;
+import com.crawldata.back_end.export_plugin_builder.audio.AudioPlugin;
 import com.crawldata.back_end.service.ExportServiceImpl;
 import com.crawldata.back_end.service.NovelServiceImpl;
 import com.crawldata.back_end.model.*;
@@ -19,6 +20,7 @@ public class NovelController {
 
     private final NovelServiceImpl novelServiceImpl;
     private final ExportServiceImpl exportServiceImpl;
+    private final AudioPlugin audioPlugin;
 
     //Get detail chapter
     @GetMapping("{pluginId}/truyen/{novelId}/{chapterId}")
@@ -65,6 +67,7 @@ public class NovelController {
                        @PathVariable(name = "chapterId") String chapterId, HttpServletResponse response) throws IOException {
         DataResponse dataResponse = novelServiceImpl.getNovelChapterDetail(pluginId, novelId, chapterId);
         exportServiceImpl.export(fileType, (Chapter) dataResponse.getData(),response);
+        //audioPlugin.export((Chapter) dataResponse.getData(),response);
     }
 
     @GetMapping("{pluginId}/tai-truyen/{novelId}/{fileType}")

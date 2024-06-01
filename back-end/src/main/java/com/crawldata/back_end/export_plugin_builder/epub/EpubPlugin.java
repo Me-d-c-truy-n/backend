@@ -99,7 +99,6 @@ public class EpubPlugin implements ExportPluginFactory {
         try (ZipFile zipFile = new ZipFile(epubFilePath);
              ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(tempFile))) {
             Enumeration<? extends ZipEntry> entries = zipFile.entries();
-
             while (entries.hasMoreElements()) {
                 ZipEntry entry = entries.nextElement();
                 try (InputStream is = zipFile.getInputStream(entry)) {

@@ -25,7 +25,6 @@ import java.util.concurrent.Future;
 
 
 
-@Service
 public class TruyenFullPlugin implements PluginFactory {
     public int getNovelTotalPages(String url) {
         Document doc = null;

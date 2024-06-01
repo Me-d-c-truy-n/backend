@@ -87,6 +87,7 @@ public class PdfPlugin implements ExportPluginFactory {
         response.setHeader("Content-Disposition", "attachment; filename=" + chapter.getName() + "_" + chapter.getChapterId()  + ".pdf");
         response.setCharacterEncoding("UTF-8");
         response.setContentLength(baos.size());
+
         // Write the PDF to the response output stream
         OutputStream os = response.getOutputStream();
         baos.writeTo(os);
