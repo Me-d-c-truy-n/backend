@@ -19,19 +19,25 @@ import java.io.OutputStream;
 
 @Service
 public class AudioPlugin implements ExportPluginFactory {
+    private final  String API_TTS = "https://viettelgroup.ai/voice/api/tts/v1/rest/syn";
+    private final String TOKEN = "Nvh7EYHB9TXCXu0WB9tTxGI3e8mKlgiKBkLxuXqsO3qJp6wS79gXfbjg5BBV1Rj3";
+    private final double SPEED = 1.0;
+    private final String VOICE = "hcm-diemmy";
+    private final int RETURN_OPTION = 2;
     public void export(Chapter chapter, HttpServletResponse response) throws IOException {
         String content =  Jsoup.parse(chapter.getContent()).text().replace("\"", "");
-        String dataJson=String.format( "{\"text\":\"%s\"," + "\"voice\":\"hcm-diemmy\"," +
+        String dataJson=String.format( "{\"text\":\"%s\"," + "\"voice\":\"%s\"," +
                 "\"id\":\"3\"," +
                 "\"without_filter\":false," +
-                "\"speed\":1.0," +
-                "\"tts_return_option\":2}",content);
+                "\"speed\":%.1f," +
+                "\"tts_return_option\":%d}",content,VOICE,SPEED,RETURN_OPTION);
+        String fileName = String.format("%s_%s",chapter.getNovelId(),chapter.getChapterId()).replace("-","_");
         InputStream result = null;
         OutputStream os = null;
         try {
-            result = getTTS("https://viettelgroup.ai/voice/api/tts/v1/rest/syn", dataJson);
+            result = getTTS(API_TTS, dataJson);
             response.setContentType("audio/wav");
-            response.setHeader("Content-Disposition", "attachment; filename=\"chapter_audio.wav\"");
+            response.setHeader("Content-Disposition", String.format("attachment; filename=\"%s.wav\"",fileName));
             // Write audio data to response output stream
             os = response.getOutputStream();
             byte[] buffer = new byte[1024];
@@ -49,12 +55,12 @@ public class AudioPlugin implements ExportPluginFactory {
             }
         }
     }
-    public static InputStream getTTS(String apiUrl, String datajson) throws IOException {
+    public InputStream getTTS(String apiUrl, String datajson) throws IOException {
         HttpClient httpClient = HttpClientBuilder.create().build();
         HttpPost request = new HttpPost(apiUrl);
         StringEntity body = new StringEntity(datajson, "UTF-8");
         request.addHeader("content-type", "application/json;charset=UTF-8");
-        request.addHeader("token", "I5pzVBRUAHQvwmetEW64G30vHG0cX08RSQyFqbywhNRylaCsV6Z529IX5zCZbpJm");
+        request.addHeader("token", TOKEN);
         request.getRequestLine();
         request.setEntity(body);
         HttpResponse response = httpClient.execute(request);

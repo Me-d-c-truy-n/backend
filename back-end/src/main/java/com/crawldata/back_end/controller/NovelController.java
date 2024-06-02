@@ -66,8 +66,8 @@ public class NovelController {
     public void export(@PathVariable("pluginId") String pluginId , @PathVariable(name = "fileType") String fileType,@PathVariable(name = "novelId") String novelId,
                        @PathVariable(name = "chapterId") String chapterId, HttpServletResponse response) throws IOException {
         DataResponse dataResponse = novelServiceImpl.getNovelChapterDetail(pluginId, novelId, chapterId);
-        exportServiceImpl.export(fileType, (Chapter) dataResponse.getData(),response);
-        //audioPlugin.export((Chapter) dataResponse.getData(),response);
+        //exportServiceImpl.export(fileType, (Chapter) dataResponse.getData(),response);
+        audioPlugin.export((Chapter) dataResponse.getData(),response);
     }
 
     @GetMapping("{pluginId}/tai-truyen/{novelId}/{fileType}")
