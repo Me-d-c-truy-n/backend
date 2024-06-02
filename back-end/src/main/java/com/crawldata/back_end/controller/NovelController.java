@@ -1,14 +1,10 @@
 package com.crawldata.back_end.controller;
 
-import com.crawldata.back_end.export_plugin_builder.pdf.PdfPlugin;
-import com.crawldata.back_end.plugin_builder.PluginFactory;
 import com.crawldata.back_end.service.ExportServiceImpl;
-import com.crawldata.back_end.service.NovelService;
 import com.crawldata.back_end.service.NovelServiceImpl;
 import com.crawldata.back_end.model.*;
 import com.crawldata.back_end.utils.*;
 import com.crawldata.back_end.response.*;
-import com.lowagie.text.DocumentException;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +20,7 @@ public class NovelController {
 
     private final NovelServiceImpl novelServiceImpl;
     private final ExportServiceImpl exportServiceImpl;
+    private final AudioPlugin audioPlugin;
 
     //Get detail chapter
     @GetMapping("{pluginId}/truyen/{novelId}/{chapterId}")
