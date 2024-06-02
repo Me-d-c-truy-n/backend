@@ -6,6 +6,7 @@ import com.crawldata.back_end.model.ExportPluginInformation;
 import com.crawldata.back_end.plugin.ExportPluginManager;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
+import org.apache.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -40,7 +41,7 @@ public class ExportServiceImpl implements  ExportService{
     public void export(String fileType, String pluginId, String novelId, HttpServletResponse response) throws IOException {
         ExportPluginFactory exportPluginFactory = getExportPluginFactory(fileType);
         if(exportPluginFactory == null) {
-            //return new DataResponse("error", null, null, null, null, null, createPluginErrorMessage);
+            response.setStatus(HttpStatus.SC_INTERNAL_SERVER_ERROR);
         } else {
             exportPluginFactory.export(novelService.getPluginFactory(pluginId), novelId, response);
         }
