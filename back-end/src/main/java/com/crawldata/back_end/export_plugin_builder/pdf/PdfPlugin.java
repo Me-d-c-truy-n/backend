@@ -1,5 +1,3 @@
-package com.crawldata.back_end.export_plugin_builder.pdf;
-
 import com.crawldata.back_end.export_plugin_builder.ExportPluginFactory;
 import com.crawldata.back_end.model.Chapter;
 import com.crawldata.back_end.model.Novel;
@@ -12,6 +10,7 @@ import com.lowagie.text.html.simpleparser.HTMLWorker;
 import com.lowagie.text.html.simpleparser.StyleSheet;
 import com.lowagie.text.pdf.*;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.Getter;
 import org.jsoup.Jsoup;
 import org.springframework.core.io.ClassPathResource;
 
@@ -22,14 +21,16 @@ import java.io.OutputStream;
 import java.io.StringReader;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 public class PdfPlugin implements ExportPluginFactory {
 
+    @Getter
     private PluginFactory pluginFactory;
     private Novel novel;
     private List<Chapter> chapterList;
-    public List<Chapter> detailChapterList;
 
     @Override
     public void export(Chapter chapter, HttpServletResponse response)  {
@@ -47,12 +48,12 @@ public class PdfPlugin implements ExportPluginFactory {
         getNovelInfo(plugin,novelId);
         try {
             generatePdfAllChapter(response);
-        }catch (Exception e)
+        }
+        catch (Exception e)
         {
            e.printStackTrace();
         }
     }
-
 
     /**
      * Retrieves and sets the novel information and chapter list from the plugin.
@@ -75,12 +76,6 @@ public class PdfPlugin implements ExportPluginFactory {
             }
         }
     }
-
-    public void init()
-    {
-
-    }
-
     private void generatePdfOneChapter(Chapter chapter, HttpServletResponse response) throws DocumentException, IOException {
         // Create a ByteArrayOutputStream to hold the PDF data
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -153,7 +148,6 @@ public class PdfPlugin implements ExportPluginFactory {
         PdfWriter writer = PdfWriter.getInstance(document, baos);
         // Open the document
         document.open();
-
         ClassPathResource fontResource = new ClassPathResource("fonts/ArialUnicodeMSRegular.ttf");
         FontFactory.register(fontResource.getURI().toString(), "CustomFont");
 
@@ -171,7 +165,6 @@ public class PdfPlugin implements ExportPluginFactory {
         // Chapter title font
         Font chapterTitleFont = new Font(baseFont, 28, Font.BOLD);
         chapterTitleFont.setColor(Color.black);
-
 
         // Add novel title
         Paragraph novelTitle = new Paragraph(novel.getName(), titleFont);
@@ -200,12 +193,10 @@ public class PdfPlugin implements ExportPluginFactory {
         Image tocImage = Image.getInstance(tocPlaceholder);
         document.add(tocImage);
 
-        for(Chapter chapter : chapterList)
+        for (Chapter chapter : chapterList)
         {
-            DataResponse dataResponse = pluginFactory.getNovelChapterDetail(novel.getNovelId(), chapter.getChapterId());
-            if(dataResponse != null && "success".equals(dataResponse.getStatus())) {
+                DataResponse dataResponse = pluginFactory.getNovelChapterDetail(novel.getNovelId(), chapter.getChapterId());
                 Chapter detailChapter = (Chapter) dataResponse.getData();
-
                 document.newPage();
                 int pageNumber = writer.getPageNumber();
 
@@ -238,10 +229,7 @@ public class PdfPlugin implements ExportPluginFactory {
                 for (Element element : elements) {
                     document.add(element);
                 }
-
-            }
         }
-
         document.close();
         // Set the content type and headers for the response
         response.setContentType("application/pdf");
