@@ -1,3 +1,4 @@
+
 import com.crawldata.back_end.export_plugin_builder.ExportPluginFactory;
 import com.crawldata.back_end.model.Chapter;
 import com.crawldata.back_end.model.Novel;
@@ -29,8 +30,14 @@ public class PdfPlugin implements ExportPluginFactory {
 
     @Getter
     private PluginFactory pluginFactory;
+    @Getter
     private Novel novel;
     private List<Chapter> chapterList;
+    private final int maxThreadNum = 3;
+    @Getter
+    private List<Chapter> listDetailChapter;
+    private List<ReadDataThread> listThreads;
+
 
     @Override
     public void export(Chapter chapter, HttpServletResponse response)  {
@@ -46,7 +53,10 @@ public class PdfPlugin implements ExportPluginFactory {
     @Override
     public void export(PluginFactory plugin, String novelId, HttpServletResponse response) throws IOException {
         getNovelInfo(plugin,novelId);
+        listDetailChapter = new ArrayList<>();
+        listThreads = new ArrayList<>();
         try {
+            getDetailChapter();
             generatePdfAllChapter(response);
         }
         catch (Exception e)
@@ -55,6 +65,66 @@ public class PdfPlugin implements ExportPluginFactory {
         }
     }
 
+    public void getDetailChapter() {
+        Integer totalChapters = chapterList.size();
+        Integer chaptersPerThread = 0;
+        Integer remainingChapters = 0;
+
+        if(totalChapters % maxThreadNum == 0)
+        {
+            chaptersPerThread = totalChapters/maxThreadNum;
+        }
+        else {
+            chaptersPerThread = totalChapters / (maxThreadNum - 1);
+            remainingChapters = totalChapters - chaptersPerThread*(maxThreadNum - 1);
+        }
+
+        for(int i = 0 ; i < maxThreadNum ; i++)
+        {
+            List<Chapter> chapters = new ArrayList<>();
+            if(i == maxThreadNum - 1 && totalChapters % maxThreadNum != 0){
+                chapters = chapterList.subList(i * chaptersPerThread, i * chaptersPerThread + remainingChapters-1);
+            }
+            else {
+                chapters = chapterList.subList(i * chaptersPerThread, i * chaptersPerThread + chaptersPerThread-1);
+            }
+            ReadDataThread thread = new ReadDataThread(chapters, this);
+            thread.start();
+            listThreads.add(thread);
+        }
+
+        try {
+            joinThread();
+        }catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        sortChaptersASCByName(listDetailChapter);
+    }
+
+    public Integer getChapterNumber(String chapterName)
+    {
+        String[] components = chapterName.split(":");
+        Integer chapterNumber = Integer.valueOf(components[0].split(" ")[1].trim());
+        return chapterNumber;
+    }
+
+    public void sortChaptersASCByName(List<Chapter> chapters)
+    {
+        Collections.sort(chapters, new Comparator<Chapter>() {
+            @Override
+            public int compare(Chapter o1, Chapter o2) {
+                return getChapterNumber(o1.getName()) - getChapterNumber(o2.getName());
+            }
+        });
+    }
+
+    public void joinThread() throws InterruptedException {
+        for(ReadDataThread thread : listThreads)
+        {
+            thread.join();
+        }
+    }
     /**
      * Retrieves and sets the novel information and chapter list from the plugin.
      * @param plugin The plugin factory instance.
@@ -76,6 +146,8 @@ public class PdfPlugin implements ExportPluginFactory {
             }
         }
     }
+
+
     private void generatePdfOneChapter(Chapter chapter, HttpServletResponse response) throws DocumentException, IOException {
         // Create a ByteArrayOutputStream to hold the PDF data
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -193,10 +265,8 @@ public class PdfPlugin implements ExportPluginFactory {
         Image tocImage = Image.getInstance(tocPlaceholder);
         document.add(tocImage);
 
-        for (Chapter chapter : chapterList)
+        for (Chapter detailChapter : listDetailChapter)
         {
-                DataResponse dataResponse = pluginFactory.getNovelChapterDetail(novel.getNovelId(), chapter.getChapterId());
-                Chapter detailChapter = (Chapter) dataResponse.getData();
                 document.newPage();
                 int pageNumber = writer.getPageNumber();
 
@@ -242,5 +312,33 @@ public class PdfPlugin implements ExportPluginFactory {
         os.flush();
         os.close();
         baos.close();
+    }
+}
+class ReadDataThread extends Thread{
+    private List<Chapter> listChapter;
+    private PdfPlugin pdf;
+
+
+    public ReadDataThread()
+    {
+    }
+    public ReadDataThread(List<Chapter> listChapter, PdfPlugin pdf)
+    {
+        this.listChapter = listChapter;
+        this.pdf = pdf;
+    }
+
+    @Override
+    public void run() {
+        PluginFactory plugin = pdf.getPluginFactory();
+
+        for(Chapter chapter : listChapter)
+        {
+            DataResponse dataResponse = plugin.getNovelChapterDetail(pdf.getNovel().getNovelId(),chapter.getChapterId());
+            if(dataResponse != null && dataResponse.getStatus().equals("success"))
+            {
+                pdf.getListDetailChapter().add((Chapter) dataResponse.getData());
+            }
+        }
     }
 }

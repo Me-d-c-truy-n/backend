@@ -1,18 +1,13 @@
 package com.crawldata.back_end.controller;
-import com.crawldata.back_end.export_plugin_builder.audio.AudioPlugin;
 import com.crawldata.back_end.service.ExportServiceImpl;
 import com.crawldata.back_end.service.NovelServiceImpl;
 import com.crawldata.back_end.model.*;
-import com.crawldata.back_end.utils.*;
 import com.crawldata.back_end.response.*;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.io.IOException;
-import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -20,7 +15,6 @@ public class NovelController {
 
     private final NovelServiceImpl novelServiceImpl;
     private final ExportServiceImpl exportServiceImpl;
-    private final AudioPlugin audioPlugin;
 
     //Get detail chapter
     @GetMapping("{pluginId}/truyen/{novelId}/{chapterId}")
@@ -33,6 +27,7 @@ public class NovelController {
     public DataResponse getListChapterPerPage(@PathVariable String pluginId, @PathVariable("novelId") String id, @RequestParam(name =  "page", defaultValue = "1") String page) throws NumberFormatException {
         return novelServiceImpl.getNovelListChapters(pluginId, id, Integer.parseInt(page));
     }
+
     //get detail novel
     @GetMapping("{pluginId}/truyen/{novelId}")
     public ResponseEntity<?> getDetailNovel(@PathVariable("pluginId") String pluginId, @PathVariable("novelId") String novelId) {
@@ -74,7 +69,5 @@ public class NovelController {
                        HttpServletResponse response) throws IOException {
         exportServiceImpl.export(fileType, pluginId, novelId, response);
     }
-
-
 
 }
