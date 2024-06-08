@@ -28,6 +28,11 @@ public class TangThuVienPlugin implements PluginFactory {
     private final String ALL_NOVEL_URL = ROOT_URL + "/tong-hop?page=%d";
     private final Logger LOGGER = LoggerFactory.getLogger(TangThuVienPlugin.class);
 
+    /**
+     * get Author's ID from AUTHOR_URL
+     * @param url The URL of the AUTHOR_URL
+     * @return the author's id as string
+     */
     private String getAuthorIdFromUrl(String url) {
         String[] parts = url.split("\\?");
         // Split the query parameters by "=" to separate the parameter name from the value
@@ -40,11 +45,23 @@ public class TangThuVienPlugin implements PluginFactory {
         }
         return queryParams[1];
     }
+
+    /**
+     * get Novel's ID from NOVEL_DETAIL_URL
+     * @param url The URL of the  NOVEL_DETAIL_URL
+     * @return the novel's id as string
+     **/
     private String getNovelIdFromUrl(String url)
     {
         String[] components = url.split("/");
         return components[components.length-1];
     }
+
+    /**
+     * get total chapters from text Danh sách chương ([totalChapter] chương)
+     * @param text The URL of the  NOVEL_DETAIL_URL
+     * @return the total chapter as Integer
+     **/
     private Integer getTotalChapterFromText(String text)
     {
         String[] parts = text.split("[()]");
@@ -54,11 +71,24 @@ public class TangThuVienPlugin implements PluginFactory {
         // Parse the number
         return Integer.parseInt(numberString);
     }
+
+     /**
+     * get Chapte's ID from NOVEL_DETAIL_URL
+     * @param url The URL of the  NOVEL_DETAIL_URL
+     * @return the novel's id as string
+     **/
     private String getChapterIdFromUrl(String url)
     {
         String[] parts = url.split("/");
         return parts[parts.length-1];
     }
+
+    /**
+     * Calculate total page for paging
+     * @param totalElements the total chapters per novel
+     * @param numPerPage number of chapters per page
+     * @return the total page
+     **/
     private Integer calculateTotalPage(Integer totalElements, Integer numPerPage) {
         if (totalElements % numPerPage == 0) {
             return totalElements / numPerPage;
@@ -66,6 +96,14 @@ public class TangThuVienPlugin implements PluginFactory {
         return totalElements / numPerPage + 1;
     }
 
+    /**
+     * Return adjacent chapters of current chapter
+     * If the current chapter is the first chapter, the previous chapter is null
+     * If the current chapter is the last chapter, the next chapter is null
+     * @param storyId the story id of novels
+     * @param currentChapterId the current chapter's id
+     * @return the list adjacent chapters
+     **/
     public List<String> getAdjacentChapters(String storyId, String currentChapterId) throws IOException {
         List<String> adjacentChapters = new ArrayList<>();
         String preChapter = null;
@@ -100,6 +138,8 @@ public class TangThuVienPlugin implements PluginFactory {
         adjacentChapters.add(nextChapter);
         return adjacentChapters;
     }
+
+
     @Override
     public DataResponse getNovelChapterDetail(String novelId, String chapterId) {
         String novelName = "";
@@ -248,7 +288,6 @@ public class TangThuVienPlugin implements PluginFactory {
         Integer totalPage = calculateTotalPage(total, TOTAL_CHAPTERS_PER_PAGE);
         return new DataResponse("success",totalPage, page, TOTAL_CHAPTERS_PER_PAGE, null , listChapters, null);
     }
-
 
     @Override
     public DataResponse getNovelDetail(String novelId) {

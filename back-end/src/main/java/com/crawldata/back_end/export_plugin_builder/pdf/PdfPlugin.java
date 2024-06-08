@@ -75,15 +75,17 @@ public class PdfPlugin implements ExportPluginFactory {
             chaptersPerThread = totalChapters/maxThreadNum;
         }
         else {
-            chaptersPerThread = totalChapters / (maxThreadNum - 1);
-            remainingChapters = totalChapters - chaptersPerThread*(maxThreadNum - 1);
+            chaptersPerThread = totalChapters / maxThreadNum ;
+            remainingChapters = totalChapters - chaptersPerThread*maxThreadNum;
+
         }
 
+        System.out.print(remainingChapters);
         for(int i = 0 ; i < maxThreadNum ; i++)
         {
             List<Chapter> chapters = new ArrayList<>();
             if(i == maxThreadNum - 1 && totalChapters % maxThreadNum != 0){
-                chapters = chapterList.subList(i * chaptersPerThread, i * chaptersPerThread + remainingChapters-1);
+                chapters = chapterList.subList(i * chaptersPerThread, i * chaptersPerThread +chaptersPerThread+ remainingChapters);
             }
             else {
                 chapters = chapterList.subList(i * chaptersPerThread, i * chaptersPerThread + chaptersPerThread-1);
@@ -146,8 +148,6 @@ public class PdfPlugin implements ExportPluginFactory {
             }
         }
     }
-
-
     private void generatePdfOneChapter(Chapter chapter, HttpServletResponse response) throws DocumentException, IOException {
         // Create a ByteArrayOutputStream to hold the PDF data
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -211,6 +211,7 @@ public class PdfPlugin implements ExportPluginFactory {
         os.close();
         baos.close();
     }
+
     private void generatePdfAllChapter(HttpServletResponse response) throws DocumentException, IOException {
         // Create a ByteArrayOutputStream to hold the PDF data
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -222,9 +223,7 @@ public class PdfPlugin implements ExportPluginFactory {
         document.open();
         ClassPathResource fontResource = new ClassPathResource("fonts/ArialUnicodeMSRegular.ttf");
         FontFactory.register(fontResource.getURI().toString(), "CustomFont");
-
         BaseFont baseFont = BaseFont.createFont(fontResource.getPath(), BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
-
         // Title font
         Font titleFont = new Font(baseFont, 35, Font.BOLD);
         titleFont.setColor(Color.black);
@@ -314,6 +313,7 @@ public class PdfPlugin implements ExportPluginFactory {
         baos.close();
     }
 }
+
 class ReadDataThread extends Thread{
     private List<Chapter> listChapter;
     private PdfPlugin pdf;
