@@ -10,8 +10,11 @@ import java.io.UnsupportedEncodingException;
 public class HandleString {
     private static final Pattern NONLATIN = Pattern.compile("[^\\w-]");
     private static final Pattern WHITESPACE = Pattern.compile("[\\s]");
+    private static final Pattern EDGESDHASHES = Pattern.compile("(^-|-$)");
+
     public static String makeSlug(String input) {
-        String processed = input.replace("Đ", "D").replace("đ", "d")
+        String processed = input.replaceAll("\\p{InCombiningDiacriticalMarks}+", "");
+        processed = processed.replace("Đ", "D").replace("đ", "d")
                 .replace("Ä", "A").replace("ä", "a")
                 .replace("Ö", "O").replace("ö", "o")
                 .replace("Ü", "U").replace("ü", "u")
@@ -26,9 +29,12 @@ public class HandleString {
         String nowhitespace = WHITESPACE.matcher(processed).replaceAll("-");
         String normalized = Normalizer.normalize(nowhitespace, Normalizer.Form.NFD);
         String slug = NONLATIN.matcher(normalized).replaceAll("");
+        slug = EDGESDHASHES.matcher(slug).replaceAll("");
+        slug = slug.replaceAll("-{2,}", "-");
         return slug.toLowerCase(Locale.ENGLISH);
     }
-    public static String getValidURL(String invalidURLString){
+
+    public static String getValidURL(String invalidURLString) {
         try {
             // Convert the String and decode the URL into the URL class
             URL url = new URL(URLDecoder.decode(invalidURLString, StandardCharsets.UTF_8.toString()));
