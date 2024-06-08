@@ -1,4 +1,4 @@
-
+package com.crawldata.back_end.plugin_builder.truyenfull;
 
 import com.crawldata.back_end.model.Author;
 import com.crawldata.back_end.model.Chapter;
@@ -12,7 +12,6 @@ import com.crawldata.back_end.utils.SourceNovels;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -23,9 +22,15 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 
-
-
 public class TruyenFullPlugin implements PluginFactory {
+
+    /**
+     *Retrieves the total number of pages for a novel from a given URL.
+     *
+     * @param url The URL of the webpage where the novel's pagination is located.
+     * @return The total number of pages of the novel as an integer. If the pagination
+     *         is not present or an error occurs, it defaults to 1.
+     */
     public int getNovelTotalPages(String url) {
         Document doc = null;
         try {
@@ -43,11 +48,9 @@ public class TruyenFullPlugin implements PluginFactory {
                     totalPages = Integer.parseInt(allPage.get(allPage.size() - 2).text().split(" ")[0]);
                 } else if (page.text().equals("Trang tiếp")) {
                     Element pageNext = pages.get(pages.size() - 1);
-                    if(pageNext.text().equals("Chọn trang Đi"))
-                    {
+                    if (pageNext.text().equals("Chọn trang Đi")) {
                         totalPages = Integer.parseInt(pages.get(pages.size() - 3).text().split(" ")[0]);
-                    }
-                    else {
+                    } else {
                         linkEndPage.append(pageNext.select("a").attr("href"));
                         Document docPage = ConnectJsoup.connect(linkEndPage.toString());
                         Elements allPage = docPage.select("ul[class=pagination pagination-sm] li");
@@ -58,25 +61,43 @@ public class TruyenFullPlugin implements PluginFactory {
                 }
             }
             return totalPages;
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
-    public  String getEndSlugFromUrl(String url)
-    {
+
+    /**
+     *Extracts the last segment, also known as the slug, from a given URL.
+     *
+     * @param url The full URL from which the end slug is to be extracted.
+     * @return The end slug of the URL as a String.
+     */
+    public String getEndSlugFromUrl(String url) {
         String[] parts = url.split("/");
-        return parts[parts.length-1];
+        return parts[parts.length - 1];
     }
-    public  String getValidPreChapter(String idChapter)
-    {
-       String[] parts = idChapter.split("-");
-       int numberChap = Integer.parseInt(parts[parts.length-1]);
-       if(numberChap>1)
-           return "chuong-"+ (numberChap-1);
+
+    /**
+     * Generates the identifier for the previous chapter based on the current chapter's ID.
+     *
+     * @param idChapter The ID of the current chapter in the format 'chuong-X'.
+     * @return The ID of the previous chapter as a String, or null if the current chapter is the first.
+     */
+    public String getValidPreChapter(String idChapter) {
+        String[] parts = idChapter.split("-");
+        int numberChap = Integer.parseInt(parts[parts.length - 1]);
+        if (numberChap > 1) return "chuong-" + (numberChap - 1);
         return null;
     }
-    public int  getChapterEnd(String url)  {
+
+    /**
+     *Determines the last chapter number available on a given webpage.
+     *
+     * @param url The URL of the webpage where the novel's chapters are listed.
+     * @return The number of the last chapter as an integer. If pagination is not present,
+     *         it returns the count of chapters listed on the current page.
+     */
+    public int getChapterEnd(String url) {
         StringBuilder linkEndPage = new StringBuilder();
         int chapterEnd = 0;
         try {
@@ -90,55 +111,58 @@ public class TruyenFullPlugin implements PluginFactory {
                 if (page.text().equals("Trang tiếp")) {
                     Element pageNext = pages.get(pages.size() - 1);
                     linkEndPage.append(pageNext.select("a").attr("href"));
-                }
-                else {
+                } else {
                     linkEndPage.append(page.select("a").attr("href"));
                 }
             }
             doc = ConnectJsoup.connect(linkEndPage.toString());
-            Elements chaptersLink =  doc.select("ul[class=list-chapter] li a");
-            String linkEndChapter = chaptersLink.get(chaptersLink.size()-1).attr("href");
+            Elements chaptersLink = doc.select("ul[class=list-chapter] li a");
+            String linkEndChapter = chaptersLink.get(chaptersLink.size() - 1).attr("href");
             String idEndChapter = getEndSlugFromUrl(linkEndChapter);
             String[] parts = idEndChapter.split("-");
-            chapterEnd = Integer.parseInt(parts[parts.length-1]);
+            chapterEnd = Integer.parseInt(parts[parts.length - 1]);
             return chapterEnd;
-        }
-        catch (Exception e)
-        {
-            throw  new RuntimeException(e.getMessage());
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
         }
     }
-    public  String getValidNextChapter(String idChapter,int endChapter)
-    {
+
+    /**
+     * Constructs the identifier for the next chapter based on the current chapter's ID and the last chapter number.
+     *
+     * @param idChapter The ID of the current chapter in the format 'chuong-X', where X is the chapter number.
+     * @param endChapter The number of the last chapter in the series.
+     * @return The ID of the next chapter as a String, or null if the current chapter is the last one.
+     */
+    public String getValidNextChapter(String idChapter, int endChapter) {
         String[] parts = idChapter.split("-");
-        int numberChap = Integer.parseInt(parts[parts.length-1]);
-        if(numberChap<endChapter)
-            return "chuong"+ (numberChap+1);
+        int numberChap = Integer.parseInt(parts[parts.length - 1]);
+        if (numberChap < endChapter) return "chuong" + (numberChap + 1);
         return null;
     }
+
     @Override
     public DataResponse getNovelChapterDetail(String novelId, String chapterId) {
-        String urlChapter = SourceNovels.NOVEL_MAIN+novelId+"/"+chapterId;
-        String urlAuthor = SourceNovels.NOVEL_MAIN+novelId;
+        String urlChapter = SourceNovels.NOVEL_MAIN + novelId + "/" + chapterId;
+        String urlAuthor = SourceNovels.NOVEL_MAIN + novelId;
         Document doc = null;
-        try
-        {
-        doc = ConnectJsoup.connect(urlAuthor);
-        String nameAuthor = doc.select("a[itemprop=author]").text();
-        Author author = new Author(HandleString.makeSlug(nameAuthor),nameAuthor);
-        doc = ConnectJsoup.connect(urlChapter);
-        String novelName = doc.select("a[class=truyen-title]").first().text();
-        String chapterName = doc.select("a[class=chapter-title]").first().text();
-        Elements content = doc.select("div#chapter-c");
-        String nextChapterURL = doc.select("a[id=next_chap]").attr("href");
-        String idNextChapter = nextChapterURL.split("/").length!=1? nextChapterURL.split("/")[nextChapterURL.split("/").length-1]:null;
-        String preChapterURL = doc.select("a[id=prev_chap]").attr("href");
-        String idPreChapter = preChapterURL.split("/").length != 1? preChapterURL.split("/")[preChapterURL.split("/").length-1]:null;
-        Chapter chapterDetail = new Chapter(novelId,novelName,chapterId,idNextChapter,idPreChapter,chapterName,author,content.toString());
-        DataResponse dataResponse = new DataResponse();
-        dataResponse.setStatus("success");
-        dataResponse.setData(chapterDetail);
-        return dataResponse;
+        try {
+            doc = ConnectJsoup.connect(urlAuthor);
+            String nameAuthor = doc.select("a[itemprop=author]").text();
+            Author author = new Author(HandleString.makeSlug(nameAuthor), nameAuthor);
+            doc = ConnectJsoup.connect(urlChapter);
+            String novelName = doc.select("a[class=truyen-title]").first().text();
+            String chapterName = doc.select("a[class=chapter-title]").first().text();
+            Elements content = doc.select("div#chapter-c");
+            String nextChapterURL = doc.select("a[id=next_chap]").attr("href");
+            String idNextChapter = nextChapterURL.split("/").length != 1 ? nextChapterURL.split("/")[nextChapterURL.split("/").length - 1] : null;
+            String preChapterURL = doc.select("a[id=prev_chap]").attr("href");
+            String idPreChapter = preChapterURL.split("/").length != 1 ? preChapterURL.split("/")[preChapterURL.split("/").length - 1] : null;
+            Chapter chapterDetail = new Chapter(novelId, novelName, chapterId, idNextChapter, idPreChapter, chapterName, author, content.toString());
+            DataResponse dataResponse = new DataResponse();
+            dataResponse.setStatus("success");
+            dataResponse.setData(chapterDetail);
+            return dataResponse;
         } catch (Exception e) {
             e.printStackTrace();
             return DataResponseUtils.getErrorDataResponse(e.getMessage());
@@ -150,36 +174,37 @@ public class TruyenFullPlugin implements PluginFactory {
         String url = SourceNovels.NOVEL_MAIN + novelId;
         Document doc = null;
         try {
-        doc = ConnectJsoup.connect(url);
-        String name = doc.select("h3[class=title]").first().text();
-        String authorName = doc.select("a[itemprop=author]").first().text();
-        Author author = new Author(HandleString.makeSlug(authorName),authorName);
-        List<Chapter> chapterList = new ArrayList<>();
-        Integer totalPages = getNovelTotalPages(url);
-        String link = String.format("https://truyenfull.vn/%s/trang-%d",novelId,page);
-        doc = ConnectJsoup.connect(link);
-        Elements chapters = doc.select("ul[class=list-chapter] li");
-        int endChapter = getChapterEnd(SourceNovels.NOVEL_MAIN+novelId);
-        for (Element chapter : chapters) {
-            String nameChapter = chapter.selectFirst("a").text();
-            String linkChapter = chapter.selectFirst("a").attr("href");
-            String idChapter = linkChapter.split("/")[linkChapter.split("/").length-1];
-            String idPreChapter = getValidPreChapter(idChapter);
-            String idNextChapter = getValidNextChapter(idChapter,endChapter);
-           Chapter chapterObj = new Chapter(novelId,name,idChapter,idNextChapter,idPreChapter,nameChapter,author, "");
-            chapterList.add(chapterObj);
-        }
-        DataResponse dataResponse = new DataResponse();
-        dataResponse.setStatus("success");
-        dataResponse.setData(chapterList);
-        dataResponse.setTotalPage(totalPages);
-        dataResponse.setPerPage(chapterList.size());
-        return dataResponse;
+            doc = ConnectJsoup.connect(url);
+            String name = doc.select("h3[class=title]").first().text();
+            String authorName = doc.select("a[itemprop=author]").first().text();
+            Author author = new Author(HandleString.makeSlug(authorName), authorName);
+            List<Chapter> chapterList = new ArrayList<>();
+            Integer totalPages = getNovelTotalPages(url);
+            String link = String.format("https://truyenfull.vn/%s/trang-%d", novelId, page);
+            doc = ConnectJsoup.connect(link);
+            Elements chapters = doc.select("ul[class=list-chapter] li");
+            int endChapter = getChapterEnd(SourceNovels.NOVEL_MAIN + novelId);
+            for (Element chapter : chapters) {
+                String nameChapter = chapter.selectFirst("a").text();
+                String linkChapter = chapter.selectFirst("a").attr("href");
+                String idChapter = linkChapter.split("/")[linkChapter.split("/").length - 1];
+                String idPreChapter = getValidPreChapter(idChapter);
+                String idNextChapter = getValidNextChapter(idChapter, endChapter);
+                Chapter chapterObj = new Chapter(novelId, name, idChapter, idNextChapter, idPreChapter, nameChapter, author, "");
+                chapterList.add(chapterObj);
+            }
+            DataResponse dataResponse = new DataResponse();
+            dataResponse.setStatus("success");
+            dataResponse.setData(chapterList);
+            dataResponse.setTotalPage(totalPages);
+            dataResponse.setPerPage(chapterList.size());
+            return dataResponse;
         } catch (Exception e) {
             e.printStackTrace();
             return DataResponseUtils.getErrorDataResponse(e.getMessage());
         }
     }
+
     @Override
     public DataResponse getNovelListChapters(String novelId) {
         String url = SourceNovels.NOVEL_MAIN + novelId;
@@ -188,22 +213,21 @@ public class TruyenFullPlugin implements PluginFactory {
             doc = ConnectJsoup.connect(url);
             String name = doc.select("h3[class=title]").first().text();
             String authorName = doc.select("a[itemprop=author]").first().text();
-            Author author = new Author(HandleString.makeSlug(authorName),authorName);
+            Author author = new Author(HandleString.makeSlug(authorName), authorName);
             List<Chapter> chapterList = new ArrayList<>();
             Integer totalPages = getNovelTotalPages(url);
-            for(int i=1;i<= totalPages.intValue();i++)
-            {
-                String link = String.format("https://truyenfull.vn/%s/trang-%d",novelId,i);
+            for (int i = 1; i <= totalPages.intValue(); i++) {
+                String link = String.format("https://truyenfull.vn/%s/trang-%d", novelId, i);
                 doc = ConnectJsoup.connect(link);
                 Elements chapters = doc.select("ul[class=list-chapter] li");
-                int endChapter = getChapterEnd(SourceNovels.NOVEL_MAIN+novelId);
+                int endChapter = getChapterEnd(SourceNovels.NOVEL_MAIN + novelId);
                 for (Element chapter : chapters) {
                     String nameChapter = chapter.selectFirst("a").text();
                     String linkChapter = chapter.selectFirst("a").attr("href");
-                    String idChapter = linkChapter.split("/")[linkChapter.split("/").length-1];
+                    String idChapter = linkChapter.split("/")[linkChapter.split("/").length - 1];
                     String idPreChapter = getValidPreChapter(idChapter);
-                    String idNextChapter = getValidNextChapter(idChapter,endChapter);
-                    Chapter chapterObj = new Chapter(novelId,name,idChapter,idNextChapter,idPreChapter,nameChapter,author, "");
+                    String idNextChapter = getValidNextChapter(idChapter, endChapter);
+                    Chapter chapterObj = new Chapter(novelId, name, idChapter, idNextChapter, idPreChapter, nameChapter, author, "");
                     chapterList.add(chapterObj);
                 }
             }
@@ -218,60 +242,61 @@ public class TruyenFullPlugin implements PluginFactory {
             return DataResponseUtils.getErrorDataResponse(e.getMessage());
         }
     }
+
     @Override
     public DataResponse getNovelDetail(String novelId) {
-        String url = SourceNovels.NOVEL_MAIN+novelId;
+        String url = SourceNovels.NOVEL_MAIN + novelId;
         Document doc = null;
         try {
             doc = ConnectJsoup.connect(url);
-        String name = doc.select("h3[class=title]").first().text();
-        String authorName = doc.select("a[itemprop=author]").first().text();
-        Author author = new Author(HandleString.makeSlug(authorName),authorName);
-        String firstChapterURL = doc.select("ul[class=list-chapter] li").get(0).select("a").attr("href");
-        String idFirstChapter = firstChapterURL.split("/")[firstChapterURL.split("/").length-1];
-        String image = doc.selectFirst("img").attr("src");
-        String description = doc.selectFirst("div[itemprop=description]").toString();
-        Novel novel = new Novel(novelId,name,image,description,author,idFirstChapter);
-        DataResponse dataResponse = new DataResponse();
-        dataResponse.setData(novel);
-        dataResponse.setStatus("success");
-        return dataResponse;
+            String name = doc.select("h3[class=title]").first().text();
+            String authorName = doc.select("a[itemprop=author]").first().text();
+            Author author = new Author(HandleString.makeSlug(authorName), authorName);
+            String firstChapterURL = doc.select("ul[class=list-chapter] li").get(0).select("a").attr("href");
+            String idFirstChapter = firstChapterURL.split("/")[firstChapterURL.split("/").length - 1];
+            String image = doc.selectFirst("img").attr("src");
+            String description = doc.selectFirst("div[itemprop=description]").toString();
+            Novel novel = new Novel(novelId, name, image, description, author, idFirstChapter);
+            DataResponse dataResponse = new DataResponse();
+            dataResponse.setData(novel);
+            dataResponse.setStatus("success");
+            return dataResponse;
         } catch (Exception e) {
             e.printStackTrace();
             return DataResponseUtils.getErrorDataResponse(e.getMessage());
         }
     }
+
     @Override
     public DataResponse getAuthorDetail(String authorId) {
-        String url =  SourceNovels.NOVEL_MAIN+ "tac-gia/"+authorId;
+        String url = SourceNovels.NOVEL_MAIN + "tac-gia/" + authorId;
         Document doc = null;
         try {
             doc = ConnectJsoup.connect(url);
-        Elements novels = doc.select("div[itemtype=https://schema.org/Book]");
-        String nameAuthor = novels.get(0).selectFirst("span[class=author]").text();
-        Author author = new Author(HandleString.makeSlug(nameAuthor),nameAuthor);
-        List<Novel> novelList = new ArrayList<>();
-        for(Element novel : novels)
-        {
-            String image = novel.selectFirst("div[data-image]").attr("data-image");
-            String name = novel.selectFirst("h3").text();
-            String link = novel.selectFirst("a").attr("href");
-            String idNovel = getEndSlugFromUrl(link);
-            doc = ConnectJsoup.connect(link);
-            String firstChapterURL = doc.select("ul[class=list-chapter] li").get(0).select("a").attr("href");
-            String idFirstChapter = firstChapterURL.split("/")[firstChapterURL.split("/").length-1];
-            String description = doc.selectFirst("div[itemprop=description]").toString();
-            Novel novelObj = new Novel(idNovel,name,image,description,author,idFirstChapter);
-            novelList.add(novelObj);
-        }
-        DataResponse dataResponse = new DataResponse("success",1,1,novelList.size(),null,novelList,null);
-        return dataResponse;
-        }
-        catch (Exception e) {
+            Elements novels = doc.select("div[itemtype=https://schema.org/Book]");
+            String nameAuthor = novels.get(0).selectFirst("span[class=author]").text();
+            Author author = new Author(HandleString.makeSlug(nameAuthor), nameAuthor);
+            List<Novel> novelList = new ArrayList<>();
+            for (Element novel : novels) {
+                String image = novel.selectFirst("div[data-image]").attr("data-image");
+                String name = novel.selectFirst("h3").text();
+                String link = novel.selectFirst("a").attr("href");
+                String idNovel = getEndSlugFromUrl(link);
+                doc = ConnectJsoup.connect(link);
+                String firstChapterURL = doc.select("ul[class=list-chapter] li").get(0).select("a").attr("href");
+                String idFirstChapter = firstChapterURL.split("/")[firstChapterURL.split("/").length - 1];
+                String description = doc.selectFirst("div[itemprop=description]").toString();
+                Novel novelObj = new Novel(idNovel, name, image, description, author, idFirstChapter);
+                novelList.add(novelObj);
+            }
+            DataResponse dataResponse = new DataResponse("success", 1, 1, novelList.size(), null, novelList, null);
+            return dataResponse;
+        } catch (Exception e) {
             e.printStackTrace();
             return DataResponseUtils.getErrorDataResponse(e.getMessage());
         }
     }
+
     @Override
     public DataResponse getAllNovels(int page, String search) {
         String url = HandleString.getValidURL(SourceNovels.FULL_NOVELS + search + "&page=" + page);
@@ -280,20 +305,20 @@ public class TruyenFullPlugin implements PluginFactory {
         try {
             doc = ConnectJsoup.connect(url);
             Elements novels = doc.select("div[itemtype=https://schema.org/Book]");
-            doc=null;
+            doc = null;
             // ExecutorService to manage threads
             ExecutorService executor = Executors.newFixedThreadPool(5);
             List<Future<Novel>> futures = new ArrayList<>();
             for (int i = 0; i < novels.size() && i < 18; i++) {
                 Element novel = novels.get(i);
                 if (!novel.text().equals("")) {
-                   // String image = novel.selectFirst("div[data-image]").attr("data-image");
+                    // String image = novel.selectFirst("div[data-image]").attr("data-image");
                     String novelUrl = novel.selectFirst("a").attr("href");
                     String idNovel = getEndSlugFromUrl(novelUrl);
                     String nameNovel = novel.selectFirst("h3").text();
                     String nameAuthor = novel.selectFirst("span[class=author]").text();
-                    Author author = new Author(HandleString.makeSlug(nameAuthor),nameAuthor);
-                    if(novel.select("span[class=book-text]").size()==1) continue;
+                    Author author = new Author(HandleString.makeSlug(nameAuthor), nameAuthor);
+                    if (novel.select("span[class=book-text]").size() == 1) continue;
                     String idFirstChapter = "chuong-1";
                     String urlDetail = SourceNovels.NOVEL_MAIN + idNovel;
                     // Submit task to fetch novel details
@@ -339,51 +364,51 @@ public class TruyenFullPlugin implements PluginFactory {
             return DataResponseUtils.getErrorDataResponse(e.getMessage());
         }
     }
+
     @Override
     public DataResponse getNovelSearch(int page, String key, String orderBy) {
-        String url = HandleString.getValidURL( SourceNovels.FULL_NOVELS +key+ "&page="+page);
+        String url = HandleString.getValidURL(SourceNovels.FULL_NOVELS + key + "&page=" + page);
         List<Novel> novelList = new ArrayList<>();
         Document doc = null;
         try {
-        doc = ConnectJsoup.connect(url);
-        Elements novels = doc.select("div[itemtype=https://schema.org/Book]");
-        doc = null;
-        // ExecutorService to manage threads
-         ExecutorService executor = Executors.newFixedThreadPool(5);
-         List<Future<Novel>> futures = new ArrayList<>();
-        for(int i=0;i<novels.size()&&i<18;i++)
-        {
-            Element novel = novels.get(i);
-            if(!novel.text().equals("")) {
-                String novelUrl =novel.selectFirst("a").attr("href");
-                String idNovel = getEndSlugFromUrl(novelUrl);
-                String name = novel.selectFirst("h3").text();
-                String nameAuthor = novel.selectFirst("span[class=author]").text();
-                String urlDetail = SourceNovels.NOVEL_MAIN+idNovel;
-                if(novel.select("span[class=book-text]").size()==1) continue;
-                String idFirstChapter = "chuong-1";
-                Author author = new Author(HandleString.makeSlug(nameAuthor),nameAuthor);
-                futures.add(executor.submit(() -> {
-                    int retryCount = 0;
-                    int maxRetries = 10;
-                    while (retryCount < maxRetries) {
-                        try {
-                            Document detailDoc = ConnectJsoup.connect(urlDetail);
-                            String image = detailDoc.selectFirst("img").attr("src");
-                            String description = detailDoc.selectFirst("div[itemprop=description]").toString();
-                            return new Novel(idNovel, name, image, description, author, idFirstChapter);
-                        } catch (Exception e) {
-                            retryCount++;
-                            if (retryCount >= maxRetries) {
-                                e.printStackTrace();
-                                return null;
+            doc = ConnectJsoup.connect(url);
+            Elements novels = doc.select("div[itemtype=https://schema.org/Book]");
+            doc = null;
+            // ExecutorService to manage threads
+            ExecutorService executor = Executors.newFixedThreadPool(5);
+            List<Future<Novel>> futures = new ArrayList<>();
+            for (int i = 0; i < novels.size() && i < 18; i++) {
+                Element novel = novels.get(i);
+                if (!novel.text().equals("")) {
+                    String novelUrl = novel.selectFirst("a").attr("href");
+                    String idNovel = getEndSlugFromUrl(novelUrl);
+                    String name = novel.selectFirst("h3").text();
+                    String nameAuthor = novel.selectFirst("span[class=author]").text();
+                    String urlDetail = SourceNovels.NOVEL_MAIN + idNovel;
+                    if (novel.select("span[class=book-text]").size() == 1) continue;
+                    String idFirstChapter = "chuong-1";
+                    Author author = new Author(HandleString.makeSlug(nameAuthor), nameAuthor);
+                    futures.add(executor.submit(() -> {
+                        int retryCount = 0;
+                        int maxRetries = 10;
+                        while (retryCount < maxRetries) {
+                            try {
+                                Document detailDoc = ConnectJsoup.connect(urlDetail);
+                                String image = detailDoc.selectFirst("img").attr("src");
+                                String description = detailDoc.selectFirst("div[itemprop=description]").toString();
+                                return new Novel(idNovel, name, image, description, author, idFirstChapter);
+                            } catch (Exception e) {
+                                retryCount++;
+                                if (retryCount >= maxRetries) {
+                                    e.printStackTrace();
+                                    return null;
+                                }
                             }
                         }
-                    }
-                    return null;
-                }));
+                        return null;
+                    }));
+                }
             }
-        }
             // Collect results
             for (Future<Novel> future : futures) {
                 try {
@@ -400,8 +425,7 @@ public class TruyenFullPlugin implements PluginFactory {
             DataResponse dataResponse = new DataResponse("success", totalPages, page, novelList.size(), key, novelList, "");
             dataResponse.setCurrentPage(page);
             return dataResponse;
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
             return DataResponseUtils.getErrorDataResponse(e.getMessage());
         }

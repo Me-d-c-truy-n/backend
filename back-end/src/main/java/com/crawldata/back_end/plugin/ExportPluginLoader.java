@@ -68,7 +68,6 @@ public class ExportPluginLoader {
                 byte[] buffer = new byte[inputStream.available()];
                 inputStream.read(buffer);
                 String jsonContent = new String(buffer);
-
                 JSONObject js = new JSONObject(jsonContent);
                 JSONObject metadata = js.getJSONObject("metadata");
                 pluginInfo.setPluginId(metadata.getString("id"));
