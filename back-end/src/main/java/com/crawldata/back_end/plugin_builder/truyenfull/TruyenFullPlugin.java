@@ -1,3 +1,4 @@
+package com.crawldata.back_end.plugin_builder.truyenfull;
 
 import com.crawldata.back_end.model.Author;
 import com.crawldata.back_end.model.Chapter;
@@ -7,13 +8,12 @@ import com.crawldata.back_end.response.DataResponse;
 import com.crawldata.back_end.utils.ConnectJsoup;
 import com.crawldata.back_end.utils.DataResponseUtils;
 import com.crawldata.back_end.utils.HandleString;
-import com.crawldata.back_end.utils.SourceNovels;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import org.springframework.stereotype.Service;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -23,8 +23,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-@Service
 public class TruyenFullPlugin implements PluginFactory {
+
+    private static String NOVEL_MAIN = "https://truyenfull.vn/";
+    private static String API_TRUYENFULL_SEARCH ="https://api.truyenfull.vn/v1/tim-kiem?title=%s&page=%d";
+    private static String API_DETAL_NOVEL = "https://api.truyenfull.vn/v1/story/detail/";
     /**
      * Retrieves the JSON response from the specified API URL.
      *
@@ -32,7 +35,7 @@ public class TruyenFullPlugin implements PluginFactory {
      * @return A string containing the JSON response, or "error" if the connection fails
      *        or the server response is not HTTP_OK (200).
      */
-    private static String getJsonResponse(String apiURL)  {
+    public String getJsonResponse(String apiURL)  {
         try {
             URL url = new URL(apiURL);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -177,8 +180,8 @@ public class TruyenFullPlugin implements PluginFactory {
 
     @Override
     public DataResponse getNovelChapterDetail(String novelId, String chapterId) {
-        String urlChapter = SourceNovels.NOVEL_MAIN + novelId + "/" + chapterId;
-        String urlAuthor = SourceNovels.NOVEL_MAIN + novelId;
+        String urlChapter = NOVEL_MAIN + novelId + "/" + chapterId;
+        String urlAuthor = NOVEL_MAIN + novelId;
         Document doc = null;
         try {
             doc = ConnectJsoup.connect(urlAuthor);
@@ -205,7 +208,7 @@ public class TruyenFullPlugin implements PluginFactory {
 
     @Override
     public DataResponse getNovelListChapters(String novelId, int page) {
-        String url = SourceNovels.NOVEL_MAIN + novelId;
+        String url = NOVEL_MAIN + novelId;
         Document doc = null;
         try {
             doc = ConnectJsoup.connect(url);
@@ -217,7 +220,7 @@ public class TruyenFullPlugin implements PluginFactory {
             String link = String.format("https://truyenfull.vn/%s/trang-%d", novelId, page);
             doc = ConnectJsoup.connect(link);
             Elements chapters = doc.select("ul[class=list-chapter] li");
-            int endChapter = getChapterEnd(SourceNovels.NOVEL_MAIN + novelId);
+            int endChapter = getChapterEnd(NOVEL_MAIN + novelId);
             for (Element chapter : chapters) {
                 String nameChapter = chapter.selectFirst("a").text();
                 String linkChapter = chapter.selectFirst("a").attr("href");
@@ -241,7 +244,7 @@ public class TruyenFullPlugin implements PluginFactory {
 
     @Override
     public DataResponse getNovelListChapters(String novelId) {
-        String url = SourceNovels.NOVEL_MAIN + novelId;
+        String url = NOVEL_MAIN + novelId;
         Document doc = null;
         try {
             doc = ConnectJsoup.connect(url);
@@ -254,7 +257,7 @@ public class TruyenFullPlugin implements PluginFactory {
                 String link = String.format("https://truyenfull.vn/%s/trang-%d", novelId, i);
                 doc = ConnectJsoup.connect(link);
                 Elements chapters = doc.select("ul[class=list-chapter] li");
-                int endChapter = getChapterEnd(SourceNovels.NOVEL_MAIN + novelId);
+                int endChapter = getChapterEnd(NOVEL_MAIN + novelId);
                 for (Element chapter : chapters) {
                     String nameChapter = chapter.selectFirst("a").text();
                     String linkChapter = chapter.selectFirst("a").attr("href");
@@ -279,7 +282,7 @@ public class TruyenFullPlugin implements PluginFactory {
 
     @Override
     public DataResponse getNovelDetail(String novelId) {
-        String url = SourceNovels.NOVEL_MAIN + novelId;
+        String url = NOVEL_MAIN+ novelId;
         Document doc = null;
         try {
             doc = ConnectJsoup.connect(url);
@@ -303,7 +306,7 @@ public class TruyenFullPlugin implements PluginFactory {
 
     @Override
     public DataResponse getAuthorDetail(String authorId) {
-        String url = SourceNovels.NOVEL_MAIN + "tac-gia/" + authorId;
+        String url = NOVEL_MAIN + "tac-gia/" + authorId;
         Document doc = null;
         try {
             doc = ConnectJsoup.connect(url);
@@ -333,11 +336,11 @@ public class TruyenFullPlugin implements PluginFactory {
 
     @Override
     public DataResponse getAllNovels(int page, String search) {
-        String apiGetAll = String.format(SourceNovels.API_TRUYENFULL_SEARCH,"",page);
+        String apiGetAll = String.format(API_TRUYENFULL_SEARCH,"",page);
         try
         {
             List<Novel> novelList = new ArrayList<>();
-            String jsonResponse = getJsonResponse(apiGetAll);
+                String jsonResponse = getJsonResponse(apiGetAll);
             JSONObject jsonObject = new JSONObject(jsonResponse);
             JSONArray data = jsonObject.getJSONArray("data");
             int totalPage = jsonObject.getJSONObject("meta").getJSONObject("pagination").getInt("total_pages");
@@ -349,7 +352,7 @@ public class TruyenFullPlugin implements PluginFactory {
                 Author author = new Author(HandleString.makeSlug(nameAuthor), nameAuthor);
                 String nameNovel = item.getString("title");
                 String idNovel = HandleString.makeSlug(nameNovel);
-                String apiURL = SourceNovels.API_DETAL_NOVEL +id;
+                String apiURL = API_DETAL_NOVEL +id;
                 String idFirstChapter="chuong-1";
                 String response = getJsonResponse(apiURL);
                 JSONObject object = new JSONObject(response);
@@ -369,7 +372,7 @@ public class TruyenFullPlugin implements PluginFactory {
 
     @Override
     public DataResponse getNovelSearch(int page, String key, String orderBy) {
-        String apiGetAll = String.format(SourceNovels.API_TRUYENFULL_SEARCH,key,page);
+        String apiGetAll = String.format(API_TRUYENFULL_SEARCH,key,page);
         try
         {
             List<Novel> novelList = new ArrayList<>();
@@ -385,7 +388,7 @@ public class TruyenFullPlugin implements PluginFactory {
                 Author author = new Author(HandleString.makeSlug(nameAuthor), nameAuthor);
                 String nameNovel = item.getString("title");
                 String idNovel = HandleString.makeSlug(nameNovel);
-                String apiURL = SourceNovels.API_DETAL_NOVEL +id;
+                String apiURL = API_DETAL_NOVEL +id;
                 String idFirstChapter="chuong-1";
                 String response = getJsonResponse(apiURL);
                 JSONObject object = new JSONObject(response);
