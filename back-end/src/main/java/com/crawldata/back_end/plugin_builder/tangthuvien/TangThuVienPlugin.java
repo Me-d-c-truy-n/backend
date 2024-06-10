@@ -80,7 +80,7 @@ public class TangThuVienPlugin implements PluginFactory {
     private String getChapterIdFromUrl(String url)
     {
         String[] parts = url.split("/");
-        return parts[parts.length-1];
+        return parts[parts.length-1].trim();
     }
 
     /**
@@ -138,7 +138,6 @@ public class TangThuVienPlugin implements PluginFactory {
         adjacentChapters.add(nextChapter);
         return adjacentChapters;
     }
-
 
     @Override
     public DataResponse getNovelChapterDetail(String novelId, String chapterId) {
@@ -228,7 +227,7 @@ public class TangThuVienPlugin implements PluginFactory {
                 if (chapterElement.hasClass("divider-chap")) {
                     continue;
                 }
-                String chapterId = getChapterIdFromUrl(chapterElement.child(1).attr("href")) + "";
+                String chapterId = getChapterIdFromUrl(chapterElement.child(1).attr("href"));
                 String chapterName = chapterElement.child(1).child(0).text();
                 listChapters.add(new Chapter(novelId, novelName, chapterId,nextChapterId,preChapterId, chapterName,  author, null));
             }
