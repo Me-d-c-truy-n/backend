@@ -3,6 +3,7 @@ package com.crawldata.back_end.service;
 import com.crawldata.back_end.model.PluginInformation;
 import com.crawldata.back_end.plugin.PluginManager;
 import com.crawldata.back_end.plugin_builder.PluginFactory;
+import com.crawldata.back_end.plugin_builder.lightnovel.LightNovelPlugin;
 import com.crawldata.back_end.response.DataResponse;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -17,6 +18,9 @@ public class NovelServiceImpl implements NovelService{
     private final  String getPluginErrorMessage = "This server does not exist";
     @Override
     public PluginFactory getPluginFactory(String pluginId) {
+        if(pluginId.equals("lightnovel")){
+            return new LightNovelPlugin();
+        }
         pluginManager.updatePlugins();
         PluginInformation pluginInformation = pluginManager.getPluginById(pluginId);
         if(pluginInformation == null) {

@@ -29,9 +29,11 @@ import javax.xml.transform.stream.StreamResult;
 import java.io.*;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.concurrent.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.zip.ZipEntry;
@@ -98,17 +100,26 @@ public class EpubPlugin implements ExportPluginFactory {
         File tempFile = File.createTempFile("epub", ".epub");
         try (ZipFile zipFile = new ZipFile(epubFilePath);
              ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(tempFile))) {
+
+            // Create a pool of threads to handle chapter modifications
+            ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+            List<Future<Void>> futures = new ArrayList<>();
+
             Enumeration<? extends ZipEntry> entries = zipFile.entries();
             while (entries.hasMoreElements()) {
                 ZipEntry entry = entries.nextElement();
                 try (InputStream is = zipFile.getInputStream(entry)) {
                     switch (entry.getName()) {
                         case "OEBPS/chap01.xhtml":
+                            // For each chapter, create a task to modify and save it
                             for (Chapter chapter : chapterList) {
-                                // Open a new InputStream for each chapter modification
-                                try (InputStream chapterIs = zipFile.getInputStream(entry)) {
+                                InputStream chapterIs = zipFile.getInputStream(entry);
+                                Callable<Void> task = () -> {
                                     modifyAndSaveChapterXhtml(zos, entry, chapterIs, chapter);
-                                }
+                                    return null;
+                                };
+                                // Submit the task to the executor service
+                                futures.add(executorService.submit(task));
                             }
                             break;
                         case "OEBPS/cover.xhtml":
@@ -138,6 +149,17 @@ public class EpubPlugin implements ExportPluginFactory {
                 }
                 zos.closeEntry();
             }
+
+            // Wait for all tasks to complete
+            for (Future<Void> future : futures) {
+                try {
+                    future.get();
+                } catch (InterruptedException | ExecutionException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            executorService.shutdown();
         }
 
         // Replace the original EPUB file with the modified one
@@ -250,7 +272,7 @@ public class EpubPlugin implements ExportPluginFactory {
                 int index = navMapElement.getElementsByTagName("navPoint").getLength() + 1;
                 for (Chapter chapter : chapterList) {
                     org.w3c.dom.Element navPointElement = document.createElement("navPoint");
-                    navPointElement.setAttribute("id", chapter.getChapterId());
+                    navPointElement.setAttribute("id", chapter.getChapterId().trim());
                     navPointElement.setAttribute("playOrder", String.valueOf(index++));
 
                     org.w3c.dom.Element navLabelElement = document.createElement("navLabel");
@@ -258,7 +280,7 @@ public class EpubPlugin implements ExportPluginFactory {
                     textElement.setTextContent(chapter.getName().trim());
 
                     org.w3c.dom.Element contentElement = document.createElement("content");
-                    contentElement.setAttribute("src", "text/"+chapter.getChapterId() + ".xhtml");
+                    contentElement.setAttribute("src", "text/"+chapter.getChapterId().trim() + ".xhtml");
 
                     navLabelElement.appendChild(textElement);
                     navPointElement.appendChild(navLabelElement);
@@ -305,7 +327,7 @@ public class EpubPlugin implements ExportPluginFactory {
             for(Chapter chapter : chapterList) {
                 Element aElement = document.createElement("a");
 //                Element liElement = document.createElement("li");
-                aElement.attr("href", "text/"+chapter.getChapterId()+".xhtml");
+                aElement.attr("href", "text/"+chapter.getChapterId().trim().trim()+".xhtml");
                 aElement.text(chapter.getName().trim());
 //                aElement.appendChild(liElement);
                 divElement.appendChild(new Element("p").appendChild(aElement));
@@ -334,8 +356,8 @@ public class EpubPlugin implements ExportPluginFactory {
         if (manifestElement != null) {
             for (Chapter chapter : chapterList) {
                 Element itemElement = document.createElement("item");
-                itemElement.attr("id", chapter.getChapterId());
-                itemElement.attr("href", "text/"+chapter.getChapterId()+".xhtml");
+                itemElement.attr("id", chapter.getChapterId().trim());
+                itemElement.attr("href", "text/"+chapter.getChapterId().trim()+".xhtml");
                 itemElement.attr("media-type", "application/xhtml+xml");
                 manifestElement.appendChild(itemElement);
             }
@@ -345,7 +367,7 @@ public class EpubPlugin implements ExportPluginFactory {
         if (spineElement != null) {
             for (Chapter chapter : chapterList) {
                 Element itemrefElement = document.createElement("itemref");
-                itemrefElement.attr("idref", chapter.getChapterId());
+                itemrefElement.attr("idref", chapter.getChapterId().trim());
                 spineElement.appendChild(itemrefElement);
             }
         }
@@ -368,10 +390,15 @@ public class EpubPlugin implements ExportPluginFactory {
         // Make the necessary modifications to the chapter content
         Element bodyElement = document.getElementsByTag("body").first();
         if (bodyElement != null) {
-            DataResponse dataResponse = pluginFactory.getNovelChapterDetail(novel.getNovelId(), chapter.getChapterId());
-            if (dataResponse != null && dataResponse.getStatus().equals("success")) {
-                Chapter data = (Chapter) dataResponse.getData();
+            int attempt = 10;
+            DataResponse dataResponse;
+            do {
+                dataResponse = pluginFactory.getNovelChapterDetail(novel.getNovelId(), chapter.getChapterId().trim());
+                attempt--;
+            } while ( attempt > 0 && (dataResponse == null || !dataResponse.getStatus().equals("success")));
 
+            if(dataResponse != null && dataResponse.getStatus().equals("success")) {
+                Chapter data = (Chapter) dataResponse.getData();
                 // Set title element
                 Element titleElement = bodyElement.getElementsByTag("h2").first();
                 if(titleElement != null) {
@@ -384,12 +411,10 @@ public class EpubPlugin implements ExportPluginFactory {
                     contentElement.html(data.getContent().replaceAll("<br>", "<br></br>"));
                 }
             }
-
-
         }
 
         // Create a new entry for the modified chapter
-        String chapterEntryName = "OEBPS/text/" + chapter.getChapterId() + ".xhtml";
+        String chapterEntryName = "OEBPS/text/" + chapter.getChapterId().trim() + ".xhtml";
         zos.putNextEntry(new ZipEntry(chapterEntryName));
 
         // Write the modified document to the ZIP output stream
