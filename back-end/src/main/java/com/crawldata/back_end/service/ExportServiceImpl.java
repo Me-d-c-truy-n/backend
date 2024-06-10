@@ -26,24 +26,13 @@ public class ExportServiceImpl implements  ExportService{
         return exportPluginManager.getExportPluginById(pluginId).getExportPluginObject();
     }
 
-
     @Override
-    public void export(String pluginId, Chapter chapter, HttpServletResponse response) throws IOException {
-        ExportPluginFactory exportPluginFactory = getExportPluginFactory(pluginId);
-        if(exportPluginFactory == null) {
-            //return new DataResponse("error", null, null, null, null, null, createPluginErrorMessage);
-        } else {
-            exportPluginFactory.export(chapter, response);
-        }
-    }
-
-    @Override
-    public void export(String fileType, String pluginId, String novelId, HttpServletResponse response) throws IOException {
+    public void export(String fileType, String pluginId, String novelId,String fromChapterId, int numChapters, HttpServletResponse response) throws IOException {
         ExportPluginFactory exportPluginFactory = getExportPluginFactory(fileType);
         if(exportPluginFactory == null) {
             response.setStatus(HttpStatus.SC_INTERNAL_SERVER_ERROR);
         } else {
-            exportPluginFactory.export(novelService.getPluginFactory(pluginId), novelId, response);
+            exportPluginFactory.export(novelService.getPluginFactory(pluginId), novelId, fromChapterId, numChapters, response);
         }
     }
 

@@ -1,4 +1,3 @@
-
 import com.crawldata.back_end.export_plugin_builder.ExportPluginFactory;
 import com.crawldata.back_end.model.Chapter;
 import com.crawldata.back_end.model.Novel;
@@ -27,12 +26,11 @@ import java.util.Comparator;
 import java.util.List;
 
 public class PdfPlugin implements ExportPluginFactory {
-
     @Getter
     private PluginFactory pluginFactory;
     @Getter
     private Novel novel;
-    private List<Chapter> chapterList;
+    private List<Chapter> chapterList =new ArrayList<>();
     private final int maxThreadNum = 3;
     @Getter
     private List<Chapter> listDetailChapter;
@@ -40,19 +38,8 @@ public class PdfPlugin implements ExportPluginFactory {
 
 
     @Override
-    public void export(Chapter chapter, HttpServletResponse response)  {
-        response.setContentType("application/pdf");
-        try {
-            generatePdfOneChapter(chapter,response);
-        }
-        catch (Exception e) {
-             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-        }
-    }
-
-    @Override
-    public void export(PluginFactory plugin, String novelId, HttpServletResponse response) throws IOException {
-        getNovelInfo(plugin,novelId);
+    public void export(PluginFactory plugin, String novelId, String fromChapterId, int numChapters, HttpServletResponse response) throws IOException {
+        getNovelInfo(plugin,novelId, fromChapterId, numChapters);
         listDetailChapter = new ArrayList<>();
         listThreads = new ArrayList<>();
         try {
@@ -88,7 +75,7 @@ public class PdfPlugin implements ExportPluginFactory {
                 chapters = chapterList.subList(i * chaptersPerThread, i * chaptersPerThread +chaptersPerThread+ remainingChapters);
             }
             else {
-                chapters = chapterList.subList(i * chaptersPerThread, i * chaptersPerThread + chaptersPerThread-1);
+                chapters = chapterList.subList(i * chaptersPerThread, i * chaptersPerThread + chaptersPerThread);
             }
             ReadDataThread thread = new ReadDataThread(chapters, this);
             thread.start();
@@ -127,12 +114,29 @@ public class PdfPlugin implements ExportPluginFactory {
             thread.join();
         }
     }
+
+
+
+    public int getIndexFromChapterId(List<Chapter> chapters, String fromChapterId)
+    {
+
+        for(int i = 0 ; i < chapters.size() ; i++)
+        {
+            if(chapters.get(i).getChapterId().equals(fromChapterId))
+            {
+                return i;
+            }
+        }
+        return -1;
+    }
+
     /**
      * Retrieves and sets the novel information and chapter list from the plugin.
      * @param plugin The plugin factory instance.
      * @param novelId The ID of the novel to retrieve information for.
      */
-    private void getNovelInfo(PluginFactory plugin, String novelId) {
+
+    private void getNovelInfo(PluginFactory plugin, String novelId, String fromChapterId, int numChapters) {
         pluginFactory = plugin;
         DataResponse dataResponse = pluginFactory.getNovelDetail(novelId);
         if(dataResponse != null && dataResponse.getStatus().equals("success")) {
@@ -143,7 +147,21 @@ public class PdfPlugin implements ExportPluginFactory {
             Object data = dataResponse.getData();
             if (data instanceof List<?> dataList) {
                 if (!dataList.isEmpty() && dataList.get(0) instanceof Chapter) {
-                    chapterList = (List<Chapter>) dataList;
+                    List<Chapter> chapters = (List<Chapter>) dataList;
+                    int index = getIndexFromChapterId(chapters, fromChapterId);
+
+                    if(index != -1) {
+                        int count = 0;
+                        for(int i = index; i < chapters.size(); i++) {
+                            if(count == chapters.size() || count == numChapters)
+                            {
+                                break;
+                            }
+                            chapterList.add(chapters.get(i));
+                            count++;
+                        }
+                        System.out.println(chapterList.size());
+                    }
                 }
             }
         }
@@ -317,8 +335,6 @@ public class PdfPlugin implements ExportPluginFactory {
 class ReadDataThread extends Thread{
     private List<Chapter> listChapter;
     private PdfPlugin pdf;
-
-
     public ReadDataThread()
     {
     }
