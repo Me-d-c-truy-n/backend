@@ -1,4 +1,3 @@
-package com.crawldata.back_end.plugin_builder.truyenfull;
 
 import com.crawldata.back_end.model.Author;
 import com.crawldata.back_end.model.Chapter;
@@ -26,16 +25,17 @@ import java.util.List;
 public class TruyenFullPlugin implements PluginFactory {
 
     private static String NOVEL_MAIN = "https://truyenfull.vn/";
-    private static String API_TRUYENFULL_SEARCH ="https://api.truyenfull.vn/v1/tim-kiem?title=%s&page=%d";
+    private static String API_TRUYENFULL_SEARCH = "https://api.truyenfull.vn/v1/tim-kiem?title=%s&page=%d";
     private static String API_DETAL_NOVEL = "https://api.truyenfull.vn/v1/story/detail/";
+
     /**
      * Retrieves the JSON response from the specified API URL.
      *
      * @param apiURL The URL of the API from which the JSON response is to be fetched.
      * @return A string containing the JSON response, or "error" if the connection fails
-     *        or the server response is not HTTP_OK (200).
+     * or the server response is not HTTP_OK (200).
      */
-    public String getJsonResponse(String apiURL)  {
+    public String getJsonResponse(String apiURL) {
         try {
             URL url = new URL(apiURL);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -45,11 +45,9 @@ public class TruyenFullPlugin implements PluginFactory {
             if (responseCode != HttpURLConnection.HTTP_OK) {
                 return "error";
             }
-
             BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
             String inputLine;
             StringBuilder response = new StringBuilder();
-
             while ((inputLine = in.readLine()) != null) {
                 response.append(inputLine);
             }
@@ -282,7 +280,7 @@ public class TruyenFullPlugin implements PluginFactory {
 
     @Override
     public DataResponse getNovelDetail(String novelId) {
-        String url = NOVEL_MAIN+ novelId;
+        String url = NOVEL_MAIN + novelId;
         Document doc = null;
         try {
             doc = ConnectJsoup.connect(url);
@@ -336,35 +334,32 @@ public class TruyenFullPlugin implements PluginFactory {
 
     @Override
     public DataResponse getAllNovels(int page, String search) {
-        String apiGetAll = String.format(API_TRUYENFULL_SEARCH,"",page);
-        try
-        {
+        String apiGetAll = String.format(API_TRUYENFULL_SEARCH, "", page);
+        try {
             List<Novel> novelList = new ArrayList<>();
-                String jsonResponse = getJsonResponse(apiGetAll);
+            String jsonResponse = getJsonResponse(apiGetAll);
             JSONObject jsonObject = new JSONObject(jsonResponse);
             JSONArray data = jsonObject.getJSONArray("data");
             int totalPage = jsonObject.getJSONObject("meta").getJSONObject("pagination").getInt("total_pages");
-            for(int i=0;i<data.length()&&i<26;i++)
-            {
+            for (int i = 0; i < data.length() && i < 26; i++) {
                 JSONObject item = data.getJSONObject(i);
                 int id = item.getInt("id");
                 String nameAuthor = item.getString("author");
                 Author author = new Author(HandleString.makeSlug(nameAuthor), nameAuthor);
                 String nameNovel = item.getString("title");
                 String idNovel = HandleString.makeSlug(nameNovel);
-                String apiURL = API_DETAL_NOVEL +id;
-                String idFirstChapter="chuong-1";
+                String apiURL = API_DETAL_NOVEL + id;
+                String idFirstChapter = "chuong-1";
                 String response = getJsonResponse(apiURL);
                 JSONObject object = new JSONObject(response);
                 String description = object.getJSONObject("data").getString("description");
                 String image = object.getJSONObject("data").getString("image");
-                novelList.add(new Novel(idNovel,nameNovel,image,description,author,idFirstChapter));
+                novelList.add(new Novel(idNovel, nameNovel, image, description, author, idFirstChapter));
             }
-            DataResponse dataResponse = new DataResponse("success",totalPage, page, novelList.size(), search, novelList, "");
+            DataResponse dataResponse = new DataResponse("success", totalPage, page, novelList.size(), search, novelList, "");
             dataResponse.setCurrentPage(page);
             return dataResponse;
-        }
-        catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             return DataResponseUtils.getErrorDataResponse(e.getMessage());
         }
@@ -372,35 +367,32 @@ public class TruyenFullPlugin implements PluginFactory {
 
     @Override
     public DataResponse getNovelSearch(int page, String key, String orderBy) {
-        String apiGetAll = String.format(API_TRUYENFULL_SEARCH,key,page);
-        try
-        {
+        String apiGetAll = String.format(API_TRUYENFULL_SEARCH, key, page);
+        try {
             List<Novel> novelList = new ArrayList<>();
             String jsonResponse = getJsonResponse(apiGetAll);
             JSONObject jsonObject = new JSONObject(jsonResponse);
             JSONArray data = jsonObject.getJSONArray("data");
             int totalPage = jsonObject.getJSONObject("meta").getJSONObject("pagination").getInt("total_pages");
-            for(int i=0;i<data.length()&&i<26;i++)
-            {
+            for (int i = 0; i < data.length() && i < 26; i++) {
                 JSONObject item = data.getJSONObject(i);
                 int id = item.getInt("id");
                 String nameAuthor = item.getString("author");
                 Author author = new Author(HandleString.makeSlug(nameAuthor), nameAuthor);
                 String nameNovel = item.getString("title");
                 String idNovel = HandleString.makeSlug(nameNovel);
-                String apiURL = API_DETAL_NOVEL +id;
-                String idFirstChapter="chuong-1";
+                String apiURL = API_DETAL_NOVEL + id;
+                String idFirstChapter = "chuong-1";
                 String response = getJsonResponse(apiURL);
                 JSONObject object = new JSONObject(response);
                 String description = object.getJSONObject("data").getString("description");
                 String image = object.getJSONObject("data").getString("image");
-                novelList.add(new Novel(idNovel,nameNovel,image,description,author,idFirstChapter));
+                novelList.add(new Novel(idNovel, nameNovel, image, description, author, idFirstChapter));
             }
-            DataResponse dataResponse = new DataResponse("success",totalPage, page, novelList.size(), key, novelList, "");
+            DataResponse dataResponse = new DataResponse("success", totalPage, page, novelList.size(), key, novelList, "");
             dataResponse.setCurrentPage(page);
             return dataResponse;
-        }
-        catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             return DataResponseUtils.getErrorDataResponse(e.getMessage());
         }
