@@ -43,8 +43,9 @@ public class EpubPlugin implements ExportPluginFactory {
     private PluginFactory pluginFactory;
     private Novel novel;
     private List<Chapter> chapterList;
+
     @Override
-    public void export(PluginFactory plugin, String novelId, HttpServletResponse response) throws IOException {
+    public void export(PluginFactory plugin, String novelId,String fromChapterId, int numChapters, HttpServletResponse response) throws IOException {
         //read untitled.epub to use it as template.
         String epubJarFilePath = AppUtils.curDir + "/export_plugins/epub.jar";
         try (JarFile jarFile = new JarFile(epubJarFilePath)) {

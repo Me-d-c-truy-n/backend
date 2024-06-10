@@ -21,22 +21,15 @@ public interface ExportService {
     ExportPluginFactory getExportPluginFactory(String pluginId);
 
     /**
-     * Export detail novel chapter
-     * @param pluginId The ID of the novel.
-     * @param novelId The ID of the novel.
-     * @param chapterId The ID of the chapter.
-     * @param response response for client
-     */
-    public void export(String pluginId, Chapter chapter, HttpServletResponse response) throws IOException;
-
-    /**
      * Export novel
+     * @param fileType the type of file to export
      * @param pluginId The ID of the novel.
      * @param novelId The ID of the novel.
-     * @param chapterId The ID of the chapter.
+     * @param fromChapterId The ID of the first chapter.
+     * @param numChapters number of chapters to export
      * @param response response for client
      */
-    public void export(String fileType, String pluginId, String novelId, HttpServletResponse response) throws IOException;
+    public void export(String fileType, String pluginId, String novelId, String fromChapterId, int numChapters, HttpServletResponse response) throws IOException;
 
      /**
      * @return The key novel plugins
