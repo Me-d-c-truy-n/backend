@@ -40,18 +40,7 @@ public class PdfPlugin implements ExportPluginFactory {
 
 
     @Override
-    public void export(Chapter chapter, HttpServletResponse response)  {
-        response.setContentType("application/pdf");
-        try {
-            generatePdfOneChapter(chapter,response);
-        }
-        catch (Exception e) {
-             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-        }
-    }
-
-    @Override
-    public void export(PluginFactory plugin, String novelId, HttpServletResponse response) throws IOException {
+    public void export(PluginFactory plugin, String novelId, String fromChapterId, int numChapters, HttpServletResponse response) throws IOException {
         getNovelInfo(plugin,novelId);
         listDetailChapter = new ArrayList<>();
         listThreads = new ArrayList<>();

@@ -177,4 +177,9 @@ public class AudioPlugin implements ExportPluginFactory {
             AudioSystem.write(combinedAudioInputStream, AudioFileFormat.Type.WAVE, outputFile);
         }
     }
+
+    @Override
+    public void export(PluginFactory plugin, String novelId, String fromChapterId, int numChapters, HttpServletResponse response) throws IOException {
+
+    }
 }

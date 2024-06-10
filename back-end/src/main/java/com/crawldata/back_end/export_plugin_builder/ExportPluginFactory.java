@@ -11,23 +11,14 @@ import java.io.IOException;
  * This interface defines methods for export detail novel chapter
  */
 public interface ExportPluginFactory {
-    /**
-     * Export detail novel chapter
-     * @param novelId The ID of the novel.
-     * @param chapterId The ID of the chapter.
-     * @param response response for client
-     */
-    public default void export(Chapter chapter, HttpServletResponse response) throws IOException {
-
-    }
 
     /**
      * Export novel
-     * @param  pluginId The ID of the novel plugin.
+     * @param  plugin The plugin of novel
      * @param novelId The ID of the novel.
+     * @param fromChapterId the id of first chapter
+     * @param numChapters number of chapters to export
      * @param response response for client
      */
-    public default void export(PluginFactory plugin, String novelId, HttpServletResponse response) throws IOException{
-
-    }
+    void export(PluginFactory plugin, String novelId, String fromChapterId, int numChapters, HttpServletResponse response) throws  IOException;
 }

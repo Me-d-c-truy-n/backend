@@ -62,17 +62,10 @@ public class NovelController {
         return ResponseEntity.ok(dataResponse);
     }
 
-    @GetMapping("{pluginId}/tai-truyen/{fileType}/{novelId}/{chapterId}")
-    public void export(@PathVariable("pluginId") String pluginId , @PathVariable(name = "fileType") String fileType,@PathVariable(name = "novelId") String novelId,
-                       @PathVariable(name = "chapterId") String chapterId, HttpServletResponse response) throws IOException {
-        DataResponse dataResponse = novelServiceImpl.getNovelChapterDetail(pluginId, novelId, chapterId);
-        exportServiceImpl.export(fileType, (Chapter) dataResponse.getData(),response);
-    }
 
     @GetMapping("{pluginId}/tai-truyen/{novelId}/{fileType}")
-    public void export(@PathVariable("pluginId") String pluginId , @PathVariable(name = "fileType") String fileType,@PathVariable(name = "novelId") String novelId,
+    public void export(@PathVariable("pluginId") String pluginId , @PathVariable(name = "fileType") String fileType,@PathVariable(name = "novelId") String novelId, @RequestParam(name = "fromChapterId", defaultValue = "") String fromChapterId, @RequestParam(name = "numChapters" , defaultValue = "0") int numChapters,
                        HttpServletResponse response) throws IOException {
-        exportServiceImpl.export(fileType, pluginId, novelId, response);
+        exportServiceImpl.export(fileType, pluginId, novelId, fromChapterId, numChapters, response);
     }
-
 }
