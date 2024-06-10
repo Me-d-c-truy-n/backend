@@ -372,4 +372,9 @@ public class MeTruyenChuPlugin implements PluginFactory {
         int totalPages = jsonObject.getAsJsonObject("pagination").get("last").getAsInt();
         return new DataResponse("success", totalPages, page, novelList.size(), key, novelList, "");
     }
+
+    @Override
+    public Chapter getContentChapter(String novelId, String chapterId) {
+        return null;
+    }
 }

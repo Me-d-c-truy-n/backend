@@ -43,4 +43,35 @@ public class Novel {
     {
         return novelId + "\n" + name + "\n" + image + "\n" + description + "\n" + author + "\n" + firstChapter;
     }
+
+    public Novel noveId(String novelId)
+    {
+        setNovelId(novelId);
+        return this;
+    }
+    public Novel name(String name)
+    {
+        setName(name);
+        return this;
+    }
+    public Novel image(String image)
+    {
+        setImage(image);
+        return this;
+    }
+    public Novel description(String description)
+    {
+        setDescription(description);
+        return this;
+    }
+    public Novel author(Author author)
+    {
+        setAuthor(author);
+        return this;
+    }
+    public Novel firstChapter(String firstChapter)
+    {
+        setFirstChapter(firstChapter);
+        return this;
+    }
 }

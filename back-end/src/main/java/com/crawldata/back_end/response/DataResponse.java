@@ -65,4 +65,36 @@ public class DataResponse {
             this.currentPage = currentPage;
         }
     }
+
+    public DataResponse status(String status) {
+        setStatus(status);
+        return this;
+    }
+
+    public DataResponse totalPage(Integer totalPage) {
+        setTotalPage(totalPage);
+        return this;
+    }
+    public DataResponse currentPage(Integer currentPage) {
+        setCurrentPage(currentPage);
+        return this;
+    }
+
+    public DataResponse perPage(Integer perPage) {
+        setPerPage(perPage);
+        return this;
+    }
+
+    public DataResponse searchValue(String searchValue) {
+        setSearchValue(searchValue);
+        return this;
+    }
+    public DataResponse data(Object data) {
+        setData(data);
+        return this;
+    }
+    public DataResponse message(String message) {
+        setMessage(message);
+        return this;
+    }
 }
