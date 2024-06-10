@@ -1,4 +1,3 @@
-package com.crawldata.back_end.plugin_builder.lightnovel;
 
 import com.crawldata.back_end.model.Author;
 import com.crawldata.back_end.model.Chapter;
@@ -20,6 +19,7 @@ import org.jsoup.HttpStatusException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
@@ -66,10 +66,17 @@ public class LightNovelPlugin implements PluginFactory {
         return slug.replaceAll("-", "%20").replaceAll(" ", "%20");
     }
 
-    private String getChapterSlugFromChapterIndex(JsonObject novelObject, int chapterIndex) {
+    /**
+     * Retrieves the slug of a chapter based on its index within the novel.
+     *
+     * @param novelId      The ID of the novel.
+     * @param chapterIndex The index of the chapter within the novel.
+     * @return The slug of the chapter, or null if the chapter is not found.
+     */
+    private String getChapterSlugFromChapterIndex(String novelId, int chapterIndex) {
         int page = (int) Math.ceil((double) chapterIndex / LIST_CHAPTERS_CAP);
         int chapterPos = chapterIndex - LIST_CHAPTERS_CAP*(page-1);
-        String apiUrl = String.format(NOVEL_LIST_CHAPTERS_API, novelObject.get("slug").getAsString(), page == 1 ? 0 : page);
+        String apiUrl = String.format(NOVEL_LIST_CHAPTERS_API, novelId, page == 1 ? 0 : page);
         JsonObject jsonObject;
         try {
             jsonObject = connectAPI(apiUrl);
@@ -211,7 +218,7 @@ public class LightNovelPlugin implements PluginFactory {
         WebDriver driver = null;
         for (int attempt = 0; attempt < MAX_RETRIES; attempt++) {
             try {
-                System.out.println("Using Chrome WebDriver");
+                System.out.println("lightnovel is using Chrome WebDriver");
                 System.setProperty("webdriver.chrome.driver", AppUtils.curDir + CHROME_DRIVER_PATH);
 
                 ChromeOptions options = new ChromeOptions();
@@ -232,10 +239,21 @@ public class LightNovelPlugin implements PluginFactory {
 
                 // Parse the page source with Jsoup
                 doc = Jsoup.parse(driver.getPageSource());
-                Element content = doc.getElementById("chapterContent");
-                if (content != null) {
-                    return content.text();
+
+                // Select all <p> elements within the content
+                Elements paragraphs = doc.select("#chapterContent p");
+
+                // Create a StringBuilder to store the extracted content
+                StringBuilder contentBuilder = new StringBuilder();
+
+                // Loop through each <p> element and append its text to the contentBuilder
+                for (Element paragraph : paragraphs) {
+
+                    contentBuilder.append(paragraph.text()).append("\n"); // Append the text of the <p> element
                 }
+
+                // Return the extracted content as a string
+                return contentBuilder.toString();
             } catch (TimeoutException e) {
                 System.out.println("Timed out waiting for page to load");
             } catch (WebDriverException e) {
@@ -257,48 +275,19 @@ public class LightNovelPlugin implements PluginFactory {
         }
         Novel novel = createNovelByJsonData(novelObject);
 
-        String chapterSlug = getChapterSlugFromChapterIndex(novelObject, Integer.parseInt(chapterId.split("-")[1]));
-        String urlChapter = String.format(CHAPTER_DETAIL_API, novelId, chapterSlug);
-
-        JsonObject doc = null;
-        try {
-            doc = connectAPI(urlChapter);
-            if (doc != null && doc.has("pageProps")) {
-                JsonObject pageProps = doc.getAsJsonObject("pageProps");
-                JsonObject chapterObject = pageProps.getAsJsonObject("chapter");
-                if (chapterObject != null) {
-                    String chapterName = chapterObject.get("name").getAsString();
-                    String content = null;
-                    if(chapterObject.has("data") && !chapterObject.get("data").isJsonNull()) {
-                        content = getChapterContentThroughCrawling(novelId, chapterSlug);
-                    } else {
-                        content = chapterObject.get("content").getAsString();
-                    }
-
-                    content = content.replaceAll("\n", "<br><br>");
-                    int chapterIndex = chapterObject.get("chapterIndex").getAsInt();
-                    String nextChapterId = pageProps.has("nextChapter") && !pageProps.get("nextChapter").isJsonNull() ? "chuong-" + (chapterIndex + 1) : null;
-                    String preChapterId = pageProps.has("prevChapter") && !pageProps.get("prevChapter").isJsonNull() ? "chuong-" + (chapterIndex - 1) : null;
-
-                    // Create chapter details
-                    Chapter chapterDetail = new Chapter(novelId, novel.getName(), chapterId, nextChapterId, preChapterId, chapterName, novel.getAuthor(), content);
-
-                    // Prepare response
-                    DataResponse dataResponse = new DataResponse();
-                    dataResponse.setStatus("success");
-                    dataResponse.setData(chapterDetail);
-
-                    return dataResponse;
-                } else {
-                    return DataResponseUtils.getErrorDataResponse("Chapter not found on this server");
-                }
-            } else {
-                return DataResponseUtils.getErrorDataResponse("");
-            }
-        } catch (IOException e) {
-            System.out.println(e.getMessage());
-            return DataResponseUtils.getErrorDataResponse(e.getMessage());
+        Chapter result = getContentChapter(novelId, chapterId);
+        if(result == null) {
+            return DataResponseUtils.getErrorDataResponse("Chapter not found");
         }
+        // Create chapter details
+        Chapter chapterDetail = new Chapter(novelId, novel.getName(), chapterId, result.getNextChapterId(), result.getPreChapterId(), result.getName(), novel.getAuthor(), result.getContent());
+
+        // Prepare response
+        DataResponse dataResponse = new DataResponse();
+        dataResponse.setStatus("success");
+        dataResponse.setData(chapterDetail);
+
+        return dataResponse;
     }
 
     @Override
@@ -501,6 +490,46 @@ public class LightNovelPlugin implements PluginFactory {
             return DataResponseUtils.getErrorDataResponse("Failed to connect to the API");
         } finally {
             executorService.shutdown();
+        }
+    }
+
+    @Override
+    public Chapter getContentChapter(String novelId, String chapterId) {
+        String chapterSlug = getChapterSlugFromChapterIndex(novelId, Integer.parseInt(chapterId.split("-")[1]));
+        String urlChapter = String.format(CHAPTER_DETAIL_API, novelId, chapterSlug);
+
+        JsonObject doc = null;
+        try {
+            doc = connectAPI(urlChapter);
+            if (doc != null && doc.has("pageProps")) {
+                JsonObject pageProps = doc.getAsJsonObject("pageProps");
+                JsonObject chapterObject = pageProps.getAsJsonObject("chapter");
+                if (chapterObject != null) {
+                    String chapterName = chapterObject.get("name").getAsString();
+                    String content = null;
+                    if(chapterObject.has("data") && !chapterObject.get("data").isJsonNull()) {
+                        content = getChapterContentThroughCrawling(novelId, chapterSlug);
+                    } else {
+                        content = chapterObject.get("content").getAsString();
+                    }
+
+                    content = content.replaceAll("\n", "<br><br>");
+                    int chapterIndex = chapterObject.get("chapterIndex").getAsInt();
+                    String nextChapterId = pageProps.has("nextChapter") && !pageProps.get("nextChapter").isJsonNull() ? "chuong-" + (chapterIndex + 1) : null;
+                    String preChapterId = pageProps.has("prevChapter") && !pageProps.get("prevChapter").isJsonNull() ? "chuong-" + (chapterIndex - 1) : null;
+
+                    // Create chapter details
+
+                    return new Chapter(novelId, null, chapterId, nextChapterId, preChapterId, chapterName, null, content);
+                } else {
+                    return null;
+                }
+            } else {
+                return null;
+            }
+        } catch (IOException e) {
+            System.out.println(e.getMessage());
+            return null;
         }
     }
 }
