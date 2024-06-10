@@ -20,4 +20,16 @@ public class Author {
      * The name of the author.
      */
     String name;
+
+    public Author authorId(String authorId)
+    {
+        setAuthorId(authorId);
+        return this;
+    }
+
+    public Author name(String name)
+    {
+        setName(name);
+        return this;
+    }
 }

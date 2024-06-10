@@ -18,7 +18,7 @@ public interface PluginFactory {
      * @param chapterId The ID of the chapter.
      * @return The details of the chapter.
      */
-    public  DataResponse getNovelChapterDetail(String novelId, String chapterId);
+     DataResponse getNovelChapterDetail(String novelId, String chapterId);
     /**
      * Retrieves a list of chapters for a given novel and page number.
      *
@@ -26,7 +26,7 @@ public interface PluginFactory {
      * @param page The page number.
      * @return The list of chapters.
      */
-    public DataResponse getNovelListChapters(String novelId, int page);
+     DataResponse getNovelListChapters(String novelId, int page);
 
     /**
      * Retrieves a list of all chapters for a given novel.
@@ -35,7 +35,7 @@ public interface PluginFactory {
      * @param page The page number.
      * @return The list of chapters.
      */
-    public default DataResponse getNovelListChapters(String novelId) {
+    default DataResponse getNovelListChapters(String novelId) {
         return getNovelListChapters(novelId, 1);
     }
 
@@ -45,7 +45,7 @@ public interface PluginFactory {
      * @param novelId The ID of the novel.
      * @return The details of the novel.
      */
-    public DataResponse getNovelDetail(String novelId);
+     DataResponse getNovelDetail(String novelId);
 
     /**
      * Retrieves the novels written by a specific author.
@@ -53,7 +53,7 @@ public interface PluginFactory {
      * @param authorId The ID of the author.
      * @return The list of novels written by the author.
      */
-    public DataResponse getAuthorDetail(String authorId);
+     DataResponse getAuthorDetail(String authorId);
 
     /**
      * Retrieves all novels matching the given search criteria and page number.
@@ -62,7 +62,7 @@ public interface PluginFactory {
      * @param search The search criteria.
      * @return The list of novels.
      */
-    public DataResponse getAllNovels(int page, String search);
+     DataResponse getAllNovels(int page, String search);
 
 
     /**
@@ -73,5 +73,13 @@ public interface PluginFactory {
      * @param orderBy The sort option
      * @return The list of novels.
      */
-    public DataResponse getNovelSearch(int page, String key, String orderBy);
+     DataResponse getNovelSearch(int page, String key, String orderBy);
+
+    /**
+     * Retrieves the content of a specific chapter of a novel
+     * @param novelId The ID of the novel.
+     * @param chapterId The ID of the chapter.
+     * @return The details of the chapter.
+     */
+    Chapter getContentChapter(String novelId, String chapterId);
 }

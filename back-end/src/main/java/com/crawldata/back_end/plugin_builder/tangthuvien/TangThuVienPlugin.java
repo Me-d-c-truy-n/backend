@@ -139,6 +139,26 @@ public class TangThuVienPlugin implements PluginFactory {
         return adjacentChapters;
     }
 
+
+    public List<String> getContentChapter(String url)  {
+        String chapterName = "";
+        String content = "";
+        List<String> contentChapter = new ArrayList<>();
+        try {
+            Document doc = ConnectJsoup.connect(url);
+            doc.outputSettings(new Document.OutputSettings().prettyPrint(false));//makes html() preserve linebreaks and spacing
+            Element novelTitleElement = doc.select(".col-xs-12.chapter").get(0);
+            chapterName = novelTitleElement.child(1).text();
+            content = doc.select(".box-chap").get(0).html().replaceAll("\\r\\n", "<br>").replaceAll("\\n", "<br>");;
+        }catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+        contentChapter.add(chapterName);
+        contentChapter.add(content);
+        return contentChapter;
+    }
+
     @Override
     public DataResponse getNovelChapterDetail(String novelId, String chapterId) {
         String novelName = "";
@@ -178,20 +198,17 @@ public class TangThuVienPlugin implements PluginFactory {
 
             // Get detail Novel Chapter
             chapterDetailUrl = novelDetailUrl + "/" + chapterId;
-            Document doc2 = ConnectJsoup.connect(chapterDetailUrl);
-            doc2.outputSettings(new Document.OutputSettings().prettyPrint(false));//makes html() preserve linebreaks and spacing
-            Element novelTitleElement = doc2.select(".col-xs-12.chapter").get(0);
-            chapterName = novelTitleElement.child(1).text();
-            content = doc2.select(".box-chap").get(0).html().replaceAll("\\r\\n", "<br>").replaceAll("\\n", "<br>");;
-
-
+            List<String> contentChapter = getContentChapter(chapterDetailUrl);
+            chapterName = contentChapter.get(0);
+            content = contentChapter.get(1);
         } catch (Exception e) {
             LOGGER.error(e.getMessage(),e);
             return DataResponseUtils.getErrorDataResponse(e.getMessage());
         }
 
         Chapter detailChapter = new Chapter(novelId, novelName,chapterId,nextChapterId,preChapterId, chapterName,  author, content);
-        return new DataResponse("success", null, null,null,null, detailChapter, null);
+
+        return new DataResponse().status("success").data(detailChapter);
     }
 
     @Override
@@ -229,13 +246,14 @@ public class TangThuVienPlugin implements PluginFactory {
                 }
                 String chapterId = getChapterIdFromUrl(chapterElement.child(1).attr("href"));
                 String chapterName = chapterElement.child(1).child(0).text();
-                listChapters.add(new Chapter(novelId, novelName, chapterId,nextChapterId,preChapterId, chapterName,  author, null));
+                listChapters.add(new Chapter().novelId(novelId).novelName(novelName).chapterId(chapterId).nextChapterId(nextChapterId).preChapterId(preChapterId).name(chapterName).author(author));
             }
         } catch (Exception e) {
             LOGGER.error(e.getMessage(),e);
             return DataResponseUtils.getErrorDataResponse(e.getMessage());
         }
-        return new DataResponse("success",1, 1, listChapters.size(), null , listChapters, null);
+
+        return new DataResponse().status("success").totalPage(1).currentPage(1).perPage(listChapters.size()).data(listChapters);
     }
 
     @Override
@@ -277,7 +295,7 @@ public class TangThuVienPlugin implements PluginFactory {
                 }
                 String chapterId = getChapterIdFromUrl(chapterElement.child(1).attr("href")) + "";
                 String chapterName = chapterElement.child(1).child(0).text();
-                listChapters.add(new Chapter(novelId, novelName, chapterId,nextChapterId,preChapterId, chapterName,  author, null));
+                listChapters.add(new Chapter().novelId(novelId).novelName(novelName).chapterId(chapterId).nextChapterId(nextChapterId).preChapterId(preChapterId).name(chapterName).author(author));
             }
         } catch (Exception e) {
             LOGGER.error(e.getMessage(),e);
@@ -285,7 +303,8 @@ public class TangThuVienPlugin implements PluginFactory {
         }
         // Calculate total page
         Integer totalPage = calculateTotalPage(total, TOTAL_CHAPTERS_PER_PAGE);
-        return new DataResponse("success",totalPage, page, TOTAL_CHAPTERS_PER_PAGE, null , listChapters, null);
+
+        return new DataResponse().status("success").totalPage(totalPage).currentPage(page).perPage(TOTAL_CHAPTERS_PER_PAGE).data(listChapters);
     }
 
     @Override
@@ -324,8 +343,9 @@ public class TangThuVienPlugin implements PluginFactory {
             LOGGER.error(e.getMessage(),e);
             return DataResponseUtils.getErrorDataResponse(e.getMessage());
         }
+
         Novel novel = new Novel(novelId,novelName,image,description,author, firstChapterId);
-        return new DataResponse("success", null, null,null,null, novel, null);
+        return new DataResponse().status("success").data(novel);
     }
 
     @Override
@@ -333,7 +353,6 @@ public class TangThuVienPlugin implements PluginFactory {
         String authorUrl = String.format(AUTHOR_URL, authorId);
         String authorName = "";
         List<Novel> listNovel = new ArrayList<>();
-        String firstChapter = "";
         try {
             Document doc = ConnectJsoup.connect(authorUrl);
             Element authorPhotoElement = doc.getElementById("authorId");
@@ -357,7 +376,7 @@ public class TangThuVienPlugin implements PluginFactory {
                     author = new Author(authorId, authorName);
 
                     description = bookElement.child(1).child(2).html();
-                    listNovel.add(new Novel(novelId, novelName, imageURL, description, author, firstChapter));
+                    listNovel.add(new Novel().noveId(novelId).name(novelName).image(imageURL).description(description).author(author));
                 }
             }
         }
@@ -365,7 +384,8 @@ public class TangThuVienPlugin implements PluginFactory {
             LOGGER.error(e.getMessage(),e);
             return DataResponseUtils.getErrorDataResponse(e.getMessage());
         }
-        return new DataResponse("success", null, null,null,null, listNovel, null);
+
+        return new DataResponse().status("success").data(listNovel);
     }
 
     @Override
@@ -383,12 +403,12 @@ public class TangThuVienPlugin implements PluginFactory {
             Element totalPageElement = doc.select("ul.pagination").get(0);
             totalPage = Integer.parseInt(totalPageElement.child(totalPageElement.childrenSize()-2).child(0).text());
             perPage = bookElements.size();
+
             // Initial data
             String novelId;
             Author author;
             String detailNovelUrl;
             String novelName;
-            Integer totalChapter;
             String imageURL;
             String description;
 
@@ -403,16 +423,16 @@ public class TangThuVienPlugin implements PluginFactory {
                 String authorUrlWebSite =  bookElement.child(1).child(1).child(1).attr("href");
                 String authorId = getAuthorIdFromUrl(authorUrlWebSite);
                 author = new Author(authorId, authorName);
-                totalChapter = Integer.parseInt(bookElement.child(1).child(1).child(7).child(0).text());
+
                 description =  bookElement.child(1).child(2).html();
-                lsNovel.add(new Novel(novelId, novelName, imageURL, description, author, null));
+                lsNovel.add(new Novel().noveId(novelId).name(novelName).image(imageURL).description(description).author(author));
             }
         } catch (Exception e)
         {
             LOGGER.error(e.getMessage(),e);
             return DataResponseUtils.getErrorDataResponse(e.getMessage());
         }
-        return new DataResponse("success", totalPage, page,perPage,null, lsNovel, null);
+        return new DataResponse().status("success").totalPage(totalPage).currentPage(page).perPage(perPage).data(lsNovel);
     }
 
     @Override
@@ -453,12 +473,21 @@ public class TangThuVienPlugin implements PluginFactory {
                 author = new Author(authorId, authorName);
                 description =  bookElement.child(1).child(2).html();
 
-                lsNovels.add(new Novel(novelId, novelName, imageURL, description,author , null));
+                lsNovels.add(new Novel().noveId(novelId).name(novelName).image(imageURL).description(description).author(author));
             }
         } catch (Exception e) {
             LOGGER.error(e.getMessage(),e);
             return DataResponseUtils.getErrorDataResponse(e.getMessage());
         }
-        return new DataResponse("success", totalPage,page, null, key, lsNovels, null);
+        return new DataResponse().status("success").totalPage(totalPage).currentPage(page).searchValue(key).data(lsNovels);
+    }
+
+    @Override
+    public Chapter getContentChapter(String novelId, String chapterId) {
+        String chapterDetailUrl = String.format(NOVEL_DETAIL_URL, novelId) + "/" + chapterId;
+        List<String> contentChapter = getContentChapter(chapterDetailUrl);
+        String chapterName = contentChapter.get(0);
+        String content = contentChapter.get(1);
+        return new Chapter().content(content).name(chapterName);
     }
 }
