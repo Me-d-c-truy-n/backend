@@ -414,4 +414,9 @@ public class TruyenFullPlugin implements PluginFactory {
             return DataResponseUtils.getErrorDataResponse(e.getMessage());
         }
     }
+
+    @Override
+    public Chapter getContentChapter(String novelId, String chapterId) {
+        return null;
+    }
 }

@@ -48,4 +48,46 @@ public class Chapter {
     {
         return novelId + "\n" + novelName + "\n" + chapterId + "\n" + preChapterId + "\n" + name + "\n" + author + "\n" + content + "\n" + nextChapterId;
     }
+
+    public Chapter novelId(String novelId)
+    {
+        setNovelId(novelId);
+        return this;
+    }
+    public Chapter novelName(String novelName)
+    {
+        setNovelName(novelName);
+        return this;
+    }
+    public Chapter chapterId(String chapterId)
+    {
+        setChapterId(chapterId);
+        return this;
+    }
+    public Chapter nextChapterId(String nextChapterId)
+    {
+        setNextChapterId(nextChapterId);
+        return this;
+    }
+    public Chapter preChapterId(String preChapterId)
+    {
+        setPreChapterId(preChapterId);
+        return this;
+    }
+    public Chapter name(String name)
+    {
+        setName(name);
+        return this;
+    }
+    public Chapter author(Author author)
+    {
+        setAuthor(author);
+        return this;
+    }
+    public Chapter content(String content)
+    {
+        setContent(content);
+        return this;
+    }
+
 }
