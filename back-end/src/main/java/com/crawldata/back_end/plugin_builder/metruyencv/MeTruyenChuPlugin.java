@@ -1,3 +1,4 @@
+package com.crawldata.back_end.plugin_builder.metruyencv;
 
 import com.crawldata.back_end.model.Author;
 import com.crawldata.back_end.model.Chapter;
@@ -11,7 +12,6 @@ import com.crawldata.back_end.utils.HandleString;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import io.github.bonigarcia.wdm.WebDriverManager;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
