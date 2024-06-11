@@ -1,3 +1,4 @@
+package com.crawldata.back_end.plugin_builder.truyenfull;
 
 import com.crawldata.back_end.model.Author;
 import com.crawldata.back_end.model.Chapter;
@@ -34,7 +35,7 @@ public class TruyenFullPlugin implements PluginFactory {
      * @return A string containing the JSON response, or "error" if the connection fails
      * or the server response is not HTTP_OK (200).
      */
-    public String getJsonResponse(String apiURL) {
+    public static String getJsonResponse(String apiURL) {
         try {
             URL url = new URL(apiURL);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -65,7 +66,7 @@ public class TruyenFullPlugin implements PluginFactory {
      * @return The total number of pages of the novel as an integer. If the pagination
      * is not present or an error occurs, it defaults to 1.
      */
-    public int getNovelTotalPages(String url) {
+    public static int getNovelTotalPages(String url) {
         Document doc = null;
         try {
             doc = ConnectJsoup.connect(url);
@@ -109,7 +110,7 @@ public class TruyenFullPlugin implements PluginFactory {
      * @param url The full URL from which the end slug is to be extracted.
      * @return The end slug of the URL as a String.
      */
-    public String getEndSlugFromUrl(String url) {
+    public static String getEndSlugFromUrl(String url) {
         String[] parts = url.split("/");
         return parts[parts.length - 1];
     }
@@ -120,7 +121,7 @@ public class TruyenFullPlugin implements PluginFactory {
      * @param idChapter The ID of the current chapter in the format 'chuong-X'.
      * @return The ID of the previous chapter as a String, or null if the current chapter is the first.
      */
-    public String getValidPreChapter(String idChapter) {
+    public static String getValidPreChapter(String idChapter) {
         String[] parts = idChapter.split("-");
         int numberChap = Integer.parseInt(parts[parts.length - 1]);
         if (numberChap > 1) return "chuong-" + (numberChap - 1);
@@ -134,7 +135,7 @@ public class TruyenFullPlugin implements PluginFactory {
      * @return The number of the last chapter as an integer. If pagination is not present,
      * it returns the count of chapters listed on the current page.
      */
-    public int getChapterEnd(String url) {
+    public static int getChapterEnd(String url) {
         StringBuilder linkEndPage = new StringBuilder();
         int chapterEnd = 0;
         try {
@@ -174,7 +175,7 @@ public class TruyenFullPlugin implements PluginFactory {
      * @param endChapter The number of the last chapter in the series.
      * @return The ID of the next chapter as a String, or null if the current chapter is the last one.
      */
-    public String getValidNextChapter(String idChapter, int endChapter) {
+    public static String getValidNextChapter(String idChapter, int endChapter) {
         String[] parts = idChapter.split("-");
         int numberChap = Integer.parseInt(parts[parts.length - 1]);
         if (numberChap < endChapter) return "chuong" + (numberChap + 1);
@@ -230,7 +231,8 @@ public class TruyenFullPlugin implements PluginFactory {
                 doc = ConnectJsoup.connect(link);
                 Elements chapters = doc.select("ul[class=list-chapter] li");
                 int endChapter = getChapterEnd(NOVEL_MAIN + novelId);
-                for (Element chapter : chapters) {
+                for (int i=0;i<chapters.size();i++) {
+                    Element chapter = chapters.get(i);
                     String nameChapter = chapter.selectFirst("a").text();
                     String linkChapter = chapter.selectFirst("a").attr("href");
                     String idChapter = linkChapter.split("/")[linkChapter.split("/").length - 1];
@@ -330,7 +332,8 @@ public class TruyenFullPlugin implements PluginFactory {
                 String nameAuthor = novels.get(0).selectFirst("span[class=author]").text();
                 Author author = new Author(HandleString.makeSlug(nameAuthor), nameAuthor);
                 List<Novel> novelList = new ArrayList<>();
-                for (Element novel : novels) {
+                for (int i =0;i<novels.size();i++) {
+                    Element novel = novels.get(i);
                     String image = novel.selectFirst("div[data-image]").attr("data-image");
                     String name = novel.selectFirst("h3").text();
                     String link = novel.selectFirst("a").attr("href");
@@ -357,6 +360,10 @@ public class TruyenFullPlugin implements PluginFactory {
         try {
             List<Novel> novelList = new ArrayList<>();
             String jsonResponse = getJsonResponse(apiGetAll);
+            if(jsonResponse.equals("error"))
+            {
+                return DataResponseUtils.getErrorDataResponse("Failed to get data from API!");
+            }
             JSONObject jsonObject = new JSONObject(jsonResponse);
             JSONArray data = jsonObject.getJSONArray("data");
             int totalPage = jsonObject.getJSONObject("meta").getJSONObject("pagination").getInt("total_pages");
@@ -389,6 +396,10 @@ public class TruyenFullPlugin implements PluginFactory {
         try {
             List<Novel> novelList = new ArrayList<>();
             String jsonResponse = getJsonResponse(apiGetAll);
+            if(jsonResponse.equals("error"))
+            {
+                return DataResponseUtils.getErrorDataResponse("Failed to get data from API!");
+            }
             JSONObject jsonObject = new JSONObject(jsonResponse);
             JSONArray data = jsonObject.getJSONArray("data");
             int totalPage = jsonObject.getJSONObject("meta").getJSONObject("pagination").getInt("total_pages");

@@ -1,4 +1,3 @@
-
 import com.crawldata.back_end.export_plugin_builder.ExportPluginFactory;
 import com.crawldata.back_end.model.Chapter;
 import com.crawldata.back_end.plugin_builder.PluginFactory;
@@ -11,14 +10,16 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.jsoup.Jsoup;
 import org.springframework.scheduling.annotation.Async;
-import org.springframework.stereotype.Service;
 
 import javax.sound.sampled.AudioFileFormat;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.UnsupportedAudioFileException;
 import java.io.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
@@ -49,7 +50,6 @@ public class AudioPlugin implements ExportPluginFactory {
             return jsonResponse.substring(startIndex, endIndex);
         }
     }
-
     private void getNovelInfo(PluginFactory plugin, String fromChapterId, int numChapters, String novelId) {
         pluginFactory = plugin;
         int from = Integer.parseInt(fromChapterId.split("-")[1]);
@@ -62,7 +62,6 @@ public class AudioPlugin implements ExportPluginFactory {
             }
         }
     }
-
     private void combineAudioFiles(List<File> inputFiles, File outputFile) throws IOException, UnsupportedAudioFileException {
         try (SequenceInputStream sis = new SequenceInputStream(Collections.enumeration(inputFiles.stream().map(file -> {
             try {
@@ -80,7 +79,6 @@ public class AudioPlugin implements ExportPluginFactory {
                             throw new RuntimeException(e);
                         }
                     }).sum());
-
             AudioSystem.write(combinedAudioInputStream, AudioFileFormat.Type.WAVE, outputFile);
         }
     }
@@ -134,7 +132,6 @@ public class AudioPlugin implements ExportPluginFactory {
                     futures.add(executorService.submit(task));
                 }
             }
-
             // Wait for all tasks to complete and collect results
             for (Future<File> future : futures) {
                 try {
@@ -143,7 +140,6 @@ public class AudioPlugin implements ExportPluginFactory {
                     e.printStackTrace();
                 }
             }
-
             File combinedFile = File.createTempFile(fileName, ".wav");
             combineAudioFiles(chapterFiles, combinedFile);
             response.setContentType("audio/wav");
