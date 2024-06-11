@@ -228,7 +228,7 @@ public class MeTruyenChuPlugin implements PluginFactory {
     }
 
     @Override
-    public DataResponse getNovelListChapters(String novelId) {
+    public DataResponse getNovelListChapters(String novelId, String fromChapterId, int numChapters) {
         JsonObject novelObject = getNovelDetailBySlug(novelId);
         if (novelObject == null) {
             return DataResponseUtils.getErrorDataResponse("Novel not found on this server");

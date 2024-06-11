@@ -152,7 +152,7 @@ public class TangThuVienPlugin implements PluginFactory {
             content = doc.select(".box-chap").get(0).html().replaceAll("\\r\\n", "<br>").replaceAll("\\n", "<br>");;
         }catch (Exception e)
         {
-            e.printStackTrace();
+            System.out.println(e.getMessage());
         }
         contentChapter.add(chapterName);
         contentChapter.add(content);
@@ -212,7 +212,7 @@ public class TangThuVienPlugin implements PluginFactory {
     }
 
     @Override
-    public DataResponse getNovelListChapters(String novelId) {
+    public DataResponse getNovelListChapters(String novelId, String fromChapterId, int numChapters) {
         String detailNovelUrl = String.format(NOVEL_DETAIL_URL, novelId);
         String listChaptersUrl;
         String novelName = "";

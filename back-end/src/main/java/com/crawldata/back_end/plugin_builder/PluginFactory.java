@@ -35,7 +35,7 @@ public interface PluginFactory {
      * @param page The page number.
      * @return The list of chapters.
      */
-    default DataResponse getNovelListChapters(String novelId) {
+    default DataResponse getNovelListChapters(String novelId, String fromChapterId, int numChapters) {
         return getNovelListChapters(novelId, 1);
     }
 
