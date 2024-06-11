@@ -350,11 +350,8 @@ class ReadDataThread extends Thread{
 
         for(Chapter chapter : listChapter)
         {
-            DataResponse dataResponse = plugin.getNovelChapterDetail(pdf.getNovel().getNovelId(),chapter.getChapterId());
-            if(dataResponse != null && dataResponse.getStatus().equals("success"))
-            {
-                pdf.getListDetailChapter().add((Chapter) dataResponse.getData());
-            }
+            Chapter contentChapter = plugin.getContentChapter(chapter.getNovelId(), chapter.getChapterId());
+            pdf.getListDetailChapter().add(contentChapter);
         }
     }
 }
