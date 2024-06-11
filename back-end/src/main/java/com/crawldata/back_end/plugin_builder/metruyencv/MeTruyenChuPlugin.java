@@ -173,82 +173,25 @@ public class MeTruyenChuPlugin implements PluginFactory {
 
     @Override
     public DataResponse getNovelChapterDetail(String novelId, String chapterId) {
-        String urlChapter = String.format(CHAPTER_DETAIL_API, novelId, chapterId);
         JsonObject novelObject = getNovelDetailBySlug(novelId);
         if(novelObject == null) {
-            return DataResponseUtils.getErrorDataResponse("Novel not found on this server");
+            return null;
         }
         Novel novel = createNovelByJsonData(novelObject);
 
-        Document doc = null;
-        try {
-            doc = ConnectJsoup.connect(urlChapter);
-
-            // Extract the script tag containing JSON data
-            Element scriptElement = doc.select("script:containsData(window.chapterData)").first();
-            if (scriptElement == null) {
-                return DataResponseUtils.getErrorDataResponse("Chapter data not found");
-            }
-            String scriptContent = scriptElement.html();
-
-
-            String nextChapterId = extractDirectionalChapterId("next", scriptContent);
-            String preChapterId = extractDirectionalChapterId("previous", scriptContent);
-
-            // Extract the chapter name
-            String chapterName = doc.select("h2.text-center.text-gray-600.text-balance").first().text();
-
-            // Extract the chapter content
-            Element contentElement = doc.select("div[data-x-bind='ChapterContent']").first();
-            if (contentElement == null) {
-                return DataResponseUtils.getErrorDataResponse("Chapter content not found");
-            }
-            StringBuilder content = new StringBuilder(contentElement.html());
-
-            if(content.length() <2000) {
-                // Initialize Selenium WebDriver in headless mode
-                System.out.println("metruyencv is using chrome driver");
-                System.setProperty("webdriver.chrome.driver", AppUtils.curDir+CHROME_DRIVER_PATH);
-                ChromeOptions options = new ChromeOptions();
-                options.addArguments("--headless");
-                options.addArguments("--disable-gpu");
-                options.addArguments("--window-size=1920,1080");
-                WebDriver driver = new ChromeDriver(options);
-                driver.get(urlChapter);
-
-                // Scroll and load more content
-                JavascriptExecutor js = (JavascriptExecutor) driver;
-                // Scroll to bottom
-                js.executeScript("window.scrollTo(0, document.body.scrollHeight);");
-                Thread.sleep(500);
-                // Check if more content has loaded
-                doc = Jsoup.parse(driver.getPageSource());
-                Element loadMoreElement = doc.getElementById("load-more");
-
-                if(loadMoreElement!=null && !loadMoreElement.html().isEmpty()) {
-                    // Remove all <canvas> tags within the loadMoreElement
-                    Elements canvasElements = loadMoreElement.select("canvas");
-                    for (Element canvas : canvasElements) {
-                        canvas.remove();
-                    }
-                    // Append new content
-                    content.append(loadMoreElement.html().replaceAll("\\n", "").replaceAll("(<br>){3,}", "<br><br>"));
-                }
-            }
-
-            // Create chapter details
-            Chapter chapterDetail = new Chapter(novelId, novel.getName(), chapterId, nextChapterId, preChapterId, chapterName, novel.getAuthor(), content.toString());
-
-            // Prepare response
-            DataResponse dataResponse = new DataResponse();
-            dataResponse.setStatus("success");
-            dataResponse.setData(chapterDetail);
-
-            return dataResponse;
-        } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
-            return DataResponseUtils.getErrorDataResponse(e.getMessage());
+        Chapter result = getContentChapter(novelId, chapterId);
+        if(result == null) {
+            return DataResponseUtils.getErrorDataResponse("Chapter not found");
         }
+        // Create chapter details
+        Chapter chapterDetail = new Chapter(novelId, novel.getName(), chapterId, result.getNextChapterId(), result.getPreChapterId(), result.getName(), novel.getAuthor(), result.getContent());
+
+        // Prepare response
+        DataResponse dataResponse = new DataResponse();
+        dataResponse.setStatus("success");
+        dataResponse.setData(chapterDetail);
+
+        return dataResponse;
     }
 
     @Override
@@ -375,6 +318,68 @@ public class MeTruyenChuPlugin implements PluginFactory {
 
     @Override
     public Chapter getContentChapter(String novelId, String chapterId) {
-        return null;
+        String urlChapter = String.format(CHAPTER_DETAIL_API, novelId, chapterId);
+        Document doc = null;
+        try {
+            doc = ConnectJsoup.connect(urlChapter);
+            if(doc == null) {
+                return null;
+            }
+            // Extract the script tag containing JSON data
+            Element scriptElement = doc.select("script:containsData(window.chapterData)").first();
+            if (scriptElement == null) {
+                return null;
+            }
+            String scriptContent = scriptElement.html();
+
+            String nextChapterId = extractDirectionalChapterId("next", scriptContent);
+            String preChapterId = extractDirectionalChapterId("previous", scriptContent);
+
+            // Extract the chapter name
+            String chapterName = doc.select("h2.text-center.text-gray-600.text-balance").first().text();
+
+            // Extract the chapter content
+            Element contentElement = doc.select("div[data-x-bind='ChapterContent']").first();
+            if (contentElement == null) {
+                return null;
+            }
+            StringBuilder content = new StringBuilder(contentElement.html());
+
+            if(content.length() <2000) {
+                // Initialize Selenium WebDriver in headless mode
+                System.out.println("metruyencv is using chrome driver");
+                System.setProperty("webdriver.chrome.driver", AppUtils.curDir+CHROME_DRIVER_PATH);
+                ChromeOptions options = new ChromeOptions();
+                options.addArguments("--headless");
+                options.addArguments("--disable-gpu");
+                options.addArguments("--window-size=1920,1080");
+                WebDriver driver = new ChromeDriver(options);
+                driver.get(urlChapter);
+
+                // Scroll and load more content
+                JavascriptExecutor js = (JavascriptExecutor) driver;
+                // Scroll to bottom
+                js.executeScript("window.scrollTo(0, document.body.scrollHeight);");
+                Thread.sleep(500);
+                // Check if more content has loaded
+                doc = Jsoup.parse(driver.getPageSource());
+                Element loadMoreElement = doc.getElementById("load-more");
+
+                if(loadMoreElement!=null && !loadMoreElement.html().isEmpty()) {
+                    // Remove all <canvas> tags within the loadMoreElement
+                    Elements canvasElements = loadMoreElement.select("canvas");
+                    for (Element canvas : canvasElements) {
+                        canvas.remove();
+                    }
+                    // Append new content
+                    content.append(loadMoreElement.html().replaceAll("\\n", "").replaceAll("(<br>){3,}", "<br><br>"));
+                }
+            }
+
+            return new Chapter(novelId, null, chapterId, nextChapterId, preChapterId, chapterName, null, content.toString());
+        } catch (IOException | InterruptedException e) {
+            System.out.println(e.getMessage());
+            return null;
+        }
     }
 }

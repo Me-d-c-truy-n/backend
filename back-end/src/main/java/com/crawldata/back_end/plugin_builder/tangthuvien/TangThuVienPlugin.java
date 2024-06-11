@@ -16,7 +16,6 @@ import java.io.IOException;
 import java.util.*;
 
 public class TangThuVienPlugin implements PluginFactory {
-
     private final Integer TOTAL_CHAPTERS_PER_PAGE = 75;
     private final String ROOT_URL = "https://truyen.tangthuvien.vn/";
     private final String GET_ALL_LIST_CHAPTER_URL = ROOT_URL + "/story/chapters?story_id=%s";
