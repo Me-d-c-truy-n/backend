@@ -16,8 +16,8 @@ import java.io.IOException;
 import java.util.*;
 
 public class TangThuVienPlugin implements PluginFactory {
-    private final Integer TOTAL_CHAPTERS_PER_PAGE = 75;
 
+    private final Integer TOTAL_CHAPTERS_PER_PAGE = 75;
     private final String ROOT_URL = "https://truyen.tangthuvien.vn/";
     private final String GET_ALL_LIST_CHAPTER_URL = ROOT_URL + "/story/chapters?story_id=%s";
     private final String  NOVEL_DETAIL_URL = ROOT_URL + "/doc-truyen/%s";
@@ -166,6 +166,7 @@ public class TangThuVienPlugin implements PluginFactory {
 
         return contentChapterMap;
     }
+
     /**
      * Get the novel's info such as novel name, total, author,...
      * @param novelId the id of novel
@@ -232,6 +233,56 @@ public class TangThuVienPlugin implements PluginFactory {
         return map;
     }
 
+    public List<Chapter> getAllChaptersImpl(String storyId)
+    {
+        List<Chapter> chapterList = new ArrayList<>();
+        String listChaptersUrl = String.format(LIST_CHAPTER_NOVEL_URL1, storyId);
+        try {
+            Document listChaptersDoc = ConnectJsoup.connect(listChaptersUrl);
+            Elements chapterElements = listChaptersDoc.getElementsByTag("li");
+            for(Element chapterElement : chapterElements) {
+                if (chapterElement.hasClass("divider-chap")) {
+                    continue;
+                }
+                String chapterId = getChapterIdFromUrl(chapterElement.child(1).attr("href"));
+                String chapterName = chapterElement.child(1).child(0).text();
+                chapterList.add(new Chapter().chapterId(chapterId).name(chapterName));
+            }
+        }
+        catch (Exception e) {
+            LOGGER.error(e.getMessage(), e);
+        }
+
+        return chapterList;
+    }
+
+
+    public List<Chapter> getChapterPerPageImpl(String storyId, int page, int total)
+    {
+        String listChaptersUrl = String.format(LIST_CHAPTER_NOVEL_URL2, storyId, page-1, TOTAL_CHAPTERS_PER_PAGE);
+        List<Chapter> chapterList = new ArrayList<>();
+        try {
+            Document listChaptersDoc = ConnectJsoup.connect(listChaptersUrl);
+            Elements chapterElements = listChaptersDoc.getElementsByTag("li");
+            int count = 0;
+            for(Element chapterElement : chapterElements) {
+                if (chapterElement.hasClass("divider-chap") || chapterElement.childrenSize() == 1) {
+                    continue;
+                }
+                count++;
+                if (count > TOTAL_CHAPTERS_PER_PAGE || (page - 1) * TOTAL_CHAPTERS_PER_PAGE + count > total) {
+                    break;
+                }
+                String chapterId = getChapterIdFromUrl(chapterElement.child(1).attr("href")) ;
+                String chapterName = chapterElement.child(1).child(0).text();
+                chapterList.add(new Chapter().chapterId(chapterId).name(chapterName));
+            }
+        }catch (Exception e)
+        {
+            LOGGER.error(e.getMessage(),e);
+        }
+        return  chapterList;
+    }
 
 
     @Override
@@ -271,8 +322,6 @@ public class TangThuVienPlugin implements PluginFactory {
         return new DataResponse().status("success").data(detailChapter);
     }
 
-
-
     @Override
     public DataResponse getNovelListChapters(String novelId) {
         String listChaptersUrl;
@@ -286,16 +335,9 @@ public class TangThuVienPlugin implements PluginFactory {
             author = (Author) novelInfoMap.get("author");
             storyId = (String) novelInfoMap.get("storyId");
 
-            listChaptersUrl = String.format(LIST_CHAPTER_NOVEL_URL1, storyId);
-            Document listChaptersDoc = Jsoup.connect(listChaptersUrl).get();
-            Elements chapterElements = listChaptersDoc.getElementsByTag("li");
-            for(Element chapterElement : chapterElements) {
-                if (chapterElement.hasClass("divider-chap")) {
-                    continue;
-                }
-                String chapterId = getChapterIdFromUrl(chapterElement.child(1).attr("href"));
-                String chapterName = chapterElement.child(1).child(0).text();
-                listChapters.add(new Chapter().novelId(novelId).novelName(novelName).chapterId(chapterId).name(chapterName).author(author));
+            List<Chapter> chapterList = getAllChaptersImpl(storyId);
+            for(Chapter chapter : chapterList) {
+                listChapters.add(chapter.novelId(novelId).novelName(novelName).author(author));
             }
         } catch (Exception e) {
             LOGGER.error(e.getMessage(),e);
@@ -321,22 +363,10 @@ public class TangThuVienPlugin implements PluginFactory {
             total = (int) novelInfoMap.get("total");
             storyId = (String) novelInfoMap.get("storyId");
 
-            listChaptersUrl = String.format(LIST_CHAPTER_NOVEL_URL2, storyId, page-1, TOTAL_CHAPTERS_PER_PAGE);
-
-            Document listChaptersDoc = Jsoup.connect(listChaptersUrl).get();
-            Elements chapterElements = listChaptersDoc.getElementsByTag("li");
-            int count = 0;
-            for(Element chapterElement : chapterElements) {
-                if (chapterElement.hasClass("divider-chap") || chapterElement.childrenSize() == 1) {
-                    continue;
-                }
-                count++;
-                if (count > TOTAL_CHAPTERS_PER_PAGE || (page - 1) * TOTAL_CHAPTERS_PER_PAGE + count > total) {
-                    break;
-                }
-                String chapterId = getChapterIdFromUrl(chapterElement.child(1).attr("href")) + "";
-                String chapterName = chapterElement.child(1).child(0).text();
-                listChapters.add(new Chapter().novelId(novelId).novelName(novelName).chapterId(chapterId).name(chapterName).author(author));
+            List<Chapter> chapterList = getChapterPerPageImpl(storyId, page, total);
+            for (Chapter chapter : chapterList)
+            {
+                listChapters.add(chapter.novelId(novelId).novelName(novelName).author(author));
             }
         } catch (Exception e) {
             LOGGER.error(e.getMessage(),e);
