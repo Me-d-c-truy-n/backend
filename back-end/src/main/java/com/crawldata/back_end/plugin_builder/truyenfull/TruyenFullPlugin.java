@@ -66,7 +66,7 @@ public class TruyenFullPlugin implements PluginFactory {
      * @return The total number of pages of the novel as an integer. If the pagination
      * is not present or an error occurs, it defaults to 1.
      */
-    public int getNovelTotalPages(String url) {
+    public static int getNovelTotalPages(String url) {
         Document doc = null;
         try {
             doc = ConnectJsoup.connect(url);
@@ -121,7 +121,7 @@ public class TruyenFullPlugin implements PluginFactory {
      * @param idChapter The ID of the current chapter in the format 'chuong-X'.
      * @return The ID of the previous chapter as a String, or null if the current chapter is the first.
      */
-    public String getValidPreChapter(String idChapter) {
+    public static String getValidPreChapter(String idChapter) {
         String[] parts = idChapter.split("-");
         int numberChap = Integer.parseInt(parts[parts.length - 1]);
         if (numberChap > 1) return "chuong-" + (numberChap - 1);
@@ -135,7 +135,7 @@ public class TruyenFullPlugin implements PluginFactory {
      * @return The number of the last chapter as an integer. If pagination is not present,
      * it returns the count of chapters listed on the current page.
      */
-    public int getChapterEnd(String url) {
+    public static int getChapterEnd(String url) {
         StringBuilder linkEndPage = new StringBuilder();
         int chapterEnd = 0;
         try {
@@ -175,7 +175,7 @@ public class TruyenFullPlugin implements PluginFactory {
      * @param endChapter The number of the last chapter in the series.
      * @return The ID of the next chapter as a String, or null if the current chapter is the last one.
      */
-    public String getValidNextChapter(String idChapter, int endChapter) {
+    public static String getValidNextChapter(String idChapter, int endChapter) {
         String[] parts = idChapter.split("-");
         int numberChap = Integer.parseInt(parts[parts.length - 1]);
         if (numberChap < endChapter) return "chuong" + (numberChap + 1);
@@ -231,7 +231,8 @@ public class TruyenFullPlugin implements PluginFactory {
                 doc = ConnectJsoup.connect(link);
                 Elements chapters = doc.select("ul[class=list-chapter] li");
                 int endChapter = getChapterEnd(NOVEL_MAIN + novelId);
-                for (Element chapter : chapters) {
+                for (int i=0;i<chapters.size();i++) {
+                    Element chapter = chapters.get(i);
                     String nameChapter = chapter.selectFirst("a").text();
                     String linkChapter = chapter.selectFirst("a").attr("href");
                     String idChapter = linkChapter.split("/")[linkChapter.split("/").length - 1];
