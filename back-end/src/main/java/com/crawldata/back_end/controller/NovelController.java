@@ -1,5 +1,7 @@
 package com.crawldata.back_end.controller;
 
+import com.crawldata.back_end.export_plugin_builder.ExportPluginFactory;
+import com.crawldata.back_end.plugin_builder.PluginFactory;
 import com.crawldata.back_end.response.DataResponse;
 import com.crawldata.back_end.service.ExportServiceImpl;
 import com.crawldata.back_end.service.NovelServiceImpl;
@@ -64,6 +66,7 @@ public class NovelController {
     @GetMapping("{pluginId}/tai-truyen/{novelId}/{fileType}")
     public void export(@PathVariable("pluginId") String pluginId , @PathVariable(name = "fileType") String fileType,@PathVariable(name = "novelId") String novelId, @RequestParam(name = "fromChapterId", defaultValue = "") String fromChapterId, @RequestParam(name = "numChapters" , defaultValue = "0") int numChapters,
                        HttpServletResponse response) throws IOException {
-       exportServiceImpl.export(fileType, pluginId, novelId, fromChapterId, numChapters, response);
+        exportServiceImpl.export(fileType, pluginId, novelId, fromChapterId, numChapters, response);
     }
+
 }
