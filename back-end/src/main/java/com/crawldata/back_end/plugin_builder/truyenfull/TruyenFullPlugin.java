@@ -202,6 +202,7 @@ public class TruyenFullPlugin implements PluginFactory {
                     String preChapterURL = doc.select("a[id=prev_chap]").attr("href");
                     String idPreChapter = preChapterURL.split("/").length != 1 ? preChapterURL.split("/")[preChapterURL.split("/").length - 1] : null;
                     Chapter chapterDetail = new Chapter(novelId, novelName, chapterId, idNextChapter, idPreChapter, chapterName, author, content.toString());
+
                     DataResponse dataResponse = new DataResponse();
                     dataResponse.setStatus("success");
                     dataResponse.setData(chapterDetail);
