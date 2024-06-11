@@ -434,7 +434,7 @@ public class LightNovelPlugin implements PluginFactory {
                 endIndex = i;
             }
         }
-        chapterList = chapterList.subList(startIndex, endIndex+1);
+        chapterList = chapterList.subList(startIndex, Math.min(endIndex+1, chapterList.size()));
         return new DataResponse("success", totalPages, 1, chapterList.size(), null, chapterList, "");
     }
 
