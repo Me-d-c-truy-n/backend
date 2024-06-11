@@ -30,6 +30,7 @@ public class ConnectJsoup {
             } catch (HttpStatusException e) {
                 if (e.getStatusCode() == 404) {
                     System.out.println("HTTP 404 error fetching URL: " + url);
+                    throw new IOException("HTTP 404 error fetching URL: " + url);
                 } else {
                     System.out.println("HTTP error fetching URL: " + url + " Status=" + e.getStatusCode());
                 }

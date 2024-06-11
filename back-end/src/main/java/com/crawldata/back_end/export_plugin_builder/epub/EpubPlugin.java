@@ -29,6 +29,7 @@ import javax.xml.transform.stream.StreamResult;
 import java.io.*;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
@@ -56,7 +57,7 @@ public class EpubPlugin implements ExportPluginFactory {
                 System.err.println("Error: 'untitled.epub' not found in the JAR file.");
                 return;
             }
-            getNovelInfo(plugin, novelId);
+            getNovelInfo(plugin, novelId, fromChapterId, numChapters);
             try (InputStream inputStream = jarFile.getInputStream(entry)) {
                 String fileName = novel.getName() + " - " + novel.getAuthor().getName() + ".epub";
                 fileName = fileName.replaceAll("[:/\\?\\*]", "");
@@ -72,25 +73,53 @@ public class EpubPlugin implements ExportPluginFactory {
 
     /**
      * Retrieves and sets the novel information and chapter list from the plugin.
+     * Finds the chapter with the specified fromChapterId and slices the chapter list
+     * to contain the required number of chapters starting from that chapter.
+     *
      * @param plugin The plugin factory instance.
      * @param novelId The ID of the novel to retrieve information for.
+     * @param fromChapterId The ID of the chapter to start from.
+     * @param numChapters The number of chapters to include in the sliced list.
      */
-    private void getNovelInfo(PluginFactory plugin, String novelId) {
+    private void getNovelInfo(PluginFactory plugin, String novelId, String fromChapterId, int numChapters) {
         pluginFactory = plugin;
+
+        // Retrieve novel details
         DataResponse dataResponse = pluginFactory.getNovelDetail(novelId);
-        if(dataResponse != null && dataResponse.getStatus().equals("success")) {
+        if (dataResponse != null && "success".equals(dataResponse.getStatus())) {
             novel = (Novel) dataResponse.getData();
         }
+
+        // Retrieve chapter list
         dataResponse = pluginFactory.getNovelListChapters(novel.getNovelId());
         if (dataResponse != null && "success".equals(dataResponse.getStatus())) {
             Object data = dataResponse.getData();
             if (data instanceof List<?> dataList) {
                 if (!dataList.isEmpty() && dataList.get(0) instanceof Chapter) {
                     chapterList = (List<Chapter>) dataList;
+
+                    // Find the index of the chapter with fromChapterId
+                    int startIndex = -1;
+                    for (int i = 0; i < chapterList.size(); i++) {
+                        if (chapterList.get(i).getChapterId().equals(fromChapterId)) {
+                            startIndex = i;
+                            break;
+                        }
+                    }
+
+                    // Check if the index is valid
+                    if (startIndex != -1) {
+                        // Ensure the end index does not exceed the list size
+                        int endIndex = Math.min(startIndex + numChapters, chapterList.size());
+
+                        // Slice the chapter list to contain the required sublist
+                        chapterList = chapterList.subList(startIndex, endIndex);
+                    }
                 }
             }
         }
     }
+
 
     /**
      * Modifies the EPUB file based on the novel and chapter information.
@@ -103,7 +132,7 @@ public class EpubPlugin implements ExportPluginFactory {
              ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(tempFile))) {
 
             // Create a pool of threads to handle chapter modifications
-            ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+            ExecutorService executorService = Executors.newFixedThreadPool(3);
             List<Future<Void>> futures = new ArrayList<>();
 
             Enumeration<? extends ZipEntry> entries = zipFile.entries();
@@ -318,19 +347,15 @@ public class EpubPlugin implements ExportPluginFactory {
         if (divElement != null) {
             for(int i = 0; i<defaultElement.size(); i++) {
                 Element aElement = document.createElement("a");
-//                Element liElement = document.createElement("li");
                 aElement.attr("href", defaultElement.get(i));
                 aElement.text(defaultText.get(i));
-//                aElement.appendChild(liElement);
                 divElement.appendChild(new Element("p").appendChild(aElement));
             }
 
             for(Chapter chapter : chapterList) {
                 Element aElement = document.createElement("a");
-//                Element liElement = document.createElement("li");
                 aElement.attr("href", "text/"+chapter.getChapterId().trim().trim()+".xhtml");
                 aElement.text(chapter.getName().trim());
-//                aElement.appendChild(liElement);
                 divElement.appendChild(new Element("p").appendChild(aElement));
             }
 
@@ -384,9 +409,14 @@ public class EpubPlugin implements ExportPluginFactory {
      * @param chapter The chapter information to modify the file with.
      * @throws IOException If an I/O error occurs.
      */
-    private void modifyAndSaveChapterXhtml(ZipOutputStream zos, ZipEntry originalEntry, InputStream is, Chapter chapter) throws IOException {
+    private void modifyAndSaveChapterXhtml(ZipOutputStream zos, ZipEntry originalEntry, InputStream is, Chapter chapter) {
         // Parse the original chap01.xhtml content
-        Document document = Jsoup.parse(is, "UTF-8", "", Parser.xmlParser());
+        Document document = null;
+        try {
+            document = Jsoup.parse(is, "UTF-8", "", Parser.xmlParser());
+        } catch (IOException e) {
+           throw new RuntimeException(e.getMessage());
+        }
 
         // Make the necessary modifications to the chapter content
         Element bodyElement = document.getElementsByTag("body").first();
@@ -416,10 +446,19 @@ public class EpubPlugin implements ExportPluginFactory {
 
         // Create a new entry for the modified chapter
         String chapterEntryName = "OEBPS/text/" + chapter.getChapterId().trim() + ".xhtml";
-        zos.putNextEntry(new ZipEntry(chapterEntryName));
+        try {
+            zos.putNextEntry(new ZipEntry(chapterEntryName));
+        } catch (IOException e) {
+            throw new RuntimeException(e.getMessage());
+        }
 
+        System.out.println("Export: " + chapter.getName() +" success");
         // Write the modified document to the ZIP output stream
-        zos.write(document.outerHtml().getBytes("UTF-8"));
+        try {
+            zos.write(document.outerHtml().getBytes(StandardCharsets.UTF_8));
+        } catch (IOException e) {
+            throw new RuntimeException(e.getMessage());
+        }
     }
 
     /**
@@ -459,10 +498,6 @@ public class EpubPlugin implements ExportPluginFactory {
      * @return the encoded name
      */
     private String encodeFileName(String fileName) {
-        try {
-            return URLEncoder.encode(fileName, "UTF-8").replace("+", "%20");
-        } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException("UTF-8 encoding not supported", e);
-        }
+        return URLEncoder.encode(fileName, StandardCharsets.UTF_8).replace("+", "%20");
     }
 }

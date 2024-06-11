@@ -202,7 +202,7 @@ public class TangThuVienPlugin implements PluginFactory {
             chapterName = contentChapter.get(0);
             content = contentChapter.get(1);
         } catch (Exception e) {
-            LOGGER.error(e.getMessage(),e);
+            LOGGER.error(e.getMessage());
             return DataResponseUtils.getErrorDataResponse(e.getMessage());
         }
 

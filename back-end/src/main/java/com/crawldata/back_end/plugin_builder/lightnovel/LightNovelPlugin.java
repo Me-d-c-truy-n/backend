@@ -21,6 +21,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.openqa.selenium.*;
+import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -28,12 +29,8 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.io.IOException;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.*;
+import java.util.concurrent.*;
 
 /**
  * A plugin implementation for fetching data related to light novels from a remote API.
@@ -205,6 +202,23 @@ public class LightNovelPlugin implements PluginFactory {
         return authorId;
     }
 
+    public static Map<String, Integer> parseCssText(List<String> cssText) {
+        Map<String, Integer> cssOrderMap = new HashMap<>();
+
+        for (String cssEntry : cssText) {
+            // Remove unnecessary characters and split the string
+            String[] parts = cssEntry.replace("{", "").replace("}", "").replace("order:", "").replace(";", "").trim().split("\\s+");
+
+            if (parts.length == 2) {
+                String className = parts[0].trim();
+                int orderValue = Integer.parseInt(parts[1].trim());
+                cssOrderMap.put(className, orderValue);
+            }
+        }
+
+        return cssOrderMap;
+    }
+
     /**
      * Retrieves the chapter content through web crawling.
      *
@@ -233,6 +247,17 @@ public class LightNovelPlugin implements PluginFactory {
                 JavascriptExecutor js = (JavascriptExecutor) driver;
                 js.executeScript("window.scrollTo(0, document.body.scrollHeight);");
 
+                // Execute JavaScript to get the CSS text
+                String script =
+                        "var cssText = [];" +
+                                "var classes = document.styleSheets[7].rules || document.styleSheets[7].cssRules;" +
+                                "for (var x = 0; x < classes.length; x++) {" +
+                                "    cssText.push(classes[x].cssText || classes[x].style.cssText);" +
+                                "}" +
+                                "return cssText;";
+
+                List<String> cssTextList = (List<String>) js.executeScript(script);
+
                 // Wait for the content to be present
                 WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(TIMEOUT_SECONDS));
                 wait.until(ExpectedConditions.presenceOfElementLocated(By.id("chapterContent")));
@@ -245,11 +270,26 @@ public class LightNovelPlugin implements PluginFactory {
 
                 // Create a StringBuilder to store the extracted content
                 StringBuilder contentBuilder = new StringBuilder();
-
-                // Loop through each <p> element and append its text to the contentBuilder
+                Map<String, Integer> cssOrderMap = parseCssText(cssTextList);
+                // Loop through each <p> element and sort its <t...> tags
                 for (Element paragraph : paragraphs) {
+                    Elements tTags = paragraph.children();
+                    List<Element> tTagList = new ArrayList<>(tTags);
+                    if (tTagList.isEmpty()) {
+                        contentBuilder.append(paragraph.toString().trim()).append("\n");
+                        continue;
+                    }
+                    // Sort tTags based on the order defined in cssOrderMap
+                    tTagList.sort(Comparator.comparingInt(tag -> cssOrderMap.getOrDefault(tag.tagName(), Integer.MAX_VALUE)));
 
-                    contentBuilder.append(paragraph.text()).append("\n"); // Append the text of the <p> element
+                    // Reconstruct the paragraph content with sorted <t...> tags
+                    StringBuilder paragraphContent = new StringBuilder("<p>");
+                    for (Element tTag : tTagList) {
+                        paragraphContent.append(tTag.html().replaceAll("&nbsp;", " "));
+                    }
+                    paragraphContent.append("</p>");
+
+                    contentBuilder.append(paragraphContent.toString().trim()).append("\n"); // Append the sorted content
                 }
 
                 // Return the extracted content as a string
@@ -336,26 +376,43 @@ public class LightNovelPlugin implements PluginFactory {
         int totalPages = (int) Math.ceil((double) chapterCount / LIST_CHAPTERS_CAP);
 
         List<Chapter> chapterList = new ArrayList<>();
+        ExecutorService executorService = Executors.newFixedThreadPool(Math.min(totalPages, Runtime.getRuntime().availableProcessors()));
+        List<Future<List<Chapter>>> futures = new ArrayList<>();
 
         for (int page = 1; page <= totalPages; page++) {
-            String apiUrl = String.format(NOVEL_LIST_CHAPTERS_API, novelObject.get("slug").getAsString(), page == 1 ? 0 : page);
-            try {
-                JsonObject jsonObject = connectAPI(apiUrl);
-                if (jsonObject != null && jsonObject.has("pageProps")) {
-                    JsonObject pageProps = jsonObject.getAsJsonObject("pageProps");
-                    JsonArray dataArray = pageProps.getAsJsonArray("chapterList");
-                    for (int i = 0; i < dataArray.size(); i++) {
-                        JsonObject chapterObject = dataArray.get(i).getAsJsonObject();
-                        chapterObject.addProperty("index", (page - 1) * LIST_CHAPTERS_CAP + i + 1);
-                        chapterList.add(createChapterByJsonData(chapterObject, novel));
+            int finalPage = page;
+            Callable<List<Chapter>> task = () -> {
+                String apiUrl = String.format(NOVEL_LIST_CHAPTERS_API, novelObject.get("slug").getAsString(), finalPage == 1 ? 0 : finalPage);
+                List<Chapter> chapters = new ArrayList<>();
+                try {
+                    JsonObject jsonObject = connectAPI(apiUrl);
+                    if (jsonObject != null && jsonObject.has("pageProps")) {
+                        JsonObject pageProps = jsonObject.getAsJsonObject("pageProps");
+                        JsonArray dataArray = pageProps.getAsJsonArray("chapterList");
+                        for (int i = 0; i < dataArray.size(); i++) {
+                            JsonObject chapterObject = dataArray.get(i).getAsJsonObject();
+                            chapterObject.addProperty("index", (finalPage - 1) * LIST_CHAPTERS_CAP + i + 1);
+                            chapters.add(createChapterByJsonData(chapterObject, novel));
+                        }
                     }
-                } else {
-                    return DataResponseUtils.getErrorDataResponse("No chapters found in one of the pages");
+                } catch (IOException e) {
+                    System.out.println(e.getMessage());
+                    // Return an empty list if there is an error
+                    return chapters;
                 }
-            } catch (IOException e) {
-                System.out.println(e.getMessage());
-                return DataResponseUtils.getErrorDataResponse("Failed to connect to the API");
+                return chapters;
+            };
+            futures.add(executorService.submit(task));
+        }
+
+        executorService.shutdown();
+        try {
+            for (Future<List<Chapter>> future : futures) {
+                chapterList.addAll(future.get());
             }
+        } catch (InterruptedException | ExecutionException e) {
+            System.out.println(e.getMessage());
+            return DataResponseUtils.getErrorDataResponse("Error while fetching chapters in parallel");
         }
 
         return new DataResponse("success", totalPages, 1, chapterList.size(), null, chapterList, "");
@@ -509,12 +566,13 @@ public class LightNovelPlugin implements PluginFactory {
                     String content = null;
                     if(chapterObject.has("data") && !chapterObject.get("data").isJsonNull()) {
                         content = getChapterContentThroughCrawling(novelId, chapterSlug);
+                        content = content.replaceAll("\n", "<br>");
                     } else {
                         content = chapterObject.get("content").getAsString();
+                        content = content.replaceAll("\n", "<br><br>");
                     }
 
-                    content = content.replaceAll("\n", "<br><br>");
-                    int chapterIndex = chapterObject.get("chapterIndex").getAsInt();
+                    int chapterIndex = Integer.parseInt(chapterId.split("-")[1]);
                     String nextChapterId = pageProps.has("nextChapter") && !pageProps.get("nextChapter").isJsonNull() ? "chuong-" + (chapterIndex + 1) : null;
                     String preChapterId = pageProps.has("prevChapter") && !pageProps.get("prevChapter").isJsonNull() ? "chuong-" + (chapterIndex - 1) : null;
 
