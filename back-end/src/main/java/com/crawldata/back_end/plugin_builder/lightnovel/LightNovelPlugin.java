@@ -36,7 +36,8 @@ import java.util.concurrent.*;
  * A plugin implementation for fetching data related to light novels from a remote API.
  */
 public class LightNovelPlugin implements PluginFactory {
-    private final String API_KEY = "35OqUcP8sjF1T_fkZl0ra";
+    private String API_KEY = "35OqUcP8sjF1T";
+    private final String GET_API_KEY_URL = "https://lightnovel.vn/";
     // Constants for API endpoints and other configurations
     private final String NOVEL_LIST_CHAPTERS_API = "https://lightnovel.vn/_next/data/%s/truyen/%s/danh-sach-chuong.json?page=%s";
     private final String NOVEL_DETAIL_API = "https://lightnovel.vn/_next/data/%s/truyen/%s.json";
@@ -53,6 +54,8 @@ public class LightNovelPlugin implements PluginFactory {
     private static final int TIMEOUT_SECONDS = 5;
     private static final int THREAD_POOL_SIZE = 5;
 
+    private long lastApiKeyUpdateTimestamp = 0;
+    private static final long UPDATE_INTERVAL = 5 * 60 * 1000;
     /**
      * Reverses a slug string by replacing dashes and spaces with URL-encoded spaces.
      *
@@ -114,6 +117,10 @@ public class LightNovelPlugin implements PluginFactory {
                             return new Gson().fromJson(result, JsonObject.class);
                         }
                     } else if (statusCode == 404) {
+                        String newUrl = checkAPIKEY(url);
+                        if(!newUrl.equals(url)) {
+                            return connectAPI(newUrl);
+                        }
                         System.out.println("HTTP 404 error fetching URL: " + url);
                         return null;
                     } else {
@@ -138,6 +145,38 @@ public class LightNovelPlugin implements PluginFactory {
             }
         }
         return null;
+    }
+
+    private String checkAPIKEY(String oldUrl) {
+        long currentTime = System.currentTimeMillis();
+        if (currentTime - lastApiKeyUpdateTimestamp > UPDATE_INTERVAL) {
+            String oldAPI = API_KEY;
+            updateApiKey();
+            lastApiKeyUpdateTimestamp = currentTime;
+            return oldUrl.replace(oldAPI, API_KEY);
+        }
+        return oldUrl;
+    }
+
+    private void updateApiKey() {
+        try {
+            // Fetch the webpage
+            Document doc = Jsoup.connect(GET_API_KEY_URL).get();
+            // Look for the script tag containing _buildManifest.js
+            Element manifestElement = doc.select("script[src*='/_next/static/'][src*='_buildManifest.js']").first();
+
+            if (manifestElement != null) {
+                String src = manifestElement.attr("src");
+                // Extract the KEY from the src attribute
+                String[] parts = src.split("/");
+                String key = parts[3];
+                API_KEY = key;
+            } else {
+                System.out.println("Get API Key failed");
+            }
+        } catch (IOException e) {
+            System.out.println("Get API Key failed");
+        }
     }
 
     /**
