@@ -35,7 +35,7 @@ public class TruyenFullPlugin implements PluginFactory {
      * @return A string containing the JSON response, or "error" if the connection fails
      * or the server response is not HTTP_OK (200).
      */
-    public String getJsonResponse(String apiURL) {
+    public static String getJsonResponse(String apiURL) {
         try {
             URL url = new URL(apiURL);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -110,7 +110,7 @@ public class TruyenFullPlugin implements PluginFactory {
      * @param url The full URL from which the end slug is to be extracted.
      * @return The end slug of the URL as a String.
      */
-    public String getEndSlugFromUrl(String url) {
+    public static String getEndSlugFromUrl(String url) {
         String[] parts = url.split("/");
         return parts[parts.length - 1];
     }
@@ -331,7 +331,8 @@ public class TruyenFullPlugin implements PluginFactory {
                 String nameAuthor = novels.get(0).selectFirst("span[class=author]").text();
                 Author author = new Author(HandleString.makeSlug(nameAuthor), nameAuthor);
                 List<Novel> novelList = new ArrayList<>();
-                for (Element novel : novels) {
+                for (int i =0;i<novels.size();i++) {
+                    Element novel = novels.get(i);
                     String image = novel.selectFirst("div[data-image]").attr("data-image");
                     String name = novel.selectFirst("h3").text();
                     String link = novel.selectFirst("a").attr("href");
@@ -358,6 +359,10 @@ public class TruyenFullPlugin implements PluginFactory {
         try {
             List<Novel> novelList = new ArrayList<>();
             String jsonResponse = getJsonResponse(apiGetAll);
+            if(jsonResponse.equals("error"))
+            {
+                return DataResponseUtils.getErrorDataResponse("Failed to get data from API!");
+            }
             JSONObject jsonObject = new JSONObject(jsonResponse);
             JSONArray data = jsonObject.getJSONArray("data");
             int totalPage = jsonObject.getJSONObject("meta").getJSONObject("pagination").getInt("total_pages");
@@ -390,6 +395,10 @@ public class TruyenFullPlugin implements PluginFactory {
         try {
             List<Novel> novelList = new ArrayList<>();
             String jsonResponse = getJsonResponse(apiGetAll);
+            if(jsonResponse.equals("error"))
+            {
+                return DataResponseUtils.getErrorDataResponse("Failed to get data from API!");
+            }
             JSONObject jsonObject = new JSONObject(jsonResponse);
             JSONArray data = jsonObject.getJSONArray("data");
             int totalPage = jsonObject.getJSONObject("meta").getJSONObject("pagination").getInt("total_pages");
