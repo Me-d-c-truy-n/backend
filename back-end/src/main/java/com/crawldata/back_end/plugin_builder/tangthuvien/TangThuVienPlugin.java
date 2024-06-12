@@ -1,4 +1,4 @@
-
+package com.crawldata.back_end.plugin_builder.tangthuvien;
 import com.crawldata.back_end.model.Author;
 import com.crawldata.back_end.model.Chapter;
 import com.crawldata.back_end.model.Novel;
@@ -6,7 +6,6 @@ import com.crawldata.back_end.plugin_builder.PluginFactory;
 import com.crawldata.back_end.response.DataResponse;
 import com.crawldata.back_end.utils.ConnectJsoup;
 import com.crawldata.back_end.utils.DataResponseUtils;
-import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
@@ -32,17 +31,24 @@ public class TangThuVienPlugin implements PluginFactory {
      * @param url The URL of the AUTHOR_URL
      * @return the author's id as string
      */
-    private String getAuthorIdFromUrl(String url) {
-        String[] parts = url.split("\\?");
-        // Split the query parameters by "=" to separate the parameter name from the value
-        String[] queryParams = parts[1].split("=");
-        // The value of the "author" parameter is the second part
-        // In case, the url is ".....?author="
-        if(queryParams.length == 1)
+    public String getAuthorIdFromUrl(String url) {
+        try {
+            String[] parts = url.split("\\?");
+            // Split the query parameters by "=" to separate the parameter name from the value
+            String[] queryParams = parts[1].split("=");
+            // The value of the "author" parameter is the second part
+            // In case, the url is ".....?author="
+            if(queryParams.length == 1)
+            {
+                return null;
+            }
+            return queryParams[1];
+        }
+        catch (Exception e)
         {
+            LOGGER.error(e.getMessage(),e);
             return null;
         }
-        return queryParams[1];
     }
 
     /**
@@ -50,10 +56,17 @@ public class TangThuVienPlugin implements PluginFactory {
      * @param url The URL of the  NOVEL_DETAIL_URL
      * @return the novel's id as string
      **/
-    private String getNovelIdFromUrl(String url)
+    public String getNovelIdFromUrl(String url)
     {
-        String[] components = url.split("/");
-        return components[components.length-1];
+        try {
+            String[] components = url.split("/");
+            return components[components.length-1];
+        }
+        catch (Exception e)
+        {
+           LOGGER.error(e.getMessage(), e);
+           return null;
+        }
     }
 
     /**
@@ -61,25 +74,39 @@ public class TangThuVienPlugin implements PluginFactory {
      * @param text The URL of the  NOVEL_DETAIL_URL
      * @return the total chapter as Integer
      **/
-    private Integer getTotalChapterFromText(String text)
+    public Integer getTotalChapterFromText(String text)
     {
-        String[] parts = text.split("[()]");
-        // Extract the number
-        // Get the second part and remove leading/trailing spaces
-        String numberString = parts[1].trim().split(" ")[0];
-        // Parse the number
-        return Integer.parseInt(numberString);
+        try {
+            String[] parts = text.split("[()]");
+            // Extract the number
+            // Get the second part and remove leading/trailing spaces
+            String numberString = parts[1].trim().split(" ")[0];
+            // Parse the number
+            return Integer.parseInt(numberString);
+        }
+        catch (Exception e)
+        {
+            LOGGER.error(e.getMessage(),e);
+            return null;
+        }
     }
 
-     /**
+    /**
      * get Chapte's ID from NOVEL_DETAIL_URL
      * @param url The URL of the  NOVEL_DETAIL_URL
      * @return the novel's id as string
      **/
-    private String getChapterIdFromUrl(String url)
+    public String getChapterIdFromUrl(String url)
     {
-        String[] parts = url.split("/");
-        return parts[parts.length-1].trim();
+        try {
+            String[] parts = url.split("/");
+            return parts[parts.length-1].trim();
+        }
+        catch (Exception e)
+        {
+           LOGGER.error(e.getMessage(),e);
+           return null;
+        }
     }
 
     /**
@@ -88,7 +115,7 @@ public class TangThuVienPlugin implements PluginFactory {
      * @param numPerPage number of chapters per page
      * @return the total page
      **/
-    private Integer calculateTotalPage(Integer totalElements, Integer numPerPage) {
+    public Integer calculateTotalPage(Integer totalElements, Integer numPerPage) {
         if (totalElements % numPerPage == 0) {
             return totalElements / numPerPage;
         }
@@ -139,7 +166,6 @@ public class TangThuVienPlugin implements PluginFactory {
         return adjacentChaptersMap;
     }
 
-
     /**
      * Get the list including chapter's contents ( chapter's name and chapter's content)
      * @param url the story id of novels
@@ -171,8 +197,7 @@ public class TangThuVienPlugin implements PluginFactory {
      * @param novelId the id of novel
      * @return the map include novel's information
      **/
-    public Map<String, Object> mapNovelInfo(String novelId)
-    {
+    public Map<String, Object> mapNovelInfo(String novelId) throws IOException {
         Map<String, Object> map = new HashMap<>();
         String novelDetailUrl = String.format(NOVEL_DETAIL_URL, novelId);
 
@@ -185,41 +210,35 @@ public class TangThuVienPlugin implements PluginFactory {
         String description = "";
         String firstChapterId = "";
 
-        try {
-            Document doc = ConnectJsoup.connect(novelDetailUrl);
-            // Get novel name
-            Element bookInformationElement = doc.select(".book-information.cf").get(0);
-            novelName = bookInformationElement.child(1).child(0).text();
+        Document doc = ConnectJsoup.connect(novelDetailUrl);
+        // Get novel name
+        Element bookInformationElement = doc.select(".book-information.cf").get(0);
+        novelName = bookInformationElement.child(1).child(0).text();
 
-            // get image
-            image = bookInformationElement.child(0).child(0).child(0).attr("src");
+        // get image
+        image = bookInformationElement.child(0).child(0).child(0).attr("src");
 
-            // Author url
-            String authorUrl = bookInformationElement.child(1).child(1).child(0).attr("href");
-            String authorName =  bookInformationElement.child(1).child(1).child(0).text();
-            author = new Author(getAuthorIdFromUrl(authorUrl), authorName);
+        // Author url
+        String authorUrl = bookInformationElement.child(1).child(1).child(0).attr("href");
+        String authorName =  bookInformationElement.child(1).child(1).child(0).text();
+        author = new Author(getAuthorIdFromUrl(authorUrl), authorName);
 
-            // Get total
-            Element contentNavElement = doc.select(".content-nav-wrap.cf").get(0);
-            total =  getTotalChapterFromText(contentNavElement.child(0).child(0).child(1).child(0).text());
+        // Get total
+        Element contentNavElement = doc.select(".content-nav-wrap.cf").get(0);
+        total =  getTotalChapterFromText(contentNavElement.child(0).child(0).child(1).child(0).text());
 
-            // get story id
-            Element storyHiddenElement = doc.getElementById("story_id_hidden");
-            storyId = storyHiddenElement.val();
+        // get story id
+        Element storyHiddenElement = doc.getElementById("story_id_hidden");
+        storyId = storyHiddenElement.val();
 
-            // get description
-            Element bookContentElement = doc.select(".book-content-wrap.cf").get(0);
-            description = bookContentElement.child(0).child(0).child(0).child(0).html();
+        // get description
+        Element bookContentElement = doc.select(".book-content-wrap.cf").get(0);
+        description = bookContentElement.child(0).child(0).child(0).child(0).html();
 
-            // get first chapter id
-            Element listChaptersElement = doc.select("ul.cf").get(1);
-            String firstChapterUrl = listChaptersElement.child(1).child(0).attr("href");
-            firstChapterId = getChapterIdFromUrl(firstChapterUrl);
-        }
-        catch (Exception e)
-        {
-            e.printStackTrace();
-        }
+        // get first chapter id
+        Element listChaptersElement = doc.select("ul.cf").get(1);
+        String firstChapterUrl = listChaptersElement.child(1).child(0).attr("href");
+        firstChapterId = getChapterIdFromUrl(firstChapterUrl);
 
         map.put("novelName", novelName);
         map.put("author", author);
@@ -232,30 +251,36 @@ public class TangThuVienPlugin implements PluginFactory {
         return map;
     }
 
-    public List<Chapter> getAllChaptersImpl(String storyId)
-    {
+    /**
+     * Get the list chapters by novel's story id
+     * @param storyId the novel's story id
+     * @return all novel's chapters
+     **/
+    public List<Chapter> getAllChaptersImpl(String storyId) throws IOException {
         List<Chapter> chapterList = new ArrayList<>();
         String listChaptersUrl = String.format(LIST_CHAPTER_NOVEL_URL1, storyId);
-        try {
-            Document listChaptersDoc = ConnectJsoup.connect(listChaptersUrl);
-            Elements chapterElements = listChaptersDoc.getElementsByTag("li");
-            for(Element chapterElement : chapterElements) {
-                if (chapterElement.hasClass("divider-chap")) {
-                    continue;
-                }
-                String chapterId = getChapterIdFromUrl(chapterElement.child(1).attr("href"));
-                String chapterName = chapterElement.child(1).child(0).text();
-                chapterList.add(new Chapter().chapterId(chapterId).name(chapterName));
+
+        Document listChaptersDoc = ConnectJsoup.connect(listChaptersUrl);
+        Elements chapterElements = listChaptersDoc.getElementsByTag("li");
+        for(Element chapterElement : chapterElements) {
+            if (chapterElement.hasClass("divider-chap")) {
+                continue;
             }
-        }
-        catch (Exception e) {
-            LOGGER.error(e.getMessage(), e);
+            String chapterId = getChapterIdFromUrl(chapterElement.child(1).attr("href"));
+            String chapterName = chapterElement.child(1).child(0).text();
+            chapterList.add(new Chapter().chapterId(chapterId).name(chapterName));
         }
 
         return chapterList;
     }
 
-
+    /**
+     * Get the list chapters per page by novel's story id
+     * @param storyId the novel's story id
+     * @param page the page number to retrieve list chapters
+     * @param total the total number of novel's chapters
+     * @return list novel's chapters per page
+     **/
     public List<Chapter> getChapterPerPageImpl(String storyId, int page, int total)
     {
         String listChaptersUrl = String.format(LIST_CHAPTER_NOVEL_URL2, storyId, page-1, TOTAL_CHAPTERS_PER_PAGE);
@@ -282,7 +307,6 @@ public class TangThuVienPlugin implements PluginFactory {
         }
         return  chapterList;
     }
-
 
     @Override
     public DataResponse getNovelChapterDetail(String novelId, String chapterId) {
@@ -534,6 +558,12 @@ public class TangThuVienPlugin implements PluginFactory {
         return new DataResponse().status("success").totalPage(totalPage).currentPage(page).searchValue(key).data(lsNovels);
     }
 
+    /**
+     * Get the chapter content from novel id and chapter id
+     * @param novelId the novel id
+     * @param chapterId the chapter id
+     * @return the content of novel's chapter specified by novel id and chapter id
+     **/
     @Override
     public Chapter getContentChapter(String novelId, String chapterId) {
         String chapterDetailUrl = String.format(NOVEL_DETAIL_URL, novelId) + "/" + chapterId;
