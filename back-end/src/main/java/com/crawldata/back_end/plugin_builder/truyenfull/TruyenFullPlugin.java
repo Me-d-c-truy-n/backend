@@ -257,7 +257,7 @@ public class  TruyenFullPlugin implements PluginFactory {
     }
 
     @Override
-    public DataResponse getNovelListChapters(String novelId) {
+    public DataResponse getNovelListChapters(String novelId, String fromChapterId, int numChapters) {
         String url = NOVEL_MAIN + novelId;
         Document doc = null;
         try {

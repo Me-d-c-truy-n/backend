@@ -36,14 +36,15 @@ import java.util.concurrent.*;
  * A plugin implementation for fetching data related to light novels from a remote API.
  */
 public class LightNovelPlugin implements PluginFactory {
-
+    private String API_KEY = "35OqUcP8sjF1T";
+    private final String GET_API_KEY_URL = "https://lightnovel.vn/";
     // Constants for API endpoints and other configurations
-    private final String NOVEL_LIST_CHAPTERS_API = "https://lightnovel.vn/_next/data/mr0xON8OCekMptRE89Z-Z/truyen/%s/danh-sach-chuong.json?page=%s";
-    private final String NOVEL_DETAIL_API = "https://lightnovel.vn/_next/data/mr0xON8OCekMptRE89Z-Z/truyen/%s.json";
-    private final String AUTHOR_DETAIL_API = "https://lightnovel.vn/_next/data/mr0xON8OCekMptRE89Z-Z/tac-gia/%s.json";
-    private final String ALL_NOVELS_API = "https://lightnovel.vn/_next/data/mr0xON8OCekMptRE89Z-Z/the-loai.json?sort=doc-nhieu&page=%s";
-    private final String NOVEL_SEARCH_API = "https://lightnovel.vn/_next/data/mr0xON8OCekMptRE89Z-Z/the-loai.json?sort=doc-nhieu&page=%s&keyword=%s";
-    private final String CHAPTER_DETAIL_API = "https://lightnovel.vn/_next/data/mr0xON8OCekMptRE89Z-Z/truyen/%s/%s.json";
+    private final String NOVEL_LIST_CHAPTERS_API = "https://lightnovel.vn/_next/data/%s/truyen/%s/danh-sach-chuong.json?page=%s";
+    private final String NOVEL_DETAIL_API = "https://lightnovel.vn/_next/data/%s/truyen/%s.json";
+    private final String AUTHOR_DETAIL_API = "https://lightnovel.vn/_next/data/%s/tac-gia/%s.json";
+    private final String ALL_NOVELS_API = "https://lightnovel.vn/_next/data/%s/the-loai.json?sort=doc-nhieu&page=%s";
+    private final String NOVEL_SEARCH_API = "https://lightnovel.vn/_next/data/%s/the-loai.json?sort=doc-nhieu&page=%s&keyword=%s";
+    private final String CHAPTER_DETAIL_API = "https://lightnovel.vn/_next/data/%s/truyen/%s/%s.json";
     private final String IMAGE_URL_PREFIX = "https://static.lightnovel.vn/cdn-cgi/image/w=500,f=auto";
     private final String CRAW_CHAPTER_URL = "https://lightnovel.vn/truyen/%s/%s";
     private static final String CHROME_DRIVER_PATH = "/plugins/chromedriver.exe";
@@ -53,6 +54,8 @@ public class LightNovelPlugin implements PluginFactory {
     private static final int TIMEOUT_SECONDS = 5;
     private static final int THREAD_POOL_SIZE = 5;
 
+    private long lastApiKeyUpdateTimestamp = 0;
+    private static final long UPDATE_INTERVAL = 5 * 60 * 1000;
     /**
      * Reverses a slug string by replacing dashes and spaces with URL-encoded spaces.
      *
@@ -73,7 +76,7 @@ public class LightNovelPlugin implements PluginFactory {
     private String getChapterSlugFromChapterIndex(String novelId, int chapterIndex) {
         int page = (int) Math.ceil((double) chapterIndex / LIST_CHAPTERS_CAP);
         int chapterPos = chapterIndex - LIST_CHAPTERS_CAP*(page-1);
-        String apiUrl = String.format(NOVEL_LIST_CHAPTERS_API, novelId, page == 1 ? 0 : page);
+        String apiUrl = String.format(NOVEL_LIST_CHAPTERS_API, API_KEY,novelId, page == 1 ? 0 : page);
         JsonObject jsonObject;
         try {
             jsonObject = connectAPI(apiUrl);
@@ -106,35 +109,74 @@ public class LightNovelPlugin implements PluginFactory {
             try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
                 HttpGet request = new HttpGet(url);
                 try (CloseableHttpResponse response = httpClient.execute(request)) {
-                    HttpEntity entity = response.getEntity();
-                    if (entity != null) {
-                        String result = EntityUtils.toString(entity);
-                        return new Gson().fromJson(result, JsonObject.class);
+                    int statusCode = response.getStatusLine().getStatusCode();
+                    if (statusCode == 200) {
+                        HttpEntity entity = response.getEntity();
+                        if (entity != null) {
+                            String result = EntityUtils.toString(entity);
+                            return new Gson().fromJson(result, JsonObject.class);
+                        }
+                    } else if (statusCode == 404) {
+                        String newUrl = checkAPIKEY(url);
+                        if(!newUrl.equals(url)) {
+                            return connectAPI(newUrl);
+                        }
+                        System.out.println("HTTP 404 error fetching URL: " + url);
+                        return null;
+                    } else {
+                        System.out.println("HTTP error fetching URL: " + url + " Status=" + statusCode);
                     }
-                }
-            } catch (HttpStatusException e) {
-                if (e.getStatusCode() == 404) {
-                    System.out.println("HTTP 404 error fetching URL: " + url);
-                } else {
-                    System.out.println("HTTP error fetching URL: " + url + " Status=" + e.getStatusCode());
                 }
             } catch (IOException e) {
                 System.out.println("Failed to connect to " + url + " on attempt " + (attempt + 1));
-                attempt++;
-                if (attempt < MAX_RETRIES) {
-                    try {
-                        Thread.sleep(1000); // Wait before retrying
-                    } catch (InterruptedException ie) {
-                        Thread.currentThread().interrupt();
-                    }
-                } else {
-                    System.out.println("Max retries reached for URL: " + url);
-                    throw new IOException("Max retries reached for URL: " + url);
-                }
             }
 
+            attempt++;
+            if (attempt < MAX_RETRIES) {
+                try {
+                    Thread.sleep(1000); // Wait before retrying
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    throw new IOException("Interrupted while waiting to retry", ie);
+                }
+            } else {
+                System.out.println("Max retries reached for URL: " + url);
+                throw new IOException("Max retries reached for URL: " + url);
+            }
         }
         return null;
+    }
+
+    private String checkAPIKEY(String oldUrl) {
+        long currentTime = System.currentTimeMillis();
+        if (currentTime - lastApiKeyUpdateTimestamp > UPDATE_INTERVAL) {
+            String oldAPI = API_KEY;
+            updateApiKey();
+            lastApiKeyUpdateTimestamp = currentTime;
+            return oldUrl.replace(oldAPI, API_KEY);
+        }
+        return oldUrl;
+    }
+
+    private void updateApiKey() {
+        try {
+            // Fetch the webpage
+            Document doc = Jsoup.connect(GET_API_KEY_URL).get();
+            // Look for the script tag containing _buildManifest.js
+            Element manifestElement = doc.select("script[src*='/_next/static/'][src*='_buildManifest.js']").first();
+
+            if (manifestElement != null) {
+                String src = manifestElement.attr("src");
+                // Extract the KEY from the src attribute
+                String[] parts = src.split("/");
+                String key = parts[3];
+                API_KEY = key;
+            } else {
+                System.out.println("Get API Key failed");
+            }
+        } catch (IOException e) {
+            System.out.println("Get API Key failed");
+        }
     }
 
     /**
@@ -144,8 +186,7 @@ public class LightNovelPlugin implements PluginFactory {
      * @return The JsonObject representing the novel details.
      */
     private JsonObject getNovelDetailBySlug(String slug) {
-        String apiUrl = String.format(NOVEL_DETAIL_API, slug);
-
+        String apiUrl = String.format(NOVEL_DETAIL_API, API_KEY , slug);
         try {
             JsonObject jsonObject = connectAPI(apiUrl);
             if (jsonObject!= null && jsonObject.has("pageProps")) {
@@ -154,7 +195,6 @@ public class LightNovelPlugin implements PluginFactory {
         } catch (IOException e) {
             System.out.println(e.getMessage());
         }
-
         return null;
     }
 
@@ -338,7 +378,7 @@ public class LightNovelPlugin implements PluginFactory {
         }
 
         Novel novel = createNovelByJsonData(novelObject);
-        String apiUrl = String.format(NOVEL_LIST_CHAPTERS_API, novelObject.get("slug").getAsString(), page == 1 ? 0 : page);
+        String apiUrl = String.format(NOVEL_LIST_CHAPTERS_API, API_KEY,novelObject.get("slug").getAsString(), page == 1 ? 0 : page);
         JsonObject jsonObject = null;
         List<Chapter> chapterList = new ArrayList<>();
 
@@ -365,7 +405,7 @@ public class LightNovelPlugin implements PluginFactory {
     }
 
     @Override
-    public DataResponse getNovelListChapters(String novelId) {
+    public DataResponse getNovelListChapters(String novelId, String fromChapterId, int numChapters) {
         JsonObject novelObject = getNovelDetailBySlug(novelId);
         if (novelObject == null) {
             return DataResponseUtils.getErrorDataResponse("Novel not found on this server");
@@ -379,10 +419,18 @@ public class LightNovelPlugin implements PluginFactory {
         ExecutorService executorService = Executors.newFixedThreadPool(Math.min(totalPages, Runtime.getRuntime().availableProcessors()));
         List<Future<List<Chapter>>> futures = new ArrayList<>();
 
-        for (int page = 1; page <= totalPages; page++) {
+        int firstChapterIndex = Integer.parseInt(fromChapterId.split("-")[1]);
+        int firstPage = (int) Math.ceil((double) firstChapterIndex / LIST_CHAPTERS_CAP);
+        int firstChapterPos = firstChapterIndex - LIST_CHAPTERS_CAP*(firstPage-1);
+
+        int lastChapterIndex = firstChapterIndex + numChapters;
+        int lastPage = (int) Math.ceil((double) lastChapterIndex / LIST_CHAPTERS_CAP);
+        int lastChapterPos = lastChapterIndex - LIST_CHAPTERS_CAP*(lastPage-1);
+
+        for (int page = firstPage; page <= Math.min(lastPage, totalPages); page++) {
             int finalPage = page;
             Callable<List<Chapter>> task = () -> {
-                String apiUrl = String.format(NOVEL_LIST_CHAPTERS_API, novelObject.get("slug").getAsString(), finalPage == 1 ? 0 : finalPage);
+                String apiUrl = String.format(NOVEL_LIST_CHAPTERS_API, API_KEY, novelObject.get("slug").getAsString(), finalPage == 1 ? 0 : finalPage);
                 List<Chapter> chapters = new ArrayList<>();
                 try {
                     JsonObject jsonObject = connectAPI(apiUrl);
@@ -414,7 +462,18 @@ public class LightNovelPlugin implements PluginFactory {
             System.out.println(e.getMessage());
             return DataResponseUtils.getErrorDataResponse("Error while fetching chapters in parallel");
         }
-
+        // Find the index of the chapter with fromChapterId
+        int startIndex = -1;
+        int endIndex = chapterList.size();
+        for (int i = 0; i < chapterList.size(); i++) {
+            if (chapterList.get(i).getChapterId().equals(fromChapterId)) {
+                startIndex = i;
+            }
+            if (chapterList.get(i).getChapterId().equals("chuong-"+lastChapterIndex)) {
+                endIndex = i;
+            }
+        }
+        chapterList = chapterList.subList(startIndex, Math.min(endIndex+1, chapterList.size()));
         return new DataResponse("success", totalPages, 1, chapterList.size(), null, chapterList, "");
     }
 
@@ -431,7 +490,7 @@ public class LightNovelPlugin implements PluginFactory {
 
     @Override
     public DataResponse getAuthorDetail(String authorId) {
-        String apiUrl = String.format(AUTHOR_DETAIL_API, authorId);
+        String apiUrl = String.format(AUTHOR_DETAIL_API, API_KEY, authorId);
         JsonObject jsonObject = null;
         try {
             jsonObject = connectAPI(apiUrl);
@@ -459,7 +518,7 @@ public class LightNovelPlugin implements PluginFactory {
     @Override
     public DataResponse getAllNovels(int page, String search) {
         ExecutorService executorService = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
-        String apiUrl = String.format(ALL_NOVELS_API, page);
+        String apiUrl = String.format(ALL_NOVELS_API, API_KEY,page);
         JsonObject jsonObject = null;
         try {
             jsonObject = connectAPI(apiUrl);
@@ -506,7 +565,7 @@ public class LightNovelPlugin implements PluginFactory {
     @Override
     public DataResponse getNovelSearch(int page, String key, String orderBy) {
         ExecutorService executorService = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
-        String apiUrl = String.format(NOVEL_SEARCH_API, page, reverseSlugging(key));
+        String apiUrl = String.format(NOVEL_SEARCH_API, API_KEY,page, reverseSlugging(key));
         JsonObject jsonObject = null;
         try {
             jsonObject = connectAPI(apiUrl);
@@ -553,7 +612,7 @@ public class LightNovelPlugin implements PluginFactory {
     @Override
     public Chapter getContentChapter(String novelId, String chapterId) {
         String chapterSlug = getChapterSlugFromChapterIndex(novelId, Integer.parseInt(chapterId.split("-")[1]));
-        String urlChapter = String.format(CHAPTER_DETAIL_API, novelId, chapterSlug);
+        String urlChapter = String.format(CHAPTER_DETAIL_API, API_KEY,novelId, chapterSlug);
 
         JsonObject doc = null;
         try {
