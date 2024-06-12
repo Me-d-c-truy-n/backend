@@ -1,9 +1,8 @@
-package com.crawldata.back_end.plugin_builder.lightnovel;
 
 import com.crawldata.back_end.model.Author;
 import com.crawldata.back_end.model.Chapter;
 import com.crawldata.back_end.model.Novel;
-import com.crawldata.back_end.plugin_builder.PluginFactory;
+import com.crawldata.back_end.novel_plugin_builder.PluginFactory;
 import com.crawldata.back_end.response.DataResponse;
 import com.crawldata.back_end.utils.AppUtils;
 import com.crawldata.back_end.utils.DataResponseUtils;
@@ -147,6 +146,12 @@ public class LightNovelPlugin implements PluginFactory {
         return null;
     }
 
+    /**
+     * Checks if the API key in the given URL needs to be updated and returns the URL with the updated key if necessary.
+     *
+     * @param oldUrl the URL containing the old API key
+     * @return the URL with the updated API key if an update was necessary, otherwise the original URL
+     */
     private String checkAPIKEY(String oldUrl) {
         long currentTime = System.currentTimeMillis();
         if (currentTime - lastApiKeyUpdateTimestamp > UPDATE_INTERVAL) {
@@ -158,6 +163,10 @@ public class LightNovelPlugin implements PluginFactory {
         return oldUrl;
     }
 
+    /**
+     * Fetches a new API key from the specified URL and updates the API_KEY variable.
+     * This method looks for a script tag containing '_buildManifest.js' in its 'src' attribute and extracts the key from it.
+     */
     private void updateApiKey() {
         try {
             // Fetch the webpage
@@ -169,8 +178,7 @@ public class LightNovelPlugin implements PluginFactory {
                 String src = manifestElement.attr("src");
                 // Extract the KEY from the src attribute
                 String[] parts = src.split("/");
-                String key = parts[3];
-                API_KEY = key;
+                API_KEY = parts[3];
             } else {
                 System.out.println("Get API Key failed");
             }
@@ -272,7 +280,7 @@ public class LightNovelPlugin implements PluginFactory {
         WebDriver driver = null;
         for (int attempt = 0; attempt < MAX_RETRIES; attempt++) {
             try {
-                System.out.println("lightnovel is using Chrome WebDriver");
+                System.out.println("lightnovel is using chrome driver");
                 System.setProperty("webdriver.chrome.driver", AppUtils.curDir + CHROME_DRIVER_PATH);
 
                 ChromeOptions options = new ChromeOptions();
@@ -284,19 +292,7 @@ public class LightNovelPlugin implements PluginFactory {
                 driver.get(url);
 
                 // Scroll to bottom to load more content
-                JavascriptExecutor js = (JavascriptExecutor) driver;
-                js.executeScript("window.scrollTo(0, document.body.scrollHeight);");
-
-                // Execute JavaScript to get the CSS text
-                String script =
-                        "var cssText = [];" +
-                                "var classes = document.styleSheets[7].rules || document.styleSheets[7].cssRules;" +
-                                "for (var x = 0; x < classes.length; x++) {" +
-                                "    cssText.push(classes[x].cssText || classes[x].style.cssText);" +
-                                "}" +
-                                "return cssText;";
-
-                List<String> cssTextList = (List<String>) js.executeScript(script);
+                List<String> cssTextList = getCssTextList((JavascriptExecutor) driver);
 
                 // Wait for the content to be present
                 WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(TIMEOUT_SECONDS));
@@ -345,6 +341,27 @@ public class LightNovelPlugin implements PluginFactory {
             }
         }
         return null;
+    }
+
+    /**
+     * Retrieves the CSS text from a specified stylesheet on a web page using a JavaScript executor.
+     *
+     * @param driver the JavaScriptExecutor used to execute JavaScript commands in the browser
+     * @return a list of strings, each containing the CSS text from the specified stylesheet
+     */
+    private static List<String> getCssTextList(JavascriptExecutor driver) {
+        driver.executeScript("window.scrollTo(0, document.body.scrollHeight);");
+
+        // Execute JavaScript to get the CSS text
+        String script =
+                "var cssText = [];" +
+                        "var classes = document.styleSheets[7].rules || document.styleSheets[7].cssRules;" +
+                        "for (var x = 0; x < classes.length; x++) {" +
+                        "    cssText.push(classes[x].cssText || classes[x].style.cssText);" +
+                        "}" +
+                        "return cssText;";
+
+        return (List<String>) driver.executeScript(script);
     }
 
     @Override

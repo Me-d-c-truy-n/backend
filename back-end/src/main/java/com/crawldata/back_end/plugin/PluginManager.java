@@ -16,7 +16,7 @@ import java.util.List;
 @AllArgsConstructor
 public class PluginManager {
 
-    private static final String PLUGIN_DIRECTORY = "/plugins";
+    private static final String PLUGIN_DIRECTORY = "/novel_plugins";
 
     private List<PluginInformation> plugins = new ArrayList<>();
 

@@ -1,9 +1,8 @@
-package com.crawldata.back_end.plugin_builder.metruyencv;
 
 import com.crawldata.back_end.model.Author;
 import com.crawldata.back_end.model.Chapter;
 import com.crawldata.back_end.model.Novel;
-import com.crawldata.back_end.plugin_builder.PluginFactory;
+import com.crawldata.back_end.novel_plugin_builder.PluginFactory;
 import com.crawldata.back_end.response.DataResponse;
 import com.crawldata.back_end.utils.AppUtils;
 import com.crawldata.back_end.utils.ConnectJsoup;
@@ -30,6 +29,7 @@ import org.openqa.selenium.chrome.ChromeOptions;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class MeTruyenChuPlugin implements PluginFactory {
     private final String FILTER_NOVEL_API = "https://backend.metruyencv.com/api/books?filter[keyword]=%s&filter[state]=published&limit=100&page=1&include=author";
@@ -59,39 +59,47 @@ public class MeTruyenChuPlugin implements PluginFactory {
      * Connects to the given API URL and returns the JSON response as a JsonObject.
      * If the connection fails, it retries the request up to the specified number of times.
      *
-     * @param apiUrl The URL of the API to connect to.
+     * @param url The URL of the API to connect to.
      * @return The JSON response as a JsonObject, or null if an error occurs after all retries.
      */
-    public JsonObject connectAPI(String apiUrl) {
+    public JsonObject connectAPI(String url) {
         int attempt = 0;
         while (attempt < MAX_RETRIES) {
             try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
-                HttpGet request = new HttpGet(apiUrl);
+                HttpGet request = new HttpGet(url);
                 try (CloseableHttpResponse response = httpClient.execute(request)) {
-                    HttpEntity entity = response.getEntity();
-                    if (entity != null) {
-                        String result = EntityUtils.toString(entity);
-                        return new Gson().fromJson(result, JsonObject.class);
+                    int statusCode = response.getStatusLine().getStatusCode();
+                    if (statusCode == 200) {
+                        HttpEntity entity = response.getEntity();
+                        if (entity != null) {
+                            String result = EntityUtils.toString(entity);
+                            return new Gson().fromJson(result, JsonObject.class);
+                        }
+                    } else if (statusCode == 404) {
+                        System.out.println("HTTP 404 error fetching URL: " + url);
+                        return null;
+                    } else {
+                        System.out.println("HTTP error fetching URL: " + url + " Status=" + statusCode);
                     }
                 }
             } catch (IOException e) {
-                attempt++;
-                if (attempt >= MAX_RETRIES) {
-                    e.printStackTrace();
-                    System.err.println("Failed to connect to API after " + MAX_RETRIES + " attempts.");
-                } else {
-                    System.err.println("Retrying... (" + attempt + "/" + MAX_RETRIES + ")");
-                }
+                System.out.println("Failed to connect to " + url + " on attempt " + (attempt + 1));
+            }
+
+            attempt++;
+            if (attempt < MAX_RETRIES) {
                 try {
-                    Thread.sleep(100); // Wait for 100 milliseconds before retrying
+                    Thread.sleep(1000); // Wait before retrying
                 } catch (InterruptedException ie) {
                     Thread.currentThread().interrupt();
                 }
+            } else {
+                System.out.println("Max retries reached for URL: " + url);
+                return null;
             }
         }
         return null;
     }
-
 
     /**
      * Retrieves the novel details by its slug.
@@ -175,7 +183,7 @@ public class MeTruyenChuPlugin implements PluginFactory {
     public DataResponse getNovelChapterDetail(String novelId, String chapterId) {
         JsonObject novelObject = getNovelDetailBySlug(novelId);
         if (novelObject == null) {
-            return null;
+            return DataResponseUtils.getErrorDataResponse("No such novel on this server");
         }
         Novel novel = createNovelByJsonData(novelObject);
 
@@ -319,7 +327,7 @@ public class MeTruyenChuPlugin implements PluginFactory {
     @Override
     public Chapter getContentChapter(String novelId, String chapterId) {
         String urlChapter = String.format(CHAPTER_DETAIL_API, novelId, chapterId);
-        Document doc = null;
+        Document doc;
         try {
             doc = ConnectJsoup.connect(urlChapter);
             if (doc == null) {
@@ -336,7 +344,7 @@ public class MeTruyenChuPlugin implements PluginFactory {
             String preChapterId = extractDirectionalChapterId("previous", scriptContent);
 
             // Extract the chapter name
-            String chapterName = doc.select("h2.text-center.text-gray-600.text-balance").first().text();
+            String chapterName = Objects.requireNonNull(doc.select("h2.text-center.text-gray-600.text-balance").first()).text();
 
             // Extract the chapter content
             Element contentElement = doc.select("div[data-x-bind='ChapterContent']").first();

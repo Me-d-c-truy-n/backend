@@ -1,8 +1,6 @@
 package com.crawldata.back_end.export_plugin_builder;
 
-import com.crawldata.back_end.model.Chapter;
-import com.crawldata.back_end.plugin_builder.PluginFactory;
-import com.lowagie.text.DocumentException;
+import com.crawldata.back_end.novel_plugin_builder.PluginFactory;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;

@@ -1,10 +1,7 @@
-package com.crawldata.back_end.plugin_builder;
+package com.crawldata.back_end.novel_plugin_builder;
 
 import com.crawldata.back_end.model.Chapter;
-import com.crawldata.back_end.model.Novel;
 import com.crawldata.back_end.response.DataResponse;
-
-import java.util.List;
 
 /**
  * This interface defines methods for retrieving various details about novels and authors.

@@ -2,8 +2,6 @@ package com.crawldata.back_end.plugin;
 
 import com.crawldata.back_end.export_plugin_builder.ExportPluginFactory;
 import com.crawldata.back_end.model.ExportPluginInformation;
-import com.crawldata.back_end.model.PluginInformation;
-import com.crawldata.back_end.plugin_builder.PluginFactory;
 import org.json.JSONObject;
 import org.springframework.stereotype.Component;
 import org.xeustechnologies.jcl.JarClassLoader;
@@ -14,7 +12,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
-import java.util.Map;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
