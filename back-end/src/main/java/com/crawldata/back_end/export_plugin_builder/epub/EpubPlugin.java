@@ -30,10 +30,7 @@ import java.io.*;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Enumeration;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
@@ -65,6 +62,8 @@ public class EpubPlugin implements ExportPluginFactory {
                 FileUtils.byte2file(FileUtils.stream2byte(inputStream), fileName);
                 modifyEpubFile(fileName);
                 sendFileToClientAndDelete(fileName, response);
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -91,30 +90,12 @@ public class EpubPlugin implements ExportPluginFactory {
         }
 
         // Retrieve chapter list
-        dataResponse = pluginFactory.getNovelListChapters(novel.getNovelId());
+        dataResponse = pluginFactory.getNovelListChapters(novel.getNovelId(), fromChapterId, numChapters);
         if (dataResponse != null && "success".equals(dataResponse.getStatus())) {
             Object data = dataResponse.getData();
             if (data instanceof List<?> dataList) {
                 if (!dataList.isEmpty() && dataList.get(0) instanceof Chapter) {
                     chapterList = (List<Chapter>) dataList;
-
-                    // Find the index of the chapter with fromChapterId
-                    int startIndex = -1;
-                    for (int i = 0; i < chapterList.size(); i++) {
-                        if (chapterList.get(i).getChapterId().equals(fromChapterId)) {
-                            startIndex = i;
-                            break;
-                        }
-                    }
-
-                    // Check if the index is valid
-                    if (startIndex != -1) {
-                        // Ensure the end index does not exceed the list size
-                        int endIndex = Math.min(startIndex + numChapters, chapterList.size());
-
-                        // Slice the chapter list to contain the required sublist
-                        chapterList = chapterList.subList(startIndex, endIndex);
-                    }
                 }
             }
         }
@@ -128,12 +109,14 @@ public class EpubPlugin implements ExportPluginFactory {
      */
     private void modifyEpubFile(String epubFilePath) throws IOException {
         File tempFile = File.createTempFile("epub", ".epub");
+        List<Map.Entry<String, byte[]>> modifiedChapters = Collections.synchronizedList(new ArrayList<>());
+
         try (ZipFile zipFile = new ZipFile(epubFilePath);
              ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(tempFile))) {
 
             // Create a pool of threads to handle chapter modifications
-            ExecutorService executorService = Executors.newFixedThreadPool(3);
-            List<Future<Void>> futures = new ArrayList<>();
+            ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+            List<Future<Map.Entry<String, byte[]>>> futures = new ArrayList<>();
 
             Enumeration<? extends ZipEntry> entries = zipFile.entries();
             while (entries.hasMoreElements()) {
@@ -144,11 +127,7 @@ public class EpubPlugin implements ExportPluginFactory {
                             // For each chapter, create a task to modify and save it
                             for (Chapter chapter : chapterList) {
                                 InputStream chapterIs = zipFile.getInputStream(entry);
-                                Callable<Void> task = () -> {
-                                    modifyAndSaveChapterXhtml(zos, entry, chapterIs, chapter);
-                                    return null;
-                                };
-                                // Submit the task to the executor service
+                                Callable<Map.Entry<String, byte[]>> task = () -> modifyAndSaveChapterXhtml(chapterIs, chapter);
                                 futures.add(executorService.submit(task));
                             }
                             break;
@@ -180,16 +159,23 @@ public class EpubPlugin implements ExportPluginFactory {
                 zos.closeEntry();
             }
 
-            // Wait for all tasks to complete
-            for (Future<Void> future : futures) {
+            // Collect results from all tasks
+            for (Future<Map.Entry<String, byte[]>> future : futures) {
                 try {
-                    future.get();
+                    modifiedChapters.add(future.get());
                 } catch (InterruptedException | ExecutionException e) {
                     e.printStackTrace();
                 }
             }
 
             executorService.shutdown();
+
+            // Write modified chapters to the ZipOutputStream
+            for (Map.Entry<String, byte[]> entry : modifiedChapters) {
+                zos.putNextEntry(new ZipEntry(entry.getKey()));
+                zos.write(entry.getValue());
+                zos.closeEntry();
+            }
         }
 
         // Replace the original EPUB file with the modified one
@@ -409,7 +395,7 @@ public class EpubPlugin implements ExportPluginFactory {
      * @param chapter The chapter information to modify the file with.
      * @throws IOException If an I/O error occurs.
      */
-    private void modifyAndSaveChapterXhtml(ZipOutputStream zos, ZipEntry originalEntry, InputStream is, Chapter chapter) {
+    private Map.Entry<String, byte[]> modifyAndSaveChapterXhtml(InputStream is, Chapter chapter) {
         // Parse the original chap01.xhtml content
         Document document = null;
         try {
@@ -422,14 +408,13 @@ public class EpubPlugin implements ExportPluginFactory {
         Element bodyElement = document.getElementsByTag("body").first();
         if (bodyElement != null) {
             int attempt = 10;
-            DataResponse dataResponse;
+            Chapter data;
             do {
-                dataResponse = pluginFactory.getNovelChapterDetail(novel.getNovelId(), chapter.getChapterId().trim());
+                data = pluginFactory.getContentChapter(novel.getNovelId(), chapter.getChapterId().trim());
                 attempt--;
-            } while ( attempt > 0 && (dataResponse == null || !dataResponse.getStatus().equals("success")));
+            } while ( attempt > 0 && data == null);
 
-            if(dataResponse != null && dataResponse.getStatus().equals("success")) {
-                Chapter data = (Chapter) dataResponse.getData();
+            if(data != null) {
                 // Set title element
                 Element titleElement = bodyElement.getElementsByTag("h2").first();
                 if(titleElement != null) {
@@ -441,24 +426,16 @@ public class EpubPlugin implements ExportPluginFactory {
                 if(contentElement != null) {
                     contentElement.html(data.getContent().replaceAll("<br>", "<br></br>"));
                 }
+            } else {
+                System.out.println("Failed to get chapter " + chapter.getChapterId().trim());
+                String chapterEntryName = "OEBPS/text/" + chapter.getChapterId().trim() + ".xhtml";
+                return new AbstractMap.SimpleEntry<>(chapterEntryName, null);
             }
         }
 
-        // Create a new entry for the modified chapter
         String chapterEntryName = "OEBPS/text/" + chapter.getChapterId().trim() + ".xhtml";
-        try {
-            zos.putNextEntry(new ZipEntry(chapterEntryName));
-        } catch (IOException e) {
-            throw new RuntimeException(e.getMessage());
-        }
-
-        System.out.println("Export: " + chapter.getName() +" success");
-        // Write the modified document to the ZIP output stream
-        try {
-            zos.write(document.outerHtml().getBytes(StandardCharsets.UTF_8));
-        } catch (IOException e) {
-            throw new RuntimeException(e.getMessage());
-        }
+        byte[] modifiedContent = document.outerHtml().getBytes(StandardCharsets.UTF_8);
+        return new AbstractMap.SimpleEntry<>(chapterEntryName, modifiedContent);
     }
 
     /**

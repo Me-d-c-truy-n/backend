@@ -1,3 +1,4 @@
+package com.crawldata.back_end.plugin_builder.metruyencv;
 
 import com.crawldata.back_end.model.Author;
 import com.crawldata.back_end.model.Chapter;
@@ -11,7 +12,6 @@ import com.crawldata.back_end.utils.HandleString;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import io.github.bonigarcia.wdm.WebDriverManager;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -62,7 +62,7 @@ public class MeTruyenChuPlugin implements PluginFactory {
      * @param apiUrl The URL of the API to connect to.
      * @return The JSON response as a JsonObject, or null if an error occurs after all retries.
      */
-    private JsonObject connectAPI(String apiUrl) {
+    public JsonObject connectAPI(String apiUrl) {
         int attempt = 0;
         while (attempt < MAX_RETRIES) {
             try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
@@ -99,11 +99,11 @@ public class MeTruyenChuPlugin implements PluginFactory {
      * @param slug The slug of the novel.
      * @return The JsonObject representing the novel details.
      */
-    private JsonObject getNovelDetailBySlug(String slug) {
+    public JsonObject getNovelDetailBySlug(String slug) {
         String apiUrl = String.format(FILTER_NOVEL_API, reverseSlugging(slug));
 
         JsonObject jsonObject = connectAPI(apiUrl);
-        if (jsonObject!=null && jsonObject.has("data")) {
+        if (jsonObject != null && jsonObject.has("data")) {
             JsonArray dataArray = jsonObject.getAsJsonArray("data");
             // Loop through the data array to find the matching slug
             for (int i = 0; i < dataArray.size(); i++) {
@@ -126,7 +126,7 @@ public class MeTruyenChuPlugin implements PluginFactory {
         String name = novelObject.get("name").getAsString();
         String novelId = novelObject.get("slug").getAsString();
         JsonObject authorObject = novelObject.getAsJsonObject("author");
-        Author author = new Author(authorObject.get("id").getAsString()+"-"+ HandleString.makeSlug(authorObject.get("name").getAsString()), authorObject.get("name").getAsString());
+        Author author = new Author(authorObject.get("id").getAsString() + "-" + HandleString.makeSlug(authorObject.get("name").getAsString()), authorObject.get("name").getAsString());
         String idFirstChapter = "chuong-1";
         String image = novelObject.getAsJsonObject("poster").get("default").getAsString();
         String description = novelObject.get("synopsis").getAsString().replaceAll("\n", "<br>");
@@ -137,7 +137,7 @@ public class MeTruyenChuPlugin implements PluginFactory {
      * Creates a Chapter object from the given JsonObject and Novel object.
      *
      * @param chapterObject The JsonObject representing the chapter data.
-     * @param novel The Novel object to which the chapter belongs.
+     * @param novel         The Novel object to which the chapter belongs.
      * @return The created Chapter object.
      */
     public Chapter createChapterByJsonData(JsonObject chapterObject, Novel novel) {
@@ -153,34 +153,34 @@ public class MeTruyenChuPlugin implements PluginFactory {
      * in the provided script content, parses it, and extracts the chapter index. It then formats the index
      * as "chuong-{index}" and returns it.</p>
      *
-     * @param direct the direction to extract the chapter ID from ("next" or "previous").
+     * @param direct  the direction to extract the chapter ID from ("next" or "previous").
      * @param content the script content containing the JSON data.
      * @return the chapter ID in the form of "chuong-{index}" if found, or {@code null} if the index is not found.
      */
     public String extractDirectionalChapterId(String direct, String content) {
         // Extract JSON data from script content
-        String direction = "\""+direct+"\":";
+        String direction = "\"" + direct + "\":";
         String data = content.substring(
                 content.indexOf(direction) + direction.length(),
                 content.indexOf("}", content.indexOf(direction + "{")) + 1
         );
         Gson gson = new Gson();
         JsonObject jsonObject = gson.fromJson(data, JsonObject.class);
-        Integer index = jsonObject.get("index")!=null?jsonObject.get("index").getAsInt():null;
+        Integer index = jsonObject.get("index") != null ? jsonObject.get("index").getAsInt() : null;
 
-        return index !=null ? "chuong-" + index : null;
+        return index != null ? "chuong-" + index : null;
     }
 
     @Override
     public DataResponse getNovelChapterDetail(String novelId, String chapterId) {
         JsonObject novelObject = getNovelDetailBySlug(novelId);
-        if(novelObject == null) {
+        if (novelObject == null) {
             return null;
         }
         Novel novel = createNovelByJsonData(novelObject);
 
         Chapter result = getContentChapter(novelId, chapterId);
-        if(result == null) {
+        if (result == null) {
             return DataResponseUtils.getErrorDataResponse("Chapter not found");
         }
         // Create chapter details
@@ -228,7 +228,7 @@ public class MeTruyenChuPlugin implements PluginFactory {
     }
 
     @Override
-    public DataResponse getNovelListChapters(String novelId) {
+    public DataResponse getNovelListChapters(String novelId, String fromChapterId, int numChapters) {
         JsonObject novelObject = getNovelDetailBySlug(novelId);
         if (novelObject == null) {
             return DataResponseUtils.getErrorDataResponse("Novel not found on this server");
@@ -267,7 +267,7 @@ public class MeTruyenChuPlugin implements PluginFactory {
         String apiUrl = String.format(AUTHOR_DETAIL_API, authorId.split("-")[0]);
         JsonObject jsonObject = connectAPI(apiUrl);
         List<Novel> novelList = new ArrayList<>();
-        if (jsonObject!=null && jsonObject.has("data")) {
+        if (jsonObject != null && jsonObject.has("data")) {
             JsonArray dataArray = jsonObject.getAsJsonArray("data");
             // Loop through the data
             for (int i = 0; i < dataArray.size(); i++) {
@@ -283,7 +283,7 @@ public class MeTruyenChuPlugin implements PluginFactory {
         String apiUrl = String.format(ALL_NOVELS_API, page);
         JsonObject jsonObject = connectAPI(apiUrl);
         List<Novel> novelList = new ArrayList<>();
-        if (jsonObject!=null && jsonObject.has("data")) {
+        if (jsonObject != null && jsonObject.has("data")) {
             JsonArray dataArray = jsonObject.getAsJsonArray("data");
             // Loop through the data
             for (int i = 0; i < dataArray.size(); i++) {
@@ -302,7 +302,7 @@ public class MeTruyenChuPlugin implements PluginFactory {
         String apiUrl = String.format(NOVEL_SEARCH_API, reverseSlugging(key), page);
         JsonObject jsonObject = connectAPI(apiUrl);
         List<Novel> novelList = new ArrayList<>();
-        if (jsonObject!=null && jsonObject.has("data")) {
+        if (jsonObject != null && jsonObject.has("data")) {
             JsonArray dataArray = jsonObject.getAsJsonArray("data");
             // Loop through the data
             for (int i = 0; i < dataArray.size(); i++) {
@@ -322,7 +322,7 @@ public class MeTruyenChuPlugin implements PluginFactory {
         Document doc = null;
         try {
             doc = ConnectJsoup.connect(urlChapter);
-            if(doc == null) {
+            if (doc == null) {
                 return null;
             }
             // Extract the script tag containing JSON data
@@ -345,10 +345,10 @@ public class MeTruyenChuPlugin implements PluginFactory {
             }
             StringBuilder content = new StringBuilder(contentElement.html());
 
-            if(content.length() <2000) {
+            if (content.length() < 2000) {
                 // Initialize Selenium WebDriver in headless mode
                 System.out.println("metruyencv is using chrome driver");
-                System.setProperty("webdriver.chrome.driver", AppUtils.curDir+CHROME_DRIVER_PATH);
+                System.setProperty("webdriver.chrome.driver", AppUtils.curDir + CHROME_DRIVER_PATH);
                 ChromeOptions options = new ChromeOptions();
                 options.addArguments("--headless");
                 options.addArguments("--disable-gpu");
@@ -365,7 +365,7 @@ public class MeTruyenChuPlugin implements PluginFactory {
                 doc = Jsoup.parse(driver.getPageSource());
                 Element loadMoreElement = doc.getElementById("load-more");
 
-                if(loadMoreElement!=null && !loadMoreElement.html().isEmpty()) {
+                if (loadMoreElement != null && !loadMoreElement.html().isEmpty()) {
                     // Remove all <canvas> tags within the loadMoreElement
                     Elements canvasElements = loadMoreElement.select("canvas");
                     for (Element canvas : canvasElements) {

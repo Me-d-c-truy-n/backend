@@ -153,7 +153,7 @@ public class PdfPlugin implements ExportPluginFactory {
         if(dataResponse != null && dataResponse.getStatus().equals("success")) {
             novel = (Novel) dataResponse.getData();
         }
-        dataResponse = pluginFactory.getNovelListChapters(novel.getNovelId());
+        dataResponse = pluginFactory.getNovelListChapters(novel.getNovelId(), fromChapterId, numChapters);
         if (dataResponse != null && "success".equals(dataResponse.getStatus())) {
             Object data = dataResponse.getData();
             if (data instanceof List<?> dataList) {

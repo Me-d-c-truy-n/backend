@@ -346,7 +346,7 @@ public class TangThuVienPlugin implements PluginFactory {
     }
 
     @Override
-    public DataResponse getNovelListChapters(String novelId) {
+    public DataResponse getNovelListChapters(String novelId, String fromChapterId, int numChapters) {
         String listChaptersUrl;
         String novelName = null;
         Author author = null;
