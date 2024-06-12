@@ -1,3 +1,4 @@
+package com.crawldata.back_end.plugin_builder.tangthuvien;
 
 import com.crawldata.back_end.model.Author;
 import com.crawldata.back_end.model.Chapter;
@@ -6,14 +7,17 @@ import com.crawldata.back_end.plugin_builder.PluginFactory;
 import com.crawldata.back_end.response.DataResponse;
 import com.crawldata.back_end.utils.ConnectJsoup;
 import com.crawldata.back_end.utils.DataResponseUtils;
-import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class TangThuVienPlugin implements PluginFactory {
     private final Integer TOTAL_CHAPTERS_PER_PAGE = 75;
@@ -32,7 +36,7 @@ public class TangThuVienPlugin implements PluginFactory {
      * @param url The URL of the AUTHOR_URL
      * @return the author's id as string
      */
-    private String getAuthorIdFromUrl(String url) {
+    public String getAuthorIdFromUrl(String url) {
         String[] parts = url.split("\\?");
         // Split the query parameters by "=" to separate the parameter name from the value
         String[] queryParams = parts[1].split("=");
@@ -50,7 +54,7 @@ public class TangThuVienPlugin implements PluginFactory {
      * @param url The URL of the  NOVEL_DETAIL_URL
      * @return the novel's id as string
      **/
-    private String getNovelIdFromUrl(String url)
+    public String getNovelIdFromUrl(String url)
     {
         String[] components = url.split("/");
         return components[components.length-1];
@@ -443,11 +447,10 @@ public class TangThuVienPlugin implements PluginFactory {
 
     @Override
     public DataResponse getAllNovels(int page, String search) {
-        List<Novel> lsNovel = new ArrayList<>();
         int totalPage = 0;
         int perPage = 0;
         String allNovelsUrl = String.format(ALL_NOVEL_URL, page);
-
+        List<Novel> lsNovel = new ArrayList<>();
         try {
             Document doc = ConnectJsoup.connect(allNovelsUrl);
             Element parentElement = doc.getElementsByClass("book-img-text").get(0);
@@ -464,7 +467,6 @@ public class TangThuVienPlugin implements PluginFactory {
             String novelName;
             String imageURL;
             String description;
-
             for(Element bookElement : bookElements)
             {
                 detailNovelUrl = bookElement.child(0).child(0).attr("href");
