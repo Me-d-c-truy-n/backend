@@ -351,6 +351,7 @@ public class TangThuVienPlugin implements PluginFactory {
         String novelName = null;
         Author author = null;
         String storyId = null;
+
         List<Chapter> listChapters = new ArrayList<>();
         try {
             Map<String,Object> novelInfoMap = mapNovelInfo(novelId);
@@ -359,8 +360,25 @@ public class TangThuVienPlugin implements PluginFactory {
             storyId = (String) novelInfoMap.get("storyId");
 
             List<Chapter> chapterList = getAllChaptersImpl(storyId);
-            for(Chapter chapter : chapterList) {
-                listChapters.add(chapter.novelId(novelId).novelName(novelName).author(author));
+
+            // get index from chapter
+            int index = 0;
+            for(int i = 0 ; i < chapterList.size() ; i++)
+            {
+                if(chapterList.get(i).getChapterId().equals(fromChapterId))
+                {
+                    index = i;
+                    break;
+                }
+            }
+
+            int count = 0;
+            for(int j = index ; j < chapterList.size() ; j++) {
+                if (count == numChapters) {
+                    break;
+                }
+                listChapters.add(chapterList.get(j).novelId(novelId).novelName(novelName).author(author));
+                count++;
             }
         } catch (Exception e) {
             LOGGER.error(e.getMessage(),e);

@@ -5,20 +5,16 @@ import com.crawldata.back_end.model.Chapter;
 import com.crawldata.back_end.model.Novel;
 import com.crawldata.back_end.plugin_builder.tangthuvien.TangThuVienPlugin;
 import com.crawldata.back_end.response.DataResponse;
-import org.jsoup.nodes.Document;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-
-import static org.mockito.ArgumentMatchers.eq;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Logger;
+
 
 public class TangThuVienPluginTest {
     @InjectMocks
@@ -306,17 +302,18 @@ public class TangThuVienPluginTest {
         String expectedStatus = "success";
         int totalPage = 1;
         int currentPage = 1;
-        int size = 802;
+        String fromChapter = "chuong-1";
+        int numChapter = 10;
 
         // Calling the method under test
-        DataResponse response = tangThuVienPlugin.getNovelListChapters(novelId);
+        DataResponse response = tangThuVienPlugin.getNovelListChapters(novelId, fromChapter, numChapter);
         List<Novel> novels = (List<Novel>) response.getData();
         // Assertions
         assertNotNull(response);
         assertEquals(expectedStatus, response.getStatus());
         assertEquals(totalPage, response.getTotalPage());
         assertEquals(currentPage, response.getCurrentPage());
-        assertEquals(size, novels.size());
+        assertEquals(numChapter, novels.size());
     }
 
     @Test
@@ -324,10 +321,11 @@ public class TangThuVienPluginTest {
         String novelId = "dai-dao-ky";
 
         String expectedStatus = "error";
+        String fromChapter = "chuong-1";
+        int numChapter = 10;
 
         // Calling the method under test
-        DataResponse response = tangThuVienPlugin.getNovelListChapters(novelId);
-
+        DataResponse response = tangThuVienPlugin.getNovelListChapters(novelId, fromChapter, numChapter);
         // Assertions
         assertNotNull(response);
         assertEquals(expectedStatus, response.getStatus());

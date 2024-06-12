@@ -1,3 +1,4 @@
+package com.crawldata.back_end.export_plugin_builder.pdf;
 import com.crawldata.back_end.export_plugin_builder.ExportPluginFactory;
 import com.crawldata.back_end.model.Chapter;
 import com.crawldata.back_end.model.Novel;
@@ -31,53 +32,34 @@ public class PdfPlugin implements ExportPluginFactory {
     private PluginFactory pluginFactory;
     @Getter
     private Novel novel;
-    private List<Chapter> chapterList =new ArrayList<>();
+    private List<Chapter> chapterList = new ArrayList<>();
     private final int maxThreadNum = 3;
     @Getter
     private List<Chapter> listDetailChapter;
     private List<ReadDataThread> listThreads;
 
-
-
     @Override
     public void export(PluginFactory plugin, String novelId, String fromChapterId, int numChapters, HttpServletResponse response) throws IOException {
-        getNovelInfo(plugin,novelId, fromChapterId, numChapters);
+        getNovelInfo(plugin, novelId, fromChapterId, numChapters);
         listDetailChapter = new ArrayList<>();
         listThreads = new ArrayList<>();
         try {
             getDetailChapter();
             generatePdfAllChapter(response);
-        }
-        catch (Exception e)
-        {
-           e.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
     public void getDetailChapter() {
         int totalChapters = chapterList.size();
-        int chaptersPerThread = 0;
-        Integer remainingChapters = 0;
+        int chaptersPerThread = totalChapters / maxThreadNum;
+        int remainingChapters = totalChapters % maxThreadNum;
 
-        if(totalChapters % maxThreadNum == 0)
-        {
-            chaptersPerThread = totalChapters/maxThreadNum;
-        }
-        else {
-            chaptersPerThread = totalChapters / maxThreadNum ;
-            remainingChapters = totalChapters - chaptersPerThread*maxThreadNum;
-
-        }
-
-        for(int i = 0 ; i < maxThreadNum ; i++)
-        {
-            List<Chapter> chapters = new ArrayList<>();
-            if(i == maxThreadNum - 1 && totalChapters % maxThreadNum != 0){
-                chapters = chapterList.subList(i * chaptersPerThread, i * chaptersPerThread +chaptersPerThread+ remainingChapters);
-            }
-            else {
-                chapters = chapterList.subList(i * chaptersPerThread, i * chaptersPerThread + chaptersPerThread);
-            }
+        for (int i = 0; i < maxThreadNum; i++) {
+            int start = i * chaptersPerThread;
+            int end = (i == maxThreadNum - 1) ? start + chaptersPerThread + remainingChapters : start + chaptersPerThread;
+            List<Chapter> chapters = chapterList.subList(start, end);
             ReadDataThread thread = new ReadDataThread(chapters, this);
             thread.start();
             listThreads.add(thread);
@@ -85,22 +67,19 @@ public class PdfPlugin implements ExportPluginFactory {
 
         try {
             joinThread();
-        }catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
         sortChaptersASCByName(listDetailChapter);
     }
 
-    public Double getChapterNumber(String chapterName)
-    {
+    public Double getChapterNumber(String chapterName) {
         String[] components = chapterName.split(":");
-        Double chapterNumber = Double.valueOf(components[0].split(" ")[1].trim());
-        return  chapterNumber;
+        return Double.valueOf(components[0].split(" ")[1].trim());
     }
 
-    public void sortChaptersASCByName(List<Chapter> chapters)
-    {
+    public void sortChaptersASCByName(List<Chapter> chapters) {
         Collections.sort(chapters, new Comparator<Chapter>() {
             @Override
             public int compare(Chapter o1, Chapter o2) {
@@ -123,180 +102,130 @@ public class PdfPlugin implements ExportPluginFactory {
     }
 
     public void joinThread() throws InterruptedException {
-        for(ReadDataThread thread : listThreads)
-        {
+        for (ReadDataThread thread : listThreads) {
             thread.join();
         }
     }
 
-    public int getIndexFromChapterId(List<Chapter> chapters, String fromChapterId)
-    {
-
-        for(int i = 0 ; i < chapters.size() ; i++)
-        {
-            if(chapters.get(i).getChapterId().equals(fromChapterId))
-            {
-                return i;
-            }
-        }
-        return -1;
-    }
-
-    /**
-     * Retrieves and sets the novel information and chapter list from the plugin.
-     * @param plugin The plugin factory instance.
-     * @param novelId The ID of the novel to retrieve information for.
-     */
     private void getNovelInfo(PluginFactory plugin, String novelId, String fromChapterId, int numChapters) {
         pluginFactory = plugin;
         DataResponse dataResponse = pluginFactory.getNovelDetail(novelId);
-        if(dataResponse != null && dataResponse.getStatus().equals("success")) {
+        if (dataResponse != null && "success".equals(dataResponse.getStatus())) {
             novel = (Novel) dataResponse.getData();
         }
         dataResponse = pluginFactory.getNovelListChapters(novel.getNovelId(), fromChapterId, numChapters);
         if (dataResponse != null && "success".equals(dataResponse.getStatus())) {
             Object data = dataResponse.getData();
-            if (data instanceof List<?> dataList) {
-                if (!dataList.isEmpty() && dataList.get(0) instanceof Chapter) {
-                    List<Chapter> chapters = (List<Chapter>) dataList;
-                    int index = getIndexFromChapterId(chapters, fromChapterId);
-                    if(index != -1) {
-                        int count = 0;
-                        for(int i = index; i < chapters.size(); i++) {
-                            if(count == chapters.size() || count == numChapters)
-                            {
-                                break;
-                            }
-                            chapterList.add(chapters.get(i));
-                            count++;
-                        }
-                    }
-                }
+            if (data instanceof List<?>) {
+                chapterList = (List<Chapter>) data;
             }
         }
     }
 
     private void generatePdfAllChapter(HttpServletResponse response) throws DocumentException, IOException {
-        // Create a ByteArrayOutputStream to hold the PDF data
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        // Create a new Document
-        Document document = new Document(PageSize.A4);
-        // Get a PdfWriter instance
-        PdfWriter writer = PdfWriter.getInstance(document, baos);
-        // Open the document
-        document.open();
-        ClassPathResource fontResource = new ClassPathResource("fonts/ArialUnicodeMSRegular.ttf");
-        FontFactory.register(fontResource.getURI().toString(), "CustomFont");
-        BaseFont baseFont = BaseFont.createFont(fontResource.getPath(), BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
-        // Title font
-        Font titleFont = new Font(baseFont, 35, Font.BOLD);
-        titleFont.setColor(Color.black);
-        // Font for author
-        Font authorFont = new Font(baseFont, 25, Font.NORMAL);
-        authorFont.setColor(Color.black);
-        // Normal font
-        Font normalFont = new Font(baseFont, 12, Font.NORMAL);
-        normalFont.setColor(Color.BLACK);
-        // Chapter title font
-        Font chapterTitleFont = new Font(baseFont, 28, Font.BOLD);
-        chapterTitleFont.setColor(Color.black);
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+            Document document = new Document(PageSize.A4);
+            PdfWriter writer = PdfWriter.getInstance(document, baos);
+            document.open();
 
-        // Add novel title
+            BaseFont baseFont = getCustomFont();
+            addTitlePage(document, baseFont);
+            PdfOutline rootOutline = writer.getRootOutline();
+
+            for (Chapter detailChapter : listDetailChapter) {
+                document.newPage();
+                addChapter(document, writer, rootOutline, detailChapter, baseFont);
+            }
+
+            document.close();
+
+            String filename = getFileName();
+            prepareResponse(response, baos, filename);
+        }
+    }
+
+    private BaseFont getCustomFont() throws DocumentException, IOException {
+        ClassPathResource fontResource = new ClassPathResource("fonts/ArialUnicodeMSRegular.ttf");
+        return BaseFont.createFont(fontResource.getPath(), BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
+    }
+
+    private void addTitlePage(Document document, BaseFont baseFont) throws DocumentException, IOException {
+        Font titleFont = new Font(baseFont, 35, Font.BOLD);
+        Font authorFont = new Font(baseFont, 25, Font.NORMAL);
+        Font normalFont = new Font(baseFont, 12, Font.NORMAL);
+
         Paragraph novelTitle = new Paragraph(novel.getName(), titleFont);
-        novelTitle.setAlignment(Element.ALIGN_CENTER);  // Center align the title
+        novelTitle.setAlignment(Element.ALIGN_CENTER);
         novelTitle.setSpacingAfter(20);
         document.add(novelTitle);
 
-        // Add author
         Paragraph author = new Paragraph("Tác giả: " + novel.getAuthor().getName(), authorFont);
-        author.setAlignment(Element.ALIGN_CENTER);  // Center align the title
+        author.setAlignment(Element.ALIGN_CENTER);
         author.setSpacingAfter(30);
         document.add(author);
 
-        /// Add Image novel
         Image coverImage = Image.getInstance(new URL(novel.getImage()));
         coverImage.setAlignment(Image.ALIGN_CENTER);
-        coverImage.scaleToFit(400, 400);  // Scale image to fit within 400x400 pixels
+        coverImage.scaleToFit(400, 400);
         document.add(coverImage);
+    }
 
-        // Create root outline
-        PdfOutline rootOutline = writer.getRootOutline();
+    private void addChapter(Document document, PdfWriter writer, PdfOutline rootOutline, Chapter detailChapter, BaseFont baseFont) throws DocumentException, IOException {
+        Font chapterTitleFont = new Font(baseFont, 28, Font.BOLD);
+        Anchor anchor = new Anchor(detailChapter.getName(), chapterTitleFont);
+        anchor.setName(detailChapter.getName());
+        Paragraph chapterTitle = new Paragraph(anchor);
+        chapterTitle.setAlignment(Element.ALIGN_CENTER);
+        document.add(chapterTitle);
+        document.add(new Paragraph("\n\n"));
 
-        for (Chapter detailChapter : listDetailChapter)
-        {
-                document.newPage();
-                int pageNumber = writer.getPageNumber();
+        int pageNumber = writer.getPageNumber();
+        PdfDestination destination = new PdfDestination(PdfDestination.FITH);
+        writer.getDirectContent().localDestination(detailChapter.getName(), destination);
+        new PdfOutline(rootOutline, PdfAction.gotoLocalPage(pageNumber, destination, writer), detailChapter.getName());
 
-                // Create chapter title with an anchor
-                Anchor anchor = new Anchor(detailChapter.getName(), chapterTitleFont);
-                anchor.setName(detailChapter.getName());
-                Paragraph chapterTitle = new Paragraph(anchor);
-                chapterTitle.setAlignment(Element.ALIGN_CENTER);
-                document.add(chapterTitle);
-                document.add(new Paragraph("\n\n"));
+        StyleSheet styles = new StyleSheet();
+        styles.loadTagStyle("body", "face", "CustomFont");
+        styles.loadTagStyle("body", "encoding", "Identity-H");
+        styles.loadTagStyle("body", "size", "15pt");
+        styles.loadTagStyle("p", "style", "text-align: justify;");
 
-                // Add bookmark for the chapter
-                PdfDestination destination = new PdfDestination(PdfDestination.FITH);
-                writer.getDirectContent().localDestination(detailChapter.getName(), destination);
-                PdfOutline chapterOutline = new PdfOutline(rootOutline, PdfAction.gotoLocalPage(pageNumber, destination, writer),detailChapter.getName());
-
-                // Add content
-                // Create a stylesheet and add the custom font to it
-                StyleSheet styles = new StyleSheet();
-                styles.loadTagStyle("body", "face", "CustomFont");
-                styles.loadTagStyle("body", "encoding", "Identity-H");
-                styles.loadTagStyle("body", "size", "15pt");
-                styles.loadTagStyle("p", "style", "text-align: justify;");
-
-                // Parse the HTML content
-                org.jsoup.nodes.Document jsoupDoc = Jsoup.parse(detailChapter.getContent());
-                String htmlContent = jsoupDoc.body().html();
-                // Parse the HTML content and add it to the document
-                List<Element> elements = HTMLWorker.parseToList(new StringReader(htmlContent), styles);
-                for (Element element : elements) {
-                    document.add(element);
-                }
+        org.jsoup.nodes.Document jsoupDoc = Jsoup.parse(detailChapter.getContent());
+        String htmlContent = jsoupDoc.body().html();
+        List<Element> elements = HTMLWorker.parseToList(new StringReader(htmlContent), styles);
+        for (Element element : elements) {
+            document.add(element);
         }
+    }
 
-        // Create filename
-        String filename  = "";
-        if(chapterList.size() == 0)
-        {
-             filename = novel.getName();
+    private String getFileName() {
+        if (chapterList.isEmpty()) {
+            return novel.getName();
+        } else if (chapterList.size() == 1) {
+            return novel.getName() + "_" + chapterList.get(0).getChapterId();
+        } else {
+            return novel.getName() + "_" + chapterList.get(0).getChapterId() + "-" + chapterList.get(chapterList.size() - 1).getChapterId();
         }
-        else if(chapterList.size() == 1)
-        {
-            filename = novel.getName() + "_" + chapterList.get(0).getChapterId();
-        }
-        else {
-            filename = novel.getName() + "_" + chapterList.get(0).getChapterId() + "-" + chapterList.get(chapterList.size()-1).getChapterId();
-        }
+    }
 
-        document.close();
-        // Set the content type and headers for the response
+    private void prepareResponse(HttpServletResponse response, ByteArrayOutputStream baos, String filename) throws IOException {
         response.setContentType("application/pdf");
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
         response.setHeader("Content-Disposition", "attachment; filename=" + new String((filename + ".pdf").getBytes(StandardCharsets.UTF_8), StandardCharsets.ISO_8859_1));
         response.setContentLength(baos.size());
-        // Write the PDF to the response output stream
 
         try (OutputStream os = response.getOutputStream()) {
             baos.writeTo(os);
             os.flush();
-            os.close();
-            baos.close();
         }
     }
 }
 
-class ReadDataThread extends Thread{
-    private List<Chapter> listChapter;
-    private PdfPlugin pdf;
-    public ReadDataThread()
-    {
-    }
-    public ReadDataThread(List<Chapter> listChapter, PdfPlugin pdf)
-    {
+class ReadDataThread extends Thread {
+    private final List<Chapter> listChapter;
+    private final PdfPlugin pdf;
+
+    public ReadDataThread(List<Chapter> listChapter, PdfPlugin pdf) {
         this.listChapter = listChapter;
         this.pdf = pdf;
     }
@@ -304,9 +233,7 @@ class ReadDataThread extends Thread{
     @Override
     public void run() {
         PluginFactory plugin = pdf.getPluginFactory();
-
-        for(Chapter chapter : listChapter)
-        {
+        for (Chapter chapter : listChapter) {
             Chapter contentChapter = plugin.getContentChapter(chapter.getNovelId(), chapter.getChapterId());
             pdf.getListDetailChapter().add(contentChapter);
         }
