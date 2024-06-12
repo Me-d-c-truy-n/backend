@@ -1,5 +1,4 @@
 package com.crawldata.demo.plugin_builder.metruyencv;
-
 import com.crawldata.back_end.model.Author;
 import com.crawldata.back_end.model.Chapter;
 import com.crawldata.back_end.model.Novel;
@@ -7,30 +6,17 @@ import com.crawldata.back_end.plugin_builder.metruyencv.MeTruyenChuPlugin;
 import com.crawldata.back_end.response.DataResponse;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import org.apache.hc.client5.http.classic.methods.HttpGet;
-import org.apache.http.HttpEntity;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.*;
+import org.mockito.MockitoAnnotations;
+import org.mockito.Spy;
 
-import java.io.IOException;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doReturn;
 
 public class MeTruyenChuPluginTest {
-    @Mock
-    private CloseableHttpClient httpClient;
-    @Mock
-    private CloseableHttpResponse httpResponse;
-    @Mock
-    private HttpEntity httpEntity;
-
     @Spy
     private MeTruyenChuPlugin meTruyenChuPlugin;
 
