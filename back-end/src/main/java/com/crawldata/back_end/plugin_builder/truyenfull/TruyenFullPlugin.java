@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class TruyenFullPlugin implements PluginFactory {
+public class  TruyenFullPlugin implements PluginFactory {
 
     private static String NOVEL_MAIN = "https://truyenfull.vn/";
     private static String API_TRUYENFULL_SEARCH = "https://api.truyenfull.vn/v1/tim-kiem?title=%s&page=%d";
