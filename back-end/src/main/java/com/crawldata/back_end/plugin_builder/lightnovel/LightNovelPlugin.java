@@ -1,3 +1,4 @@
+package com.crawldata.back_end.plugin_builder.lightnovel;
 
 import com.crawldata.back_end.model.Author;
 import com.crawldata.back_end.model.Chapter;
@@ -15,13 +16,12 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
-import org.jsoup.HttpStatusException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import org.openqa.selenium.*;
 import org.openqa.selenium.TimeoutException;
+import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -62,7 +62,7 @@ public class LightNovelPlugin implements PluginFactory {
      * @param slug The slug string to reverse.
      * @return The reversed slug string.
      */
-    private String reverseSlugging(String slug) {
+    public String reverseSlugging(String slug) {
         return slug.replaceAll("-", "%20").replaceAll(" ", "%20");
     }
 
@@ -103,7 +103,7 @@ public class LightNovelPlugin implements PluginFactory {
      * @return The JSON response as a JsonObject, or null if an error occurs after all retries.
      * @throws IOException If an I/O error occurs while connecting to the API.
      */
-    private JsonObject connectAPI(String url) throws IOException {
+    public JsonObject connectAPI(String url) throws IOException {
         int attempt = 0;
         while (attempt < MAX_RETRIES) {
             try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
@@ -185,7 +185,7 @@ public class LightNovelPlugin implements PluginFactory {
      * @param slug The slug of the novel.
      * @return The JsonObject representing the novel details.
      */
-    private JsonObject getNovelDetailBySlug(String slug) {
+    public JsonObject getNovelDetailBySlug(String slug) {
         String apiUrl = String.format(NOVEL_DETAIL_API, API_KEY , slug);
         try {
             JsonObject jsonObject = connectAPI(apiUrl);
