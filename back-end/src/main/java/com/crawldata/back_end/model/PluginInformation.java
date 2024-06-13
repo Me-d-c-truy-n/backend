@@ -1,6 +1,6 @@
 package com.crawldata.back_end.model;
 
-import com.crawldata.back_end.plugin_builder.PluginFactory;
+import com.crawldata.back_end.novel_plugin_builder.PluginFactory;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

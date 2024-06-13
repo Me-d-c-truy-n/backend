@@ -1,7 +1,7 @@
 package com.crawldata.back_end.export_plugin_builder.audio;
 import com.crawldata.back_end.export_plugin_builder.ExportPluginFactory;
 import com.crawldata.back_end.model.Chapter;
-import com.crawldata.back_end.plugin_builder.PluginFactory;
+import com.crawldata.back_end.novel_plugin_builder.PluginFactory;
 import com.crawldata.back_end.response.DataResponse;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.http.HttpResponse;

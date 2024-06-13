@@ -2,7 +2,7 @@ package com.crawldata.back_end.export_plugin_builder.epub;
 import com.crawldata.back_end.export_plugin_builder.ExportPluginFactory;
 import com.crawldata.back_end.model.Chapter;
 import com.crawldata.back_end.model.Novel;
-import com.crawldata.back_end.plugin_builder.PluginFactory;
+import com.crawldata.back_end.novel_plugin_builder.PluginFactory;
 import com.crawldata.back_end.response.DataResponse;
 import com.crawldata.back_end.utils.AppUtils;
 import com.crawldata.back_end.utils.FileUtils;
@@ -55,8 +55,10 @@ public class EpubPlugin implements ExportPluginFactory {
                 return;
             }
             getNovelInfo(plugin, novelId, fromChapterId, numChapters);
+            String firstIndex = chapterList.get(0).getChapterId().split("-")[1];
+            String lastIndex = chapterList.get(chapterList.size()-1).getChapterId().split("-")[1];
             try (InputStream inputStream = jarFile.getInputStream(entry)) {
-                String fileName = novel.getName() + " - " + novel.getAuthor().getName() + ".epub";
+                String fileName = novel.getName() + " - " + novel.getAuthor().getName() + " (" + firstIndex + "-" + lastIndex + ").epub";
                 fileName = fileName.replaceAll("[:/\\?\\*]", "");
                 fileName = FileUtils.validate(AppUtils.curDir + "/out/" + fileName);
                 FileUtils.byte2file(FileUtils.stream2byte(inputStream), fileName);
@@ -164,7 +166,7 @@ public class EpubPlugin implements ExportPluginFactory {
                 try {
                     modifiedChapters.add(future.get());
                 } catch (InterruptedException | ExecutionException e) {
-                    e.printStackTrace();
+                    System.err.println("Error: " + e.getMessage());
                 }
             }
 
@@ -389,8 +391,6 @@ public class EpubPlugin implements ExportPluginFactory {
 
     /**
      * Modifies a chapter xhtml file in the EPUB.
-     * @param zos The ZipOutputStream to write the modified file to.
-     * @param originalEntry The original ZipEntry of the file.
      * @param is The InputStream of the original file content.
      * @param chapter The chapter information to modify the file with.
      * @throws IOException If an I/O error occurs.

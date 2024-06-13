@@ -2,7 +2,7 @@ package com.crawldata.back_end.export_plugin_builder.pdf;
 import com.crawldata.back_end.export_plugin_builder.ExportPluginFactory;
 import com.crawldata.back_end.model.Chapter;
 import com.crawldata.back_end.model.Novel;
-import com.crawldata.back_end.plugin_builder.PluginFactory;
+import com.crawldata.back_end.novel_plugin_builder.PluginFactory;
 import com.crawldata.back_end.response.DataResponse;
 import com.lowagie.text.*;
 import com.lowagie.text.Font;
