@@ -37,6 +37,9 @@ public class TangThuVienPluginTest {
         MockitoAnnotations.openMocks(this);
     }
 
+
+
+
     @Test
     public void getNovelDetail_validNovelId_success() throws IOException {
         String novelId = "valid-novel-id";
@@ -233,4 +236,90 @@ public class TangThuVienPluginTest {
     }
 
 
+    @Test
+    void testGetAllNovelListChaptersError() {
+        String novelId = "dai-dao-ky";
+
+        String expectedStatus = "error";
+        String fromChapter = "chuong-1";
+        int numChapter = 10;
+
+        // Calling the method under test
+        DataResponse response = tangThuVienPlugin.getNovelListChapters(novelId, fromChapter, numChapter);
+        // Assertions
+        assertNotNull(response);
+        assertEquals(expectedStatus, response.getStatus());
+    }
+    @Test
+    void getNovelsPerPageSuccess()
+    {
+        String expectedStatus = "success";
+        int currentPage = 1;
+        int totalPage = 599;
+        int perPage = 20;
+        int size = 20;
+        DataResponse dataResponse = tangThuVienPlugin.getAllNovels(1, "");
+        List<Novel> novels = (List<Novel>) dataResponse.getData();
+        // Assertions
+        assertNotNull(dataResponse);
+        assertEquals(expectedStatus,dataResponse.getStatus());
+        assertEquals(currentPage, dataResponse.getCurrentPage());
+        assertEquals(totalPage, dataResponse.getTotalPage());
+        assertEquals(perPage, dataResponse.getPerPage());
+        assertEquals(size, novels.size());
+    }
+    @Test
+    void getNovelsPerPageError()
+    {
+        String expectedStatus = "error";
+        DataResponse dataResponse = tangThuVienPlugin.getAllNovels(600, "");
+        // Assertions
+        assertNotNull(dataResponse);
+        assertEquals(expectedStatus,dataResponse.getStatus());
+    }
+    @Test
+    void getNovelSearchSuccess()
+    {
+        String keyword = "kiếm";
+        int page = 1;
+        String orderBy = "a-z";
+        DataResponse dataResponse = tangThuVienPlugin.getNovelSearch(page, keyword, orderBy);
+        List<Novel> novels = (List<Novel>) dataResponse.getData();
+        String expectedStatus = "success";
+        int currentPage = 1;
+        int totalPage = 27;
+        String searchValue = "kiếm";
+        int size = 20;
+        // Assertions
+        assertNotNull(dataResponse);
+        assertEquals(expectedStatus,dataResponse.getStatus());
+        assertEquals(totalPage, dataResponse.getTotalPage());
+        assertEquals(currentPage, dataResponse.getCurrentPage());
+        assertEquals(searchValue, dataResponse.getSearchValue());
+        assertEquals(size, novels.size());
+    }
+    @Test
+    void getNovelSearchError1()
+    {
+        String keyword = "kiếm";
+        int page = 1000;
+        String orderBy = "a-z";
+        DataResponse dataResponse = tangThuVienPlugin.getNovelSearch(page, keyword, orderBy);
+        String expectedStatus = "error";
+        // Assertions
+        assertNotNull(dataResponse);
+        assertEquals(expectedStatus,dataResponse.getStatus());
+    }
+    @Test
+    void getNovelSearchError2()
+    {
+        String keyword = "zzzzzzzzzzzzzzzzzz";
+        int page = 1000;
+        String orderBy = "a-z";
+        DataResponse dataResponse = tangThuVienPlugin.getNovelSearch(page, keyword, orderBy);
+        String expectedStatus = "error";
+        // Assertions
+        assertNotNull(dataResponse);
+        assertEquals(expectedStatus,dataResponse.getStatus());
+    }
 }
