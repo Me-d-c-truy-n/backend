@@ -1,10 +1,10 @@
-package com.crawldata.demo.export_plugin_builder;
+package com.crawldata.demo.export_plugin_builder.pdf;
 
 import com.crawldata.back_end.export_plugin_builder.pdf.PdfPlugin;
 import com.crawldata.back_end.model.Author;
 import com.crawldata.back_end.model.Chapter;
 import com.crawldata.back_end.model.Novel;
-import com.crawldata.back_end.plugin_builder.PluginFactory;
+import com.crawldata.back_end.novel_plugin_builder.PluginFactory;
 import com.crawldata.back_end.response.DataResponse;
 import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.BeforeEach;

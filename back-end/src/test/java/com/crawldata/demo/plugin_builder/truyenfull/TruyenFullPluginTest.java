@@ -3,7 +3,7 @@ package com.crawldata.demo.plugin_builder.truyenfull;
 import com.crawldata.back_end.model.Author;
 import com.crawldata.back_end.model.Chapter;
 import com.crawldata.back_end.model.Novel;
-import com.crawldata.back_end.plugin_builder.truyenfull.TruyenFullPlugin;
+import com.crawldata.back_end.novel_plugin_builder.truyenfull.TruyenFullPlugin;
 import com.crawldata.back_end.response.DataResponse;
 import com.crawldata.back_end.utils.ConnectJsoup;
 import com.crawldata.back_end.utils.HandleString;
@@ -24,8 +24,6 @@ public class TruyenFullPluginTest {
     @InjectMocks
     private TruyenFullPlugin truyenFullPlugin;
 
-    @Mock
-    private ConnectJsoup connectJsoupMock;
 
     @BeforeEach
     public void setUp() {

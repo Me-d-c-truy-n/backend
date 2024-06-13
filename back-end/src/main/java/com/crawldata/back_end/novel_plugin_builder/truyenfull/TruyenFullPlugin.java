@@ -1,3 +1,4 @@
+package com.crawldata.back_end.novel_plugin_builder.truyenfull;
 
 import com.crawldata.back_end.model.Author;
 import com.crawldata.back_end.model.Chapter;
@@ -200,11 +201,8 @@ public class  TruyenFullPlugin implements PluginFactory {
                     String idNextChapter = nextChapterURL.split("/").length != 1 ? nextChapterURL.split("/")[nextChapterURL.split("/").length - 1] : null;
                     String preChapterURL = doc.select("a[id=prev_chap]").attr("href");
                     String idPreChapter = preChapterURL.split("/").length != 1 ? preChapterURL.split("/")[preChapterURL.split("/").length - 1] : null;
-                    Chapter chapterDetail = new Chapter(novelId, novelName, chapterId, idNextChapter, idPreChapter, chapterName, author, content.toString());
-
-                    DataResponse dataResponse = new DataResponse();
-                    dataResponse.setStatus("success");
-                    dataResponse.setData(chapterDetail);
+                    Chapter chapterDetail = new Chapter().novelId(novelId).novelName(novelName).chapterId(chapterId).nextChapterId(idNextChapter).preChapterId(idPreChapter).name(chapterName).author(author).content(content.toString());
+                    DataResponse  dataResponse = new DataResponse().status("success").data(chapterDetail);
                     return dataResponse;
                 }
                 return DataResponseUtils.getErrorDataResponse("Failed to connect "+urlChapter);
