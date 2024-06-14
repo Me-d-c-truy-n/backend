@@ -4,6 +4,7 @@ import com.crawldata.back_end.export_plugin_builder.ExportPluginFactory;
 import com.crawldata.back_end.model.ExportPluginInformation;
 import org.json.JSONObject;
 import org.springframework.stereotype.Component;
+import org.springframework.web.servlet.function.support.HandlerFunctionAdapter;
 import org.xeustechnologies.jcl.JarClassLoader;
 import org.xeustechnologies.jcl.JclObjectFactory;
 import org.xeustechnologies.jcl.JclUtils;
@@ -18,6 +19,11 @@ import java.util.jar.JarFile;
 @Component
 public class ExportPluginLoader {
     private static JarClassLoader jcl = new JarClassLoader();
+    private final HandlerFunctionAdapter handlerFunctionAdapter;
+
+    public ExportPluginLoader(HandlerFunctionAdapter handlerFunctionAdapter) {
+        this.handlerFunctionAdapter = handlerFunctionAdapter;
+    }
 
     /**
      * Loads a export plugin class from the specified JAR file.
@@ -40,25 +46,24 @@ public class ExportPluginLoader {
      * @return The plugin information.
      */
     public ExportPluginInformation loadExportPluginInformation(File pluginFile) {
-        ExportPluginInformation exportPluginInfo = new ExportPluginInformation();
-        readPluginJson(exportPluginInfo, pluginFile);
+        ExportPluginInformation exportPluginInfo = JSONToPluginInformationAdapter(pluginFile);
         exportPluginInfo.setExportPluginObject(loadExportPluginClass(pluginFile.getAbsolutePath(), exportPluginInfo.getClassName()));
         return  exportPluginInfo;
     }
 
     /**
      * Reads plugin information from the "plugin.json" file inside the JAR file.
-     *
-     * @param pluginInfo The PluginInformation object to populate.
+     *.
      * @param pluginFile The JAR file containing the plugin information.
      */
-    public void readPluginJson(ExportPluginInformation pluginInfo, File pluginFile) {
+    public ExportPluginInformation JSONToPluginInformationAdapter(File pluginFile) {
+        ExportPluginInformation exportPluginInfo = new ExportPluginInformation();
         try (JarFile jarFile = new JarFile(pluginFile)) {
             JarEntry entry = jarFile.getJarEntry("plugin.json");
             if (entry == null) {
                 // Handle error: "plugin.json" not found in the JAR file
                 System.err.println("Error: 'plugin.json' not found in the JAR file.");
-                return;
+                return exportPluginInfo;
             }
             try (InputStream inputStream = jarFile.getInputStream(entry)) {
                 // Read the JSON content from the input stream
@@ -67,14 +72,15 @@ public class ExportPluginLoader {
                 String jsonContent = new String(buffer);
                 JSONObject js = new JSONObject(jsonContent);
                 JSONObject metadata = js.getJSONObject("metadata");
-                pluginInfo.setPluginId(metadata.getString("id"));
-                pluginInfo.setName(metadata.getString("name"));
-                pluginInfo.setClassName(metadata.getString("className"));
+                exportPluginInfo.setPluginId(metadata.getString("id"));
+                exportPluginInfo.setName(metadata.getString("name"));
+                exportPluginInfo.setClassName(metadata.getString("className"));
             }
         } catch (IOException e) {
             // Handle error: Unable to read "plugin.json" from the JAR file
             e.printStackTrace();
         }
+        return exportPluginInfo;
     }
 
     /**

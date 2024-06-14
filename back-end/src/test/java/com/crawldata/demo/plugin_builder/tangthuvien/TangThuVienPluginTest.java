@@ -1,4 +1,5 @@
 package com.crawldata.demo.plugin_builder.tangthuvien;
+import com.crawldata.back_end.model.Author;
 import com.crawldata.back_end.model.Chapter;
 import com.crawldata.back_end.model.Novel;
 import com.crawldata.back_end.novel_plugin_builder.tangthuvien.TangThuVienPlugin;

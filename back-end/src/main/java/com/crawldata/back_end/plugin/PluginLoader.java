@@ -43,8 +43,7 @@ public class PluginLoader {
      * @return The plugin information.
      */
     public PluginInformation loadPluginInformation(File pluginFile) {
-        PluginInformation pluginInfo = new PluginInformation();
-        readPluginJson(pluginInfo, pluginFile);
+        PluginInformation pluginInfo = JSONToPluginInformationAdapter(pluginFile);
         pluginInfo.setPluginObject(loadPluginClass(pluginFile.getAbsolutePath(), pluginInfo.getClassName()));
         return pluginInfo;
     }
@@ -52,18 +51,18 @@ public class PluginLoader {
     /**
      * Reads plugin information from the "plugin.json" file inside the JAR file.
      *
-     * @param pluginInfo The PluginInformation object to populate.
      * @param pluginFile The JAR file containing the plugin information.
      */
 
 
-    public void readPluginJson(PluginInformation pluginInfo, File pluginFile) {
+    public PluginInformation JSONToPluginInformationAdapter(File pluginFile) {
+        PluginInformation pluginInfo = new PluginInformation();
         try (JarFile jarFile = new JarFile(pluginFile)) {
             JarEntry entry = jarFile.getJarEntry("plugin.json");
             if (entry == null) {
                 // Handle error: "plugin.json" not found in the JAR file
                 System.err.println("Error: 'plugin.json' not found in the JAR file.");
-                return;
+                return pluginInfo ;
             }
             try (InputStream inputStream = jarFile.getInputStream(entry)) {
                 // Read the JSON content from the input stream
@@ -82,6 +81,7 @@ public class PluginLoader {
             // Handle error: Unable to read "plugin.json" from the JAR file
             e.printStackTrace();
         }
+        return pluginInfo;
     }
 
     /**
