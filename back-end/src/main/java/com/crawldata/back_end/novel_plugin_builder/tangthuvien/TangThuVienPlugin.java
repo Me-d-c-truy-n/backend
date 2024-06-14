@@ -568,7 +568,7 @@ public class TangThuVienPlugin implements PluginFactory {
                 String authorName = bookElement.child(1).child(1).child(1).text();
                 String authorUrlWebSite =  bookElement.child(1).child(1).child(1).attr("href");
                 String authorId =getAuthorIdFromUrl(authorUrlWebSite);
-                author = new Author(authorId, authorName);
+                author = new Author().authorId(authorId).name(authorName);
                 description =  bookElement.child(1).child(2).html();
 
                 lsNovels.add(new Novel().noveId(novelId).name(novelName).image(imageURL).description(description).author(author));

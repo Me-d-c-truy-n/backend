@@ -4,7 +4,7 @@ import com.crawldata.back_end.model.Chapter;
 import com.crawldata.back_end.response.DataResponse;
 
 /**
- * This interface defines methods for retrieving various details about novels and authors.
+     * This interface defines methods for retrieving various details about novels and authors.
  */
 public interface PluginFactory {
 

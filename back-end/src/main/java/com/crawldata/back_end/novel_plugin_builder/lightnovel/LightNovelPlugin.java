@@ -1,3 +1,4 @@
+package com.crawldata.back_end.novel_plugin_builder.lightnovel;
 
 import com.crawldata.back_end.model.Author;
 import com.crawldata.back_end.model.Chapter;
