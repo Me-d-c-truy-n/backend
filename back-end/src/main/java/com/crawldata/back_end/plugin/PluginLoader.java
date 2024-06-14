@@ -20,7 +20,7 @@ import java.util.jar.JarFile;
 @Component
 public class PluginLoader {
 
-    private static JarClassLoader jcl = new JarClassLoader();
+    private JarClassLoader jcl = new JarClassLoader();
 
     /**
      * Loads a plugin class from the specified JAR file.
@@ -94,6 +94,8 @@ public class PluginLoader {
                 jcl.unloadClass(plugin.getClassName());
             }
         }
-        jcl = new JarClassLoader();
+        plugins.clear();
+        jcl = new JarClassLoader((ClassLoader) null);
+        System.gc();
     }
 }
