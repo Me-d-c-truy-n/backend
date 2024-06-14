@@ -34,7 +34,6 @@ public class PluginManager {
 
         // Clear existing plugins
         unloadPlugins();
-        plugins.clear();
 
         // Load plugins from JAR files in the directory
         File[] files = pluginsDir.listFiles();
