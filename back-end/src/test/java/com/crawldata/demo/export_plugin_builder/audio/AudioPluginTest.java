@@ -31,7 +31,7 @@ class AudioPluginTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-    }g
+    }
 
     @Test
     void export_oneChapter_success() throws Exception {

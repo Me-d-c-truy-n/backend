@@ -1,4 +1,4 @@
-package com.crawldata.back_end.plugin_builder.tangthuvien;
+package com.crawldata.back_end.novel_plugin_builder.tangthuvien;
 import com.crawldata.back_end.model.Author;
 import com.crawldata.back_end.model.Chapter;
 import com.crawldata.back_end.model.Novel;
@@ -254,6 +254,11 @@ public class TangThuVienPlugin implements PluginFactory {
         map.put("firstChapterId", firstChapterId);
 
         return map;
+    }
+
+    public static void main(String[] args) throws IOException {
+        PluginFactory plugin = new TangThuVienPlugin();
+        ((TangThuVienPlugin) plugin).mapNovelInfo("tri-menh-vu-kho");
     }
 
     /**
