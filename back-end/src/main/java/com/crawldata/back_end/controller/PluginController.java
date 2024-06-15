@@ -20,10 +20,6 @@ public class PluginController {
     public ResponseEntity<?> getListNovelsPlugin()
     {
         List<String> listKeyPlugins = novelServiceImpl.getAllNovelPlugins();
-        if(listKeyPlugins.isEmpty())
-        {
-            return ResponseEntity.noContent().build();
-        }
         return ResponseEntity.ok(listKeyPlugins);
     }
 
@@ -31,10 +27,6 @@ public class PluginController {
     public ResponseEntity<?> getListExportPlugin()
     {
         List<String> listKeyPlugins = exportServiceImpl.getAllExportPlugins();
-        if(listKeyPlugins.isEmpty())
-        {
-            return ResponseEntity.noContent().build();
-        }
         return ResponseEntity.ok(listKeyPlugins);
     }
 }

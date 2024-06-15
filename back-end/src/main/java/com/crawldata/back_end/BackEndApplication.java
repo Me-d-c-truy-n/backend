@@ -11,8 +11,7 @@ import java.io.IOException;
 @EnableAsync
 public class BackEndApplication {
 	public static void main(String[] args) throws IOException {
-//		SpringApplication.run(BackEndApplication.class, args);
-//		AppUtils.doLoad();
-		System.out.println(System.getProperty("user.dir"));
+		SpringApplication.run(BackEndApplication.class, args);
+		AppUtils.doLoad();
 	}
 }
