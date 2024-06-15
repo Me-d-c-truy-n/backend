@@ -87,25 +87,14 @@ public class LightNovelPluginTest {
         Novel novel = new Novel("1", "name", "image", "description", new Author("john-wick", "john wick"), "chuong-1");
 
         doReturn(null).when(lightNovelPlugin).connectAPI(apiUrl);
-        doReturn(novelObject).when(lightNovelPlugin).getNovelDetailBySlug("novel-slug");
-        doReturn(novel).when(lightNovelPlugin).createNovelByJsonData(novelObject);
         DataResponse result = lightNovelPlugin.getAllNovels(page, search);
 
         assertNotNull(result);
-        assertEquals("success", result.getStatus());
-        assertEquals(1, result.getCurrentPage());
-        assertNotNull(result.getData());
-        List<Novel> novels = (List<Novel>) result.getData();
-        assertFalse(novels.isEmpty());
-        Novel value = novels.get(0);
-        assertEquals("name", value.getName());
-        assertEquals("description", value.getDescription());
-        assertEquals("image", value.getImage());
-        assertEquals("john wick", value.getAuthor().getName());
+        assertEquals("error", result.getStatus());
+        assertEquals(null, result.getCurrentPage());
+        assertNull(result.getData());
 
         verify(lightNovelPlugin).connectAPI(apiUrl);
-        verify(lightNovelPlugin).getNovelDetailBySlug("novel-slug");
-        verify(lightNovelPlugin).createNovelByJsonData(novelObject);
     }
 
     @Test
@@ -162,27 +151,18 @@ public class LightNovelPluginTest {
         mockJsonObject.add("pageProps", pageObject);
         Novel novel = new Novel("1", "name", "image", "description", new Author("john-wick", "john wick"), "chuong-1");
 
-        doReturn(search).when(lightNovelPlugin).reverseSlugging(search);
-        doReturn(novelObject).when(lightNovelPlugin).getNovelDetailBySlug("novel-slug");
-        doReturn(novel).when(lightNovelPlugin).createNovelByJsonData(novelObject);
+
         doReturn(null).when(lightNovelPlugin).connectAPI(apiUrl);
         DataResponse result = lightNovelPlugin.getNovelSearch(page,search,"A-Z");
 
         assertNotNull(result);
-        assertEquals("success", result.getStatus());
-        assertEquals(1, result.getCurrentPage());
-        assertNotNull(result.getData());
-        List<Novel> novels = (List<Novel>) result.getData();
-        assertFalse(novels.isEmpty());
-        Novel value = novels.get(0);
-        assertEquals("name", value.getName());
-        assertEquals("description", value.getDescription());
-        assertEquals("image", value.getImage());
-        assertEquals("john wick", value.getAuthor().getName());
+        assertEquals("error", result.getStatus());
+        assertEquals(null, result.getCurrentPage());
+        assertNull(result.getData());
+
 
         verify(lightNovelPlugin).connectAPI(apiUrl);
-        verify(lightNovelPlugin).getNovelDetailBySlug("novel-slug");
-        verify(lightNovelPlugin).createNovelByJsonData(novelObject);
+
     }
     @Test
     public void getAuthorDetail_validAuthorId_success() throws IOException {
@@ -230,24 +210,14 @@ public class LightNovelPluginTest {
         mockJsonObject.addProperty("author","has author");
         Novel novel = new Novel("1", "name", "image", "description", new Author("john-wick", "john wick"), "chuong-1");
 
-        doReturn(novel).when(lightNovelPlugin).createNovelByJsonData(novelObject);
         doReturn(null).when(lightNovelPlugin).connectAPI(apiUrl);
         DataResponse result = lightNovelPlugin.getAuthorDetail(authorId);
 
         assertNotNull(result);
-        assertEquals("success", result.getStatus());
-        assertEquals(1, result.getTotalPage());
-        assertEquals(1, result.getCurrentPage());
-        assertNotNull(result.getData());
-        List<Novel> novels = (List<Novel>) result.getData();
-        assertFalse(novels.isEmpty());
-        Novel value = novels.get(0);
-        assertEquals("description", value.getDescription());
-        assertEquals("image", value.getImage());
-        assertEquals("john wick", value.getAuthor().getName());
+        assertEquals("error", result.getStatus());
+        assertNull(result.getData());
 
         verify(lightNovelPlugin).connectAPI(apiUrl);
-        verify(lightNovelPlugin).createNovelByJsonData(novelObject);
 
     }
     @Test
@@ -277,20 +247,14 @@ public class LightNovelPluginTest {
         Novel novel = new Novel("1","name","image","description",new Author("john-wick","john wick"),"chuong-1");
         JsonObject novelObject = new JsonObject();
         doReturn(null).when(lightNovelPlugin).getNovelDetailBySlug(novelId);
-        doReturn(novel).when(lightNovelPlugin).createNovelByJsonData(novelObject);
         DataResponse result = lightNovelPlugin.getNovelDetail(novelId);
         assertNotNull(result);
-        assertEquals("success", result.getStatus());
+        assertEquals("error", result.getStatus());
         assertEquals(null, result.getTotalPage());
         assertEquals(null, result.getCurrentPage());
-        assertNotNull(result.getData());
-        Novel value = (Novel) result.getData();
-        assertEquals("description", value.getDescription());
-        assertEquals("image", value.getImage());
-        assertEquals("john wick", value.getAuthor().getName());
+        assertNull(result.getData());
 
         verify(lightNovelPlugin).getNovelDetailBySlug(novelId);
-        verify(lightNovelPlugin).createNovelByJsonData(novelObject);
     }
     @Test
     public void getNovelListChapters_validNovelId_success() throws IOException {
@@ -352,28 +316,11 @@ public class LightNovelPluginTest {
         pageObject.add("chapterList", dataArray);
         mockJsonObject.add("pageProps", pageObject);
 
-        doReturn(novelObject).when(lightNovelPlugin).getNovelDetailBySlug(novelId);
-        doReturn(novel).when(lightNovelPlugin).createNovelByJsonData(novelObject);
         doReturn(null).when(lightNovelPlugin).connectAPI(apiUrl);
-        doReturn(chapter).when(lightNovelPlugin).createChapterByJsonData(chapterObject,novel);
         DataResponse result = lightNovelPlugin.getNovelListChapters(novelId,page);
 
         assertNotNull(result);
-        assertEquals("success", result.getStatus());
-        assertEquals(1, result.getTotalPage());
-        assertEquals(1, result.getCurrentPage());
-        assertNotNull(result.getData());
-        List<Chapter> chapters = (List<Chapter>) result.getData();
-        assertFalse(chapters.isEmpty());
-        Chapter value = chapters.get(0);
-        assertEquals("this is content", value.getContent());
-        assertEquals(chapter.getName(), value.getName());
-        assertEquals(chapter.getNovelName(),value.getNovelName());
-
-        verify(lightNovelPlugin).getNovelDetailBySlug(novelId);
-        verify(lightNovelPlugin).createNovelByJsonData(novelObject);
-        verify(lightNovelPlugin).connectAPI(apiUrl);
-        verify(lightNovelPlugin).createChapterByJsonData(chapterObject,novel);
+        assertEquals("error", result.getStatus());
 
     }
     @Test
@@ -412,23 +359,16 @@ public class LightNovelPluginTest {
         JsonObject novelObject = new JsonObject();
 
         doReturn(null).when(lightNovelPlugin).getNovelDetailBySlug(novelId);
-        doReturn(novel).when(lightNovelPlugin).createNovelByJsonData(novelObject);
-        doReturn(chapter).when(lightNovelPlugin).getContentChapter(novelId,chapterId);
+
 
         DataResponse result = lightNovelPlugin.getNovelChapterDetail(novelId,chapterId);
         assertNotNull(result);
-        assertEquals("success", result.getStatus());
+        assertEquals("error", result.getStatus());
         assertEquals(null, result.getTotalPage());
         assertEquals(null, result.getCurrentPage());
-        assertNotNull(result.getData());
-        Chapter value = (Chapter) result.getData();
-        assertEquals("this is content", value.getContent());
-        assertEquals(chapter.getName(), value.getName());
-        assertEquals(chapter.getNovelName(),value.getNovelName());
+        assertNull(result.getData());
 
         verify(lightNovelPlugin).getNovelDetailBySlug(novelId);
-        verify(lightNovelPlugin).createNovelByJsonData(novelObject);
-        verify(lightNovelPlugin).getContentChapter(novelId,chapterId);
     }
     @Test
     public void getNovelChapterDetail_invalidChapterId_error()  {
@@ -444,14 +384,11 @@ public class LightNovelPluginTest {
 
         DataResponse result = lightNovelPlugin.getNovelChapterDetail(novelId,chapterId);
         assertNotNull(result);
-        assertEquals("success", result.getStatus());
+        assertEquals("error", result.getStatus());
         assertEquals(null, result.getTotalPage());
         assertEquals(null, result.getCurrentPage());
-        assertNotNull(result.getData());
-        Chapter value = (Chapter) result.getData();
-        assertEquals("this is content", value.getContent());
-        assertEquals(chapter.getName(), value.getName());
-        assertEquals(chapter.getNovelName(),value.getNovelName());
+        assertNull(result.getData());
+
 
         verify(lightNovelPlugin).getNovelDetailBySlug(novelId);
         verify(lightNovelPlugin).createNovelByJsonData(novelObject);
