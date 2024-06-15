@@ -1,4 +1,4 @@
-package com.crawldata.back_end.novel_plugin_builder.tangthuvien;
+
 import com.crawldata.back_end.model.Author;
 import com.crawldata.back_end.model.Chapter;
 import com.crawldata.back_end.model.Novel;
@@ -580,7 +580,6 @@ public class TangThuVienPlugin implements PluginFactory {
             }
         } catch (Exception e) {
             LOGGER.error(e.getMessage(),e);
-            return DataResponseUtils.getErrorDataResponse(e.getMessage());
         }
         return new DataResponse().status("success").totalPage(totalPage).currentPage(page).searchValue(key).data(lsNovels);
     }

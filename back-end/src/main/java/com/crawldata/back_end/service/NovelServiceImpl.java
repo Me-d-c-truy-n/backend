@@ -15,7 +15,7 @@ import java.util.List;
 public class NovelServiceImpl implements NovelService{
     private PluginManager pluginManager;
     private final  String getPluginErrorMessage = "This server does not exist";
-    
+
     @Override
     public PluginFactory getPluginFactory(String pluginId) {
         pluginManager.updatePlugins();

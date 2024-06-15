@@ -10,7 +10,6 @@ public interface PluginFactory {
 
      /**
      * Retrieves the details of a specific chapter of a novel.
-     *
      * @param novelId The ID of the novel.
      * @param chapterId The ID of the chapter.
      * @return The details of the chapter.
@@ -29,7 +28,6 @@ public interface PluginFactory {
      * Retrieves a list of some chapters for a given novel.
      *
      * @param novelId The ID of the novel.
-     * @param page The page number.
      * @return The list of chapters.
      */
     default DataResponse getNovelListChapters(String novelId, String fromChapterId, int numChapters) {
