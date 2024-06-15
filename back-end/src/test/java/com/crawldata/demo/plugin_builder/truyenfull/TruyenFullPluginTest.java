@@ -41,6 +41,9 @@ public class TruyenFullPluginTest {
             when(mockElements.size()).thenReturn(0);
             int totalPages = truyenFullPlugin.getNovelTotalPages(url);
             assertEquals(1, totalPages);
+            mockedStatic.verify(() -> ConnectJsoup.connect(url), times(1));
+            verify(mockDocument, times(1)).select("ul[class=pagination pagination-sm] li");
+            verify(mockElements, times(1)).size();
         }
     }
 

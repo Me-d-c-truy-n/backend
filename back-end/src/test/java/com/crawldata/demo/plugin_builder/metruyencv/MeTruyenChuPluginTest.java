@@ -15,6 +15,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.verify;
 
 public class MeTruyenChuPluginTest {
     @Spy
@@ -34,7 +35,6 @@ public class MeTruyenChuPluginTest {
         String apiUrl = String.format("https://backend.metruyencv.com/api/books?include=author&sort=-view_count&limit=20&page=%s&filter[state]=published",page);
         Novel novel = new Novel("1","name","image","description",new Author("john-wick","john wick"),"chuong-1");
         JsonObject mockJsonObject = new JsonObject();
-        doReturn(mockJsonObject).when(meTruyenChuPlugin).connectAPI(apiUrl);
         JsonObject mockPagination = new JsonObject();
         mockJsonObject.add("pagination", mockPagination);
         JsonArray mockDataArray = new JsonArray();
@@ -44,10 +44,12 @@ public class MeTruyenChuPluginTest {
         mockNovelObject.addProperty("name", "Test Novel");
         mockNovelObject.addProperty("slug", "test-novel");
         mockDataArray.add(mockNovelObject);
+
+        doReturn(mockJsonObject).when(meTruyenChuPlugin).connectAPI(apiUrl);
         doReturn(novel).when(meTruyenChuPlugin).createNovelByJsonData(mockNovelObject);
-        // Act
+
         DataResponse result = meTruyenChuPlugin.getAllNovels(page, search);
-        // Assert
+
         assertNotNull(result);
         assertEquals("success", result.getStatus());
         assertEquals(5, result.getTotalPage());
@@ -60,16 +62,17 @@ public class MeTruyenChuPluginTest {
         assertEquals("description", value.getDescription());
         assertEquals("image", value.getImage());
         assertEquals("john wick", value.getAuthor().getName());
+
+        verify(meTruyenChuPlugin).connectAPI(apiUrl);
+        verify(meTruyenChuPlugin).createNovelByJsonData(mockNovelObject);
     }
     @Test
     public void getAllNovels_whenApiCallFailed_error()  {
-        // Arrange
         int page = 1;
         String search = "test";
         String apiUrl = String.format("https://backend.metruyencv.com/api/books?include=author&sort=-view_count&limit=20&page=%s&filter[state]=published",page);
         Novel novel = new Novel("1","name","image","description",new Author("john-wick","john wick"),"chuong-1");
         JsonObject mockJsonObject = new JsonObject();
-        doReturn(null).when(meTruyenChuPlugin).connectAPI(apiUrl);
         JsonObject mockPagination = new JsonObject();
         mockJsonObject.add("pagination", mockPagination);
         JsonArray mockDataArray = new JsonArray();
@@ -79,10 +82,12 @@ public class MeTruyenChuPluginTest {
         mockNovelObject.addProperty("name", "Test Novel");
         mockNovelObject.addProperty("slug", "test-novel");
         mockDataArray.add(mockNovelObject);
+
+        doReturn(null).when(meTruyenChuPlugin).connectAPI(apiUrl);
         doReturn(novel).when(meTruyenChuPlugin).createNovelByJsonData(mockNovelObject);
-        // Act
+
         DataResponse result = meTruyenChuPlugin.getAllNovels(page, search);
-        // Assert
+
         assertNotNull(result);
         assertEquals("success", result.getStatus());
         assertEquals(5, result.getTotalPage());
@@ -95,6 +100,9 @@ public class MeTruyenChuPluginTest {
         assertEquals("description", value.getDescription());
         assertEquals("image", value.getImage());
         assertEquals("john wick", value.getAuthor().getName());
+
+        verify(meTruyenChuPlugin).connectAPI(apiUrl);
+        verify(meTruyenChuPlugin).createNovelByJsonData(mockNovelObject);
     }
     @Test
     public void getNovelSearch_whenApiCallSucceeds_success()  {
@@ -104,7 +112,6 @@ public class MeTruyenChuPluginTest {
         String apiUrl = "https://backend.metruyencv.com/api/books/search?keyword=test&limit=20&page=1&sort=-view_count&filter[state]=published";
         Novel novel = new Novel("1","name","image","description",new Author("john-wick","john wick"),"chuong-1");
         JsonObject mockJsonObject = new JsonObject();
-        doReturn(mockJsonObject).when(meTruyenChuPlugin).connectAPI(apiUrl);
         JsonArray mockDataArray = new JsonArray();
         mockJsonObject.add("data", mockDataArray);
         JsonObject mockNovelObject = new JsonObject();
@@ -114,8 +121,11 @@ public class MeTruyenChuPluginTest {
         mockNovelObject.addProperty("name", "Test Novel");
         mockNovelObject.addProperty("slug", "test-novel");
         mockDataArray.add(mockNovelObject);
+
+        doReturn(mockJsonObject).when(meTruyenChuPlugin).connectAPI(apiUrl);
         doReturn(novel).when(meTruyenChuPlugin).createNovelByJsonData(mockNovelObject);
         DataResponse result = meTruyenChuPlugin.getNovelSearch(1,search,"A-Z");
+
         assertNotNull(result);
         assertEquals("success", result.getStatus());
         assertEquals(5, result.getTotalPage());
@@ -127,6 +137,9 @@ public class MeTruyenChuPluginTest {
         assertEquals("description", value.getDescription());
         assertEquals("image", value.getImage());
         assertEquals("john wick", value.getAuthor().getName());
+
+        verify(meTruyenChuPlugin).connectAPI(apiUrl);
+        verify(meTruyenChuPlugin).createNovelByJsonData(mockNovelObject);
     }
     @Test
     public void getNovelSearch_whenApiCallFailed_error()  {
@@ -136,7 +149,6 @@ public class MeTruyenChuPluginTest {
         String apiUrl = "https://backend.metruyencv.com/api/books/search?keyword=test&limit=20&page=1&sort=-view_count&filter[state]=published";
         Novel novel = new Novel("1","name","image","description",new Author("john-wick","john wick"),"chuong-1");
         JsonObject mockJsonObject = new JsonObject();
-        doReturn(null).when(meTruyenChuPlugin).connectAPI(apiUrl);
         JsonArray mockDataArray = new JsonArray();
         mockJsonObject.add("data", mockDataArray);
         JsonObject mockNovelObject = new JsonObject();
@@ -146,8 +158,11 @@ public class MeTruyenChuPluginTest {
         mockNovelObject.addProperty("name", "Test Novel");
         mockNovelObject.addProperty("slug", "test-novel");
         mockDataArray.add(mockNovelObject);
+
+        doReturn(null).when(meTruyenChuPlugin).connectAPI(apiUrl);
         doReturn(novel).when(meTruyenChuPlugin).createNovelByJsonData(mockNovelObject);
         DataResponse result = meTruyenChuPlugin.getNovelSearch(1,search,"A-Z");
+
         assertNotNull(result);
         assertEquals("success", result.getStatus());
         assertEquals(5, result.getTotalPage());
@@ -159,6 +174,9 @@ public class MeTruyenChuPluginTest {
         assertEquals("description", value.getDescription());
         assertEquals("image", value.getImage());
         assertEquals("john wick", value.getAuthor().getName());
+
+        verify(meTruyenChuPlugin).connectAPI(apiUrl);
+        verify(meTruyenChuPlugin).createNovelByJsonData(mockNovelObject);
     }
     @Test
     public void getAuthorDetail_validAuthorId_success()  {
@@ -167,11 +185,12 @@ public class MeTruyenChuPluginTest {
 
         Novel novel = new Novel("1","name","image","description",new Author("john-wick","john wick"),"chuong-1");
         JsonObject mockJsonObject = new JsonObject();
-        doReturn(mockJsonObject).when(meTruyenChuPlugin).connectAPI(apiUrl);
         JsonArray mockDataArray = new JsonArray();
         mockJsonObject.add("data", mockDataArray);
         JsonObject mockNovelObject = new JsonObject();
         mockDataArray.add(mockNovelObject);
+
+        doReturn(mockJsonObject).when(meTruyenChuPlugin).connectAPI(apiUrl);
         doReturn(novel).when(meTruyenChuPlugin).createNovelByJsonData(mockNovelObject);
         DataResponse result = meTruyenChuPlugin.getAuthorDetail(authorId);
 
@@ -186,6 +205,9 @@ public class MeTruyenChuPluginTest {
         assertEquals("description", value.getDescription());
         assertEquals("image", value.getImage());
         assertEquals("john wick", value.getAuthor().getName());
+
+        verify(meTruyenChuPlugin).connectAPI(apiUrl);
+        verify(meTruyenChuPlugin).createNovelByJsonData(mockNovelObject);
     }
     @Test
     public void getAuthorDetail_inValidAuthorId_error()  {
@@ -194,11 +216,12 @@ public class MeTruyenChuPluginTest {
 
         Novel novel = new Novel("1","name","image","description",new Author("john-wick","john wick"),"chuong-1");
         JsonObject mockJsonObject = new JsonObject();
-        doReturn(null).when(meTruyenChuPlugin).connectAPI(apiUrl);
         JsonArray mockDataArray = new JsonArray();
         mockJsonObject.add("data", mockDataArray);
         JsonObject mockNovelObject = new JsonObject();
         mockDataArray.add(mockNovelObject);
+
+        doReturn(null).when(meTruyenChuPlugin).connectAPI(apiUrl);
         doReturn(novel).when(meTruyenChuPlugin).createNovelByJsonData(mockNovelObject);
         DataResponse result = meTruyenChuPlugin.getAuthorDetail(authorId);
 
@@ -213,15 +236,20 @@ public class MeTruyenChuPluginTest {
         assertEquals("description", value.getDescription());
         assertEquals("image", value.getImage());
         assertEquals("john wick", value.getAuthor().getName());
+
+        verify(meTruyenChuPlugin).connectAPI(apiUrl);
+        verify(meTruyenChuPlugin).createNovelByJsonData(mockNovelObject);
     }
     @Test
     public void getNovelDetail_validNovelId_success()  {
         String novelId = "valid-novel-id";
         Novel novel = new Novel("1","name","image","description",new Author("john-wick","john wick"),"chuong-1");
         JsonObject mockNovelObject = new JsonObject();
+
         doReturn(mockNovelObject).when(meTruyenChuPlugin).getNovelDetailBySlug(novelId);
         doReturn(novel).when(meTruyenChuPlugin).createNovelByJsonData(mockNovelObject);
         DataResponse result = meTruyenChuPlugin.getNovelDetail(novelId);
+
         assertNotNull(result);
         assertEquals("success", result.getStatus());
         assertEquals(null, result.getTotalPage());
@@ -231,12 +259,16 @@ public class MeTruyenChuPluginTest {
         assertEquals("description", value.getDescription());
         assertEquals("image", value.getImage());
         assertEquals("john wick", value.getAuthor().getName());
+
+        verify(meTruyenChuPlugin).getNovelDetailBySlug(novelId);
+        verify(meTruyenChuPlugin).createNovelByJsonData(mockNovelObject);
     }
     @Test
     public void getNovelDetail_inValidNovelId_error()  {
         String novelId = "invalid-novel-id";
         Novel novel = new Novel("1","name","image","description",new Author("john-wick","john wick"),"chuong-1");
         JsonObject mockNovelObject = new JsonObject();
+
         doReturn(null).when(meTruyenChuPlugin).getNovelDetailBySlug(novelId);
         doReturn(novel).when(meTruyenChuPlugin).createNovelByJsonData(mockNovelObject);
         DataResponse result = meTruyenChuPlugin.getNovelDetail(novelId);
@@ -249,6 +281,9 @@ public class MeTruyenChuPluginTest {
         assertEquals("description", value.getDescription());
         assertEquals("image", value.getImage());
         assertEquals("john wick", value.getAuthor().getName());
+
+        verify(meTruyenChuPlugin).getNovelDetailBySlug(novelId);
+        verify(meTruyenChuPlugin).createNovelByJsonData(mockNovelObject);
     }
     @Test
     public void getNovelListChapters_validNovelId_success() {
@@ -283,6 +318,11 @@ public class MeTruyenChuPluginTest {
         assertEquals("this is content", value.getContent());
         assertEquals(chapter.getName(), value.getName());
         assertEquals(chapter.getNovelName(),value.getNovelName());
+
+        verify(meTruyenChuPlugin).connectAPI(apiUrl);
+        verify(meTruyenChuPlugin).getNovelDetailBySlug(novelId);
+        verify(meTruyenChuPlugin).createNovelByJsonData(mockNovelObject);
+        verify(meTruyenChuPlugin).createChapterByJsonData(chapterObject,novel);
     }
     @Test
     public void getNovelListChapters_invalidNovelId_error()  {
@@ -317,6 +357,11 @@ public class MeTruyenChuPluginTest {
         assertEquals("this is content", value.getContent());
         assertEquals(chapter.getName(), value.getName());
         assertEquals(chapter.getNovelName(),value.getNovelName());
+
+        verify(meTruyenChuPlugin).connectAPI(apiUrl);
+        verify(meTruyenChuPlugin).getNovelDetailBySlug(novelId);
+        verify(meTruyenChuPlugin).createNovelByJsonData(mockNovelObject);
+        verify(meTruyenChuPlugin).createChapterByJsonData(chapterObject,novel);
     }
     @Test
     public void getNovelChapterDetail_validNovelIdAndChapterId_success()  {
@@ -325,10 +370,12 @@ public class MeTruyenChuPluginTest {
         Novel novel = new Novel("1","name","image","description",new Author("john-wick","john wick"),"chuong-1");
         Chapter chapter = new Chapter("1","name","chuong-1","chuong-2",null,"test chapter",novel.getAuthor(),"this is content");
         JsonObject mockNovelObject = new JsonObject();
+
         doReturn(mockNovelObject).when(meTruyenChuPlugin).getNovelDetailBySlug(novelId);
         doReturn(novel).when(meTruyenChuPlugin).createNovelByJsonData(mockNovelObject);
         doReturn(chapter).when(meTruyenChuPlugin).getContentChapter(novelId,chapterId);
         DataResponse result = meTruyenChuPlugin.getNovelChapterDetail(novelId,chapterId);
+
         assertNotNull(result);
         assertEquals("success", result.getStatus());
         assertEquals(null, result.getTotalPage());
@@ -338,6 +385,10 @@ public class MeTruyenChuPluginTest {
         assertEquals("this is content", value.getContent());
         assertEquals(chapter.getName(), value.getName());
         assertEquals(chapter.getNovelName(),value.getNovelName());
+
+        verify(meTruyenChuPlugin).getNovelDetailBySlug(novelId);
+        verify(meTruyenChuPlugin).createNovelByJsonData(mockNovelObject);
+        verify(meTruyenChuPlugin).getContentChapter(novelId,chapterId);
     }
     @Test
     public void getNovelChapterDetail_inValidNovelId_error()  {
@@ -346,10 +397,12 @@ public class MeTruyenChuPluginTest {
         Novel novel = new Novel("1","name","image","description",new Author("john-wick","john wick"),"chuong-1");
         Chapter chapter = new Chapter("1","name","chuong-1","chuong-2",null,"test chapter",novel.getAuthor(),"this is content");
         JsonObject mockNovelObject = new JsonObject();
+
         doReturn(null).when(meTruyenChuPlugin).getNovelDetailBySlug(novelId);
         doReturn(novel).when(meTruyenChuPlugin).createNovelByJsonData(mockNovelObject);
         doReturn(chapter).when(meTruyenChuPlugin).getContentChapter(novelId,chapterId);
         DataResponse result = meTruyenChuPlugin.getNovelChapterDetail(novelId,chapterId);
+
         assertNotNull(result);
         assertEquals("success", result.getStatus());
         assertEquals(null, result.getTotalPage());
@@ -359,6 +412,10 @@ public class MeTruyenChuPluginTest {
         assertEquals("this is content", value.getContent());
         assertEquals(chapter.getName(), value.getName());
         assertEquals(chapter.getNovelName(),value.getNovelName());
+
+        verify(meTruyenChuPlugin).getNovelDetailBySlug(novelId);
+        verify(meTruyenChuPlugin).createNovelByJsonData(mockNovelObject);
+        verify(meTruyenChuPlugin).getContentChapter(novelId,chapterId);
     }
     @Test
     public void getNovelChapterDetail_inValidChapterId_error()  {
@@ -367,6 +424,7 @@ public class MeTruyenChuPluginTest {
         Novel novel = new Novel("1","name","image","description",new Author("john-wick","john wick"),"chuong-1");
         Chapter chapter = new Chapter("1","name","chuong-1","chuong-2",null,"test chapter",novel.getAuthor(),"this is content");
         JsonObject mockNovelObject = new JsonObject();
+
         doReturn(mockNovelObject).when(meTruyenChuPlugin).getNovelDetailBySlug(novelId);
         doReturn(novel).when(meTruyenChuPlugin).createNovelByJsonData(mockNovelObject);
         doReturn(null).when(meTruyenChuPlugin).getContentChapter(novelId,chapterId);
@@ -380,5 +438,9 @@ public class MeTruyenChuPluginTest {
         assertEquals("this is content", value.getContent());
         assertEquals(chapter.getName(), value.getName());
         assertEquals(chapter.getNovelName(),value.getNovelName());
+
+        verify(meTruyenChuPlugin).getNovelDetailBySlug(novelId);
+        verify(meTruyenChuPlugin).createNovelByJsonData(mockNovelObject);
+        verify(meTruyenChuPlugin).getContentChapter(novelId,chapterId);
     }
 }

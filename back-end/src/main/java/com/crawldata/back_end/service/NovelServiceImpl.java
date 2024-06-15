@@ -15,6 +15,7 @@ import java.util.List;
 public class NovelServiceImpl implements NovelService{
     private PluginManager pluginManager;
     private final  String getPluginErrorMessage = "This server does not exist";
+    
     @Override
     public PluginFactory getPluginFactory(String pluginId) {
         pluginManager.updatePlugins();
@@ -40,43 +41,47 @@ public class NovelServiceImpl implements NovelService{
     public DataResponse getNovelChapterDetail(String pluginId, String novelId, String chapterId) {
         PluginFactory pluginFactory = getPluginFactory(pluginId);
         if(pluginFactory == null) {
-            return new DataResponse("error", null, null, null, null, null, getPluginErrorMessage);
+            return new DataResponse().status("error").message(getPluginErrorMessage);
         } else {
             return pluginFactory.getNovelChapterDetail(novelId, chapterId);
         }
     }
+
     @Override
     public DataResponse getNovelListChapters(String pluginId, String novelId, int page) {
         PluginFactory pluginFactory = getPluginFactory(pluginId);
         if(pluginFactory == null) {
-            return new DataResponse("error", null, null, null, null, null, getPluginErrorMessage);
+            return new DataResponse().status("error").message(getPluginErrorMessage);
         } else {
             return pluginFactory.getNovelListChapters(novelId, page);
         }
     }
+
     @Override
     public DataResponse getNovelDetail(String pluginId, String novelId) {
         PluginFactory pluginFactory = getPluginFactory(pluginId);
         if(pluginFactory == null) {
-            return new DataResponse("error", null, null, null, null, null, getPluginErrorMessage);
+            return new DataResponse().status("error").message(getPluginErrorMessage);
         } else {
             return pluginFactory.getNovelDetail(novelId);
         }
     }
+
     @Override
     public DataResponse getDetailAuthor(String pluginId, String authorId) {
         PluginFactory pluginFactory = getPluginFactory(pluginId);
         if(pluginFactory == null) {
-            return new DataResponse("error", null, null, null, null, null, getPluginErrorMessage);
+            return new DataResponse().status("error").message(getPluginErrorMessage);
         } else {
             return pluginFactory.getAuthorDetail(authorId);
         }
     }
+
     @Override
     public DataResponse getAllNovels(String pluginId, int page, String search) {
         PluginFactory pluginFactory = getPluginFactory(pluginId);
         if (pluginFactory == null) {
-            return new DataResponse("error", null, null, null, null, null, getPluginErrorMessage);
+            return new DataResponse().status("error").message(getPluginErrorMessage);
         } else {
             return pluginFactory.getAllNovels(page, search);
         }
@@ -86,7 +91,7 @@ public class NovelServiceImpl implements NovelService{
     public DataResponse getSearchedNovels(String pluginId, int page, String key, String orderBy) {
         PluginFactory pluginFactory = getPluginFactory(pluginId);
         if (pluginFactory == null) {
-            return new DataResponse("error", null, null, null, null, null, getPluginErrorMessage);
+            return new DataResponse().status("error").message(getPluginErrorMessage);
         } else {
             return pluginFactory.getNovelSearch(page, key,orderBy);
         }

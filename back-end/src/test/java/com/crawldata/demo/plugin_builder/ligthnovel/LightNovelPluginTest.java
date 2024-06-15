@@ -17,18 +17,14 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.verify;
 
 public class LightNovelPluginTest {
     private String API_KEY = "35OqUcP8sjF1T";
-    private final String GET_API_KEY_URL = "https://lightnovel.vn/";
     private final String NOVEL_LIST_CHAPTERS_API = "https://lightnovel.vn/_next/data/%s/truyen/%s/danh-sach-chuong.json?page=%s";
-    private final String NOVEL_DETAIL_API = "https://lightnovel.vn/_next/data/%s/truyen/%s.json";
     private final String AUTHOR_DETAIL_API = "https://lightnovel.vn/_next/data/%s/tac-gia/%s.json";
     private final String ALL_NOVELS_API = "https://lightnovel.vn/_next/data/%s/the-loai.json?sort=doc-nhieu&page=%s";
     private final String NOVEL_SEARCH_API = "https://lightnovel.vn/_next/data/%s/the-loai.json?sort=doc-nhieu&page=%s&keyword=%s";
-    private final String CHAPTER_DETAIL_API = "https://lightnovel.vn/_next/data/%s/truyen/%s/%s.json";
-    private final String IMAGE_URL_PREFIX = "https://static.lightnovel.vn/cdn-cgi/image/w=500,f=auto";
-    private final String CRAW_CHAPTER_URL = "https://lightnovel.vn/truyen/%s/%s";
     @Spy
     private LightNovelPlugin lightNovelPlugin;
 
@@ -69,6 +65,10 @@ public class LightNovelPluginTest {
         assertEquals("description", value.getDescription());
         assertEquals("image", value.getImage());
         assertEquals("john wick", value.getAuthor().getName());
+
+        verify(lightNovelPlugin).connectAPI(apiUrl);
+        verify(lightNovelPlugin).getNovelDetailBySlug("novel-slug");
+        verify(lightNovelPlugin).createNovelByJsonData(novelObject);
     }
     @Test
     public void getAllNovels_whenApiCallFailed_error() throws IOException {
@@ -102,7 +102,12 @@ public class LightNovelPluginTest {
         assertEquals("description", value.getDescription());
         assertEquals("image", value.getImage());
         assertEquals("john wick", value.getAuthor().getName());
+
+        verify(lightNovelPlugin).connectAPI(apiUrl);
+        verify(lightNovelPlugin).getNovelDetailBySlug("novel-slug");
+        verify(lightNovelPlugin).createNovelByJsonData(novelObject);
     }
+
     @Test
     public void getNovelSearch_whenApiCallSucceeds_success() throws IOException {
         int page = 1;
@@ -136,6 +141,10 @@ public class LightNovelPluginTest {
         assertEquals("description", value.getDescription());
         assertEquals("image", value.getImage());
         assertEquals("john wick", value.getAuthor().getName());
+
+        verify(lightNovelPlugin).connectAPI(apiUrl);
+        verify(lightNovelPlugin).getNovelDetailBySlug("novel-slug");
+        verify(lightNovelPlugin).createNovelByJsonData(novelObject);
     }
     @Test
     public void getNovelSearch_whenApiCallFailed_error() throws IOException {
@@ -170,6 +179,10 @@ public class LightNovelPluginTest {
         assertEquals("description", value.getDescription());
         assertEquals("image", value.getImage());
         assertEquals("john wick", value.getAuthor().getName());
+
+        verify(lightNovelPlugin).connectAPI(apiUrl);
+        verify(lightNovelPlugin).getNovelDetailBySlug("novel-slug");
+        verify(lightNovelPlugin).createNovelByJsonData(novelObject);
     }
     @Test
     public void getAuthorDetail_validAuthorId_success() throws IOException {
@@ -199,6 +212,9 @@ public class LightNovelPluginTest {
         assertEquals("description", value.getDescription());
         assertEquals("image", value.getImage());
         assertEquals("john wick", value.getAuthor().getName());
+
+        verify(lightNovelPlugin).connectAPI(apiUrl);
+        verify(lightNovelPlugin).createNovelByJsonData(novelObject);
 
     }
     @Test
@@ -230,6 +246,9 @@ public class LightNovelPluginTest {
         assertEquals("image", value.getImage());
         assertEquals("john wick", value.getAuthor().getName());
 
+        verify(lightNovelPlugin).connectAPI(apiUrl);
+        verify(lightNovelPlugin).createNovelByJsonData(novelObject);
+
     }
     @Test
     public void getNovelDetail_validNovelId_success()  {
@@ -248,9 +267,12 @@ public class LightNovelPluginTest {
         assertEquals("description", value.getDescription());
         assertEquals("image", value.getImage());
         assertEquals("john wick", value.getAuthor().getName());
+
+        verify(lightNovelPlugin).getNovelDetailBySlug(novelId);
+        verify(lightNovelPlugin).createNovelByJsonData(novelObject);
     }
     @Test
-    public void getNovelDetail_invalidNovelId_success()  {
+    public void getNovelDetail_invalidNovelId_error()  {
         String novelId = "invalid-novel-id";
         Novel novel = new Novel("1","name","image","description",new Author("john-wick","john wick"),"chuong-1");
         JsonObject novelObject = new JsonObject();
@@ -266,6 +288,9 @@ public class LightNovelPluginTest {
         assertEquals("description", value.getDescription());
         assertEquals("image", value.getImage());
         assertEquals("john wick", value.getAuthor().getName());
+
+        verify(lightNovelPlugin).getNovelDetailBySlug(novelId);
+        verify(lightNovelPlugin).createNovelByJsonData(novelObject);
     }
     @Test
     public void getNovelListChapters_validNovelId_success() throws IOException {
@@ -302,6 +327,11 @@ public class LightNovelPluginTest {
         assertEquals("this is content", value.getContent());
         assertEquals(chapter.getName(), value.getName());
         assertEquals(chapter.getNovelName(),value.getNovelName());
+
+        verify(lightNovelPlugin).getNovelDetailBySlug(novelId);
+        verify(lightNovelPlugin).createNovelByJsonData(novelObject);
+        verify(lightNovelPlugin).connectAPI(apiUrl);
+        verify(lightNovelPlugin).createChapterByJsonData(chapterObject,novel);
 
     }
     @Test
@@ -340,6 +370,11 @@ public class LightNovelPluginTest {
         assertEquals(chapter.getName(), value.getName());
         assertEquals(chapter.getNovelName(),value.getNovelName());
 
+        verify(lightNovelPlugin).getNovelDetailBySlug(novelId);
+        verify(lightNovelPlugin).createNovelByJsonData(novelObject);
+        verify(lightNovelPlugin).connectAPI(apiUrl);
+        verify(lightNovelPlugin).createChapterByJsonData(chapterObject,novel);
+
     }
     @Test
     public void getNovelChapterDetail_validNovelIdAndChapterId_success()  {
@@ -363,6 +398,10 @@ public class LightNovelPluginTest {
         assertEquals("this is content", value.getContent());
         assertEquals(chapter.getName(), value.getName());
         assertEquals(chapter.getNovelName(),value.getNovelName());
+
+        verify(lightNovelPlugin).getNovelDetailBySlug(novelId);
+        verify(lightNovelPlugin).createNovelByJsonData(novelObject);
+        verify(lightNovelPlugin).getContentChapter(novelId,chapterId);
     }
     @Test
     public void getNovelChapterDetail_invalidNovelId_error()  {
@@ -386,6 +425,10 @@ public class LightNovelPluginTest {
         assertEquals("this is content", value.getContent());
         assertEquals(chapter.getName(), value.getName());
         assertEquals(chapter.getNovelName(),value.getNovelName());
+
+        verify(lightNovelPlugin).getNovelDetailBySlug(novelId);
+        verify(lightNovelPlugin).createNovelByJsonData(novelObject);
+        verify(lightNovelPlugin).getContentChapter(novelId,chapterId);
     }
     @Test
     public void getNovelChapterDetail_invalidChapterId_error()  {
@@ -409,5 +452,9 @@ public class LightNovelPluginTest {
         assertEquals("this is content", value.getContent());
         assertEquals(chapter.getName(), value.getName());
         assertEquals(chapter.getNovelName(),value.getNovelName());
+
+        verify(lightNovelPlugin).getNovelDetailBySlug(novelId);
+        verify(lightNovelPlugin).createNovelByJsonData(novelObject);
+        verify(lightNovelPlugin).getContentChapter(novelId,chapterId);
     }
 }
