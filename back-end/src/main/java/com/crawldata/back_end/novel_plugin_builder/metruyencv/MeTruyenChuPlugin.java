@@ -1,4 +1,5 @@
 package com.crawldata.back_end.novel_plugin_builder.metruyencv;
+
 import com.crawldata.back_end.model.Author;
 import com.crawldata.back_end.model.Chapter;
 import com.crawldata.back_end.model.Novel;
@@ -39,7 +40,7 @@ public class MeTruyenChuPlugin implements PluginFactory {
     private final String ALL_NOVELS_API = "https://backend.metruyencv.com/api/books?include=author&sort=-view_count&limit=20&page=%s&filter[state]=published";
     private final String NOVEL_SEARCH_API = "https://backend.metruyencv.com/api/books/search?keyword=%s&limit=20&page=%s&sort=-view_count&filter[state]=published";
     private final String CHAPTER_DETAIL_API = "https://metruyencv.com/truyen/%s/%s";
-    private static final String CHROME_DRIVER_PATH = "/novel_plugins/chromedriver.exe";
+    private static final String CHROME_DRIVER_PATH = "/plugins/chromedriver.exe";
 
     private static final int ITEMS_PER_PAGE = 30;
     private final int DEFAULT_PAGE_NUMBER = 1;

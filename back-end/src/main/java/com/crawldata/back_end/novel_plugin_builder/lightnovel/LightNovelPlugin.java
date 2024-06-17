@@ -1,4 +1,5 @@
 package com.crawldata.back_end.novel_plugin_builder.lightnovel;
+
 import com.crawldata.back_end.model.Author;
 import com.crawldata.back_end.model.Chapter;
 import com.crawldata.back_end.model.Novel;
@@ -46,7 +47,7 @@ public class LightNovelPlugin implements PluginFactory {
     private final String CHAPTER_DETAIL_API = "https://lightnovel.vn/_next/data/%s/truyen/%s/%s.json";
     private final String IMAGE_URL_PREFIX = "https://static.lightnovel.vn/cdn-cgi/image/w=500,f=auto";
     private final String CRAW_CHAPTER_URL = "https://lightnovel.vn/truyen/%s/%s";
-    private static final String CHROME_DRIVER_PATH = "/novel_plugins/chromedriver.exe";
+    private static final String CHROME_DRIVER_PATH = "/plugins/chromedriver.exe";
 
     private final int MAX_RETRIES = 3;
     private final int LIST_CHAPTERS_CAP = 50;
