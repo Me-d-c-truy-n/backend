@@ -28,6 +28,7 @@ public class LightNovelPluginTest {
     private final String AUTHOR_DETAIL_API = "https://lightnovel.vn/_next/data/%s/tac-gia/%s.json";
     private final String ALL_NOVELS_API = "https://lightnovel.vn/_next/data/%s/the-loai.json?sort=doc-nhieu&page=%s";
     private final String NOVEL_SEARCH_API = "https://lightnovel.vn/_next/data/%s/the-loai.json?sort=doc-nhieu&page=%s&keyword=%s";
+
     @Spy
     private LightNovelPlugin lightNovelPlugin;
 
@@ -177,10 +178,15 @@ public class LightNovelPluginTest {
         JsonObject mockJsonObject = new JsonObject();
         JsonArray dataArray = new JsonArray();
         JsonObject novelObject = new JsonObject();
+        JsonObject authorObject = new JsonObject();
+        authorObject.addProperty("slug",authorId);
+        authorObject.addProperty("authorId",authorId);
         novelObject.addProperty("slug", "novel-slug");
+        JsonObject pageObject = new JsonObject();
         dataArray.add(novelObject);
-        mockJsonObject.add("data", dataArray);
-        mockJsonObject.addProperty("author", "has author");
+        pageObject.add("data", dataArray);
+        mockJsonObject.add("pageProps", pageObject);
+        pageObject.add("author", authorObject);
         Novel novel = new Novel("1", "name", "image", "description", new Author("john-wick", "john wick"), "chuong-1");
 
         doReturn(novel).when(lightNovelPlugin).createNovelByJsonData(novelObject);
@@ -208,14 +214,6 @@ public class LightNovelPluginTest {
     public void getAuthorDetail_invalidAuthorId_error() throws IOException {
         String authorId = "invalid-author-id";
         String apiUrl = String.format(AUTHOR_DETAIL_API, API_KEY, authorId);
-        JsonObject mockJsonObject = new JsonObject();
-        JsonArray dataArray = new JsonArray();
-        JsonObject novelObject = new JsonObject();
-        novelObject.addProperty("slug", "novel-slug");
-        dataArray.add(novelObject);
-        mockJsonObject.add("data", dataArray);
-        mockJsonObject.addProperty("author", "has author");
-        Novel novel = new Novel("1", "name", "image", "description", new Author("john-wick", "john wick"), "chuong-1");
 
         doReturn(null).when(lightNovelPlugin).connectAPI(apiUrl);
         DataResponse result = lightNovelPlugin.getAuthorDetail(authorId);

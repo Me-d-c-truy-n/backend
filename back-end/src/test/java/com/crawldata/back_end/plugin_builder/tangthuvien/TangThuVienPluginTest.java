@@ -1,5 +1,6 @@
 //package com.crawldata.back_end.plugin_builder.tangthuvien;
 //
+//import com.crawldata.back_end.BackEndApplication;
 //import com.crawldata.back_end.model.Author;
 //import com.crawldata.back_end.model.Chapter;
 //import com.crawldata.back_end.model.Novel;
@@ -9,6 +10,7 @@
 //import org.junit.jupiter.api.Test;
 //import org.mockito.MockitoAnnotations;
 //import org.mockito.Spy;
+//import org.springframework.boot.test.context.SpringBootTest;
 //
 //import java.io.IOException;
 //import java.util.ArrayList;
@@ -19,6 +21,7 @@
 //import static org.junit.jupiter.api.Assertions.*;
 //import static org.mockito.Mockito.doReturn;
 //
+//@SpringBootTest(classes = BackEndApplication.class)
 //public class TangThuVienPluginTest {
 //    private final Integer TOTAL_CHAPTERS_PER_PAGE = 75;
 //    private final String ROOT_URL = "https://truyen.tangthuvien.vn/";

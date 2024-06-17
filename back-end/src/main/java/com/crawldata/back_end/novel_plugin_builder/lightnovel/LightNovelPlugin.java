@@ -9,7 +9,6 @@ import com.crawldata.back_end.utils.AppUtils;
 import com.crawldata.back_end.utils.DataResponseUtils;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
