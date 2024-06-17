@@ -1,9 +1,9 @@
-//package com.crawldata.demo.plugin_builder.tangthuvien;
+//package com.crawldata.back_end.plugin_builder.tangthuvien;
 //
 //import com.crawldata.back_end.model.Author;
 //import com.crawldata.back_end.model.Chapter;
 //import com.crawldata.back_end.model.Novel;
-//import com.crawldata.back_end.plugin_builder.tangthuvien.TangThuVienPlugin;
+//import com.crawldata.back_end.novel_plugin_builder.tangthuvien.TangThuVienPlugin;
 //import com.crawldata.back_end.response.DataResponse;
 //import org.junit.jupiter.api.BeforeEach;
 //import org.junit.jupiter.api.Test;

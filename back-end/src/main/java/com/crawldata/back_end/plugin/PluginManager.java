@@ -22,6 +22,7 @@ public class PluginManager {
 
     private PluginLoader pluginLoader;
 
+
     /**
      * Updates the list of available plugins by loading plugins from the plugin directory.
      */
