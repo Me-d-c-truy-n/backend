@@ -1,6 +1,7 @@
 package com.crawldata.back_end.service;
 
 import com.crawldata.back_end.model.PluginInformation;
+import com.crawldata.back_end.novel_plugin_builder.lightnovel.LightNovelPlugin;
 import com.crawldata.back_end.plugin.PluginManager;
 import com.crawldata.back_end.novel_plugin_builder.PluginFactory;
 import com.crawldata.back_end.response.DataResponse;
@@ -9,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @AllArgsConstructor

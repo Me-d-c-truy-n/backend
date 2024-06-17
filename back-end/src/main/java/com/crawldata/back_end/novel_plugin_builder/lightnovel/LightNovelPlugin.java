@@ -9,6 +9,7 @@ import com.crawldata.back_end.utils.AppUtils;
 import com.crawldata.back_end.utils.DataResponseUtils;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -217,7 +218,7 @@ public class LightNovelPlugin implements PluginFactory {
         String name = novelObject.get("name").getAsString();
         String novelId = novelObject.get("slug").getAsString();
         JsonObject authorObject = novelObject.getAsJsonObject("author");
-        Author author = new Author(removeTrailingPart(authorObject.get("slug").getAsString()), authorObject.get("name").getAsString());
+        Author author = new Author(authorObject.get("slug").getAsString(), authorObject.get("name").getAsString());
         String idFirstChapter = "chuong-1";
         String image = IMAGE_URL_PREFIX + novelObject.get("coverUrl").getAsString();
         String description = novelObject.get("introduction").getAsString().replaceAll("\n", "<br>");
@@ -512,13 +513,17 @@ public class LightNovelPlugin implements PluginFactory {
         JsonObject jsonObject = null;
         try {
             jsonObject = connectAPI(apiUrl);
-            if (jsonObject != null && jsonObject.has("author")) {
+            if (jsonObject != null && jsonObject.has("pageProps")) {
+                JsonObject pageObject = jsonObject.getAsJsonObject("pageProps");
                 List<Novel> novelList = new ArrayList<>();
-                if (jsonObject.has("data")) {
-                    JsonArray dataArray = jsonObject.getAsJsonArray("data");
+                if (pageObject.has("data")) {
+                    JsonObject authorObject = pageObject.get("author").getAsJsonObject();
+                    authorObject.addProperty("slug", authorObject.get("slug").getAsString() + "-" + authorObject.get("authorId"));
+                    JsonArray dataArray = pageObject.getAsJsonArray("data");
                     // Loop through the data
                     for (int i = 0; i < dataArray.size(); i++) {
                         JsonObject novelObject = dataArray.get(i).getAsJsonObject();
+                        novelObject.add("author", authorObject);
                         novelList.add(createNovelByJsonData(novelObject));
                     }
                 }
