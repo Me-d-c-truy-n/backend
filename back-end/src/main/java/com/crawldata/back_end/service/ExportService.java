@@ -25,7 +25,6 @@ public interface ExportService {
      * @param fileType the type of file to export
      * @param pluginId The ID of the novel.
      * @param novelId The ID of the novel.
-     * @param fromChapterId The ID of the first chapter.
      * @param numChapters number of chapters to export
      * @param response response for client
      */

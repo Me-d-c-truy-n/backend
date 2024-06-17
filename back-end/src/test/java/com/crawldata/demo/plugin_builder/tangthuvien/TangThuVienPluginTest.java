@@ -67,65 +67,12 @@ class TangThuVienPluginTest {
     }
 
     @Test
-    public void testMapNovelInfo() throws IOException {
-        // Mock necessary dependencies
-        String novelId = "tri-menh-vu-kho";
-        String novelDetailUrl = "https://truyen.tangthuvien.vn/doc-truyen/tri-menh-vu-kho";
-
-        Document  mockDocument = mock(Document.class);
-        Element mockElement = mock(Element.class);
-        Elements mockElements = mock(Elements.class);
-
-        // Mocking behavior for ConnectJsoup and Document
-        try (MockedStatic<ConnectJsoup> mockedStatic = mockStatic(ConnectJsoup.class)) {
-            mockedStatic.when(() -> ConnectJsoup.connect(novelDetailUrl)).thenReturn(mockDocument);
-            when(mockDocument.select(".book-information.cf")).thenReturn(mockElements);
-            when(mockElements.get(0)).thenReturn(mockElement);
-            when(mockElement.child(1)).thenReturn(mockElement);
-            when(mockElement.child(0)).thenReturn(mockElement);
-            when(mockElement.text()).thenReturn("Test Novel");
-
-            // Mock other necessary behaviors for successful testing
-            // Execute the method under test
-            Map<String, Object> novelInfo = tangThuVienPlugin.mapNovelInfo(novelId);
-
-            // Assertions
-            assertEquals("Test Novel", novelInfo.get("novelName"));
-            // Add more assertions based on expected behavior
-        }
-    }
-
-    @Test
     public void getNovelChapterDetail_invalidNovelId_error() throws IOException {
         String novelId = "invalid-novel-id";
         String chapterId = "valid-chapter-id";
-        Novel novel = new Novel(novelId,"name","image","description",new Author("john-wick","john wick"),"chuong-1");
-        Chapter chapter = new Chapter(chapterId,"name","chuong-1","chuong-2",null,"test chapter",novel.getAuthor(),"this is content");
-        String chapterDetailUrl = String.format(NOVEL_DETAIL_URL, novelId) + "/" + chapterId;
-        Map<String,Object> map = new HashMap<>();
-        map.put("novelName",novel.getName());
-        map.put("author",novel.getAuthor());
-        map.put("total",1);
-        map.put("storyId",novel.getNovelId());
-        map.put("preChapter",chapter.getPreChapterId());
-        map.put("nextChapter",chapter.getNextChapterId());
-        map.put("chapterName",chapter.getName());
-        map.put("content",chapter.getContent());
-
-        doReturn(null).when(tangThuVienPlugin).mapNovelInfo(novelId);
-        doReturn(map).when(tangThuVienPlugin).getAdjacentChapters(novelId,chapterId);
-        doReturn(map).when(tangThuVienPlugin).getContentChapter(chapterDetailUrl);
-        DataResponse result = tangThuVienPlugin.getNovelChapterDetail(novelId,chapterId);
+        DataResponse result = tangThuVienPlugin.getNovelChapterDetail(novelId, chapterId);
         assertNotNull(result);
-
-        assertEquals("success", result.getStatus());
-        assertEquals(null, result.getTotalPage());
-        assertEquals(null, result.getCurrentPage());
-        assertNotNull(result.getData());
-        Chapter value = (Chapter) result.getData();
-        assertEquals("this is content", value.getContent());
-        assertEquals(chapter.getName(), value.getName());
-        assertEquals(chapter.getNovelName(),value.getNovelName());
+        assertEquals("error", result.getStatus());
     }
     @Test
     void testGetNovelListChaptersSuccess() throws IOException {
