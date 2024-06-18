@@ -13,6 +13,5 @@ public class BackEndApplication {
 	public static void main(String[] args) throws IOException {
 		SpringApplication.run(BackEndApplication.class, args);
 		AppUtils.doLoad();
-
 	}
 }

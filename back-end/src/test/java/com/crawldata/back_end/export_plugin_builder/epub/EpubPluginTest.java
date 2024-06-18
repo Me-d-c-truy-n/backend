@@ -1,26 +1,23 @@
-package com.crawldata.demo.export_plugin_builder.epub;
+package com.crawldata.back_end.export_plugin_builder.epub;
 
-import com.crawldata.back_end.export_plugin_builder.epub.EpubPlugin;
+import com.crawldata.back_end.BackEndApplication;
 import com.crawldata.back_end.model.Author;
 import com.crawldata.back_end.model.Chapter;
 import com.crawldata.back_end.model.Novel;
 import com.crawldata.back_end.novel_plugin_builder.PluginFactory;
 import com.crawldata.back_end.response.DataResponse;
-import com.crawldata.back_end.utils.AppUtils;
 import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.WriteListener;
 import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-
+import org.springframework.boot.test.context.SpringBootTest;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -29,9 +26,10 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
 
 
+@SpringBootTest(classes = BackEndApplication.class)
 public class EpubPluginTest {
 
     @Mock

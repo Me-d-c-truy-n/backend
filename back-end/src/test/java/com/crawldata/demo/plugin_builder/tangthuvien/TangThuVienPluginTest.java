@@ -1,14 +1,8 @@
 package com.crawldata.demo.plugin_builder.tangthuvien;
-import com.crawldata.back_end.model.Author;
 import com.crawldata.back_end.model.Chapter;
 import com.crawldata.back_end.model.Novel;
 import com.crawldata.back_end.novel_plugin_builder.tangthuvien.TangThuVienPlugin;
 import com.crawldata.back_end.response.DataResponse;
-import com.crawldata.back_end.utils.ConnectJsoup;
-import net.bytebuddy.build.Plugin;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -16,14 +10,9 @@ import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.*;
+
 
 @ExtendWith(MockitoExtension.class)
 class TangThuVienPluginTest {
