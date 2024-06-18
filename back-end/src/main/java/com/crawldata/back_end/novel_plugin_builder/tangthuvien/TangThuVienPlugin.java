@@ -580,6 +580,7 @@ public class TangThuVienPlugin implements PluginFactory {
             }
         } catch (Exception e) {
             LOGGER.error(e.getMessage(),e);
+            return new DataResponse().status("error").message(e.getMessage());
         }
         return new DataResponse().status("success").totalPage(totalPage).currentPage(page).searchValue(key).data(lsNovels);
     }

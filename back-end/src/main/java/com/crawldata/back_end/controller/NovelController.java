@@ -1,5 +1,7 @@
 package com.crawldata.back_end.controller;
 
+import com.crawldata.back_end.export_plugin_builder.pdf.PdfPlugin;
+import com.crawldata.back_end.novel_plugin_builder.PluginFactory;
 import com.crawldata.back_end.response.DataResponse;
 import com.crawldata.back_end.service.ExportServiceImpl;
 import com.crawldata.back_end.service.NovelServiceImpl;
@@ -67,5 +69,16 @@ public class NovelController {
                        HttpServletResponse response) throws IOException {
         exportServiceImpl.export(fileType, pluginId, novelId, fromChapterId, numChapters, response);
     }
+
+    @GetMapping("{pluginId}/tai-truyen/{novelId}")
+    public void test(@PathVariable("pluginId") String pluginId ,@PathVariable(name = "novelId") String novelId, @RequestParam(name = "fromChapterId", defaultValue = "") String fromChapterId, @RequestParam(name = "numChapters" , defaultValue = "0") int numChapters,
+                       HttpServletResponse response) throws IOException {
+        PluginFactory plugin = novelServiceImpl.getPluginFactory(pluginId);
+        PdfPlugin pdf = new PdfPlugin();
+        pdf.export(plugin, novelId,fromChapterId,numChapters,response);
+
+    }
+
+
 
 }
