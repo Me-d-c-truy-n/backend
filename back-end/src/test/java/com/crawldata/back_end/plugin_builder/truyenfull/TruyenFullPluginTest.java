@@ -1,5 +1,6 @@
-package com.crawldata.demo.plugin_builder.truyenfull;
+package com.crawldata.back_end.plugin_builder.truyenfull;
 
+import com.crawldata.back_end.BackEndApplication;
 import com.crawldata.back_end.model.Author;
 import com.crawldata.back_end.model.Chapter;
 import com.crawldata.back_end.model.Novel;
@@ -16,12 +17,15 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ContextConfiguration;
 
 import java.util.List;
 
 import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
 
+@SpringBootTest(classes = BackEndApplication.class)
 public class TruyenFullPluginTest {
     @InjectMocks
     private TruyenFullPlugin truyenFullPlugin;

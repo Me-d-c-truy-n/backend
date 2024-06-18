@@ -93,6 +93,8 @@ public class ExportPluginLoader {
                 jcl.unloadClass(plugin.getClassName());
             }
         }
+        plugins.clear();
         jcl = new JarClassLoader();
+        System.gc();
     }
 }

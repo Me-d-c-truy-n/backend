@@ -1,5 +1,6 @@
-package com.crawldata.demo.plugin_builder.metruyencv;
+package com.crawldata.back_end.plugin_builder.metruyencv;
 
+import com.crawldata.back_end.BackEndApplication;
 import com.crawldata.back_end.model.Author;
 import com.crawldata.back_end.model.Chapter;
 import com.crawldata.back_end.model.Novel;
@@ -11,6 +12,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
+import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.List;
 
@@ -18,6 +20,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
 
+@SpringBootTest(classes = BackEndApplication.class)
 public class MeTruyenChuPluginTest {
     @Spy
     private MeTruyenChuPlugin meTruyenChuPlugin;

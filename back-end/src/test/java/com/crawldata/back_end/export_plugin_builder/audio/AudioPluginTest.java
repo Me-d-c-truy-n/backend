@@ -1,5 +1,6 @@
-package com.crawldata.demo.export_plugin_builder.audio;
-import com.crawldata.back_end.export_plugin_builder.audio.AudioPlugin;
+package com.crawldata.back_end.export_plugin_builder.audio;
+
+import com.crawldata.back_end.BackEndApplication;
 import com.crawldata.back_end.model.Chapter;
 import com.crawldata.back_end.novel_plugin_builder.PluginFactory;
 import com.crawldata.back_end.response.DataResponse;
@@ -11,12 +12,14 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.boot.test.context.SpringBootTest;
 
 import java.io.ByteArrayOutputStream;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
+@SpringBootTest(classes = BackEndApplication.class)
 class AudioPluginTest {
 
     @Mock

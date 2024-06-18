@@ -18,7 +18,7 @@ import java.util.jar.JarFile;
  * Loads plugin classes and retrieves plugin information from JAR files.
  */
 @Component
-public class PluginLoader {
+public class    PluginLoader {
 
     private JarClassLoader jcl = new JarClassLoader();
 
@@ -95,7 +95,7 @@ public class PluginLoader {
             }
         }
         plugins.clear();
-        jcl = new JarClassLoader((ClassLoader) null);
+        jcl = new JarClassLoader();
         System.gc();
     }
 }

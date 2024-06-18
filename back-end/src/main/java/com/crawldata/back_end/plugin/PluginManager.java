@@ -22,6 +22,7 @@ public class PluginManager {
 
     private PluginLoader pluginLoader;
 
+
     /**
      * Updates the list of available plugins by loading plugins from the plugin directory.
      */
@@ -34,7 +35,7 @@ public class PluginManager {
 
         // Clear existing plugins
         unloadPlugins();
-
+        plugins.clear();
         // Load plugins from JAR files in the directory
         File[] files = pluginsDir.listFiles();
         if (files == null) {
