@@ -256,10 +256,10 @@ public class TangThuVienPlugin implements PluginFactory {
         return map;
     }
 
-    public static void main(String[] args) throws IOException {
-        PluginFactory plugin = new TangThuVienPlugin();
-        ((TangThuVienPlugin) plugin).mapNovelInfo("tri-menh-vu-kho");
-    }
+//    public static void main(String[] args) throws IOException {
+//        PluginFactory plugin = new TangThuVienPlugin();
+//        ((TangThuVienPlugin) plugin).mapNovelInfo("tri-menh-vu-kho");
+//    }
 
     /**
      * Get the list chapters by novel's story id

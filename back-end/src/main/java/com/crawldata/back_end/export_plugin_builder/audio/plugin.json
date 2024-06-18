@@ -3,6 +3,6 @@
     "id": "audio",
     "name": "audio",
     "url": "",
-    "className": "AudioPlugin"
+    "className": "com.crawldata.back_end.export_plugin_builder.audio.AudioPlugin"
   }
 }

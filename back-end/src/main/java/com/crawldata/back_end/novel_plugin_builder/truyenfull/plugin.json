@@ -3,6 +3,6 @@
     "id": "truyenfull",
     "name": "Truyện Full",
     "url": "https://truyenfull.vn/",
-    "className": "TruyenFullPlugin"
+    "className": "com.crawldata.back_end.novel_plugin_builder.truyenfull.TruyenFullPlugin"
   }
 }

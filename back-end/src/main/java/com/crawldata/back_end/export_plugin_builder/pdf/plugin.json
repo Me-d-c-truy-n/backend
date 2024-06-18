@@ -3,6 +3,6 @@
     "id": "pdf",
     "name": "pdf",
     "url": "",
-    "className": "PdfPlugin"
+    "className": "com.crawldata.back_end.export_plugin_builder.pdf.PdfPlugin"
   }
 }

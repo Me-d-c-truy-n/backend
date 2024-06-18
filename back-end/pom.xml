@@ -41,7 +41,9 @@
 		<dependency>
 			<groupId>org.xeustechnologies</groupId>
 			<artifactId>jcl-core</artifactId>
-			<version>2.8</version>
+			<version>2.9</version>
+			<scope>system</scope>
+			<systemPath>${project.basedir}/src/main/resources/jcl-core-2.9.jar</systemPath>
 		</dependency>
 
 		<dependency>
@@ -125,6 +127,109 @@
 				<configuration>
 					<skipTests>false</skipTests>
 				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>3.2.0</version>
+				<executions>
+					<execution>
+						<id>copy-resources</id>
+						<phase>process-resources</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.directory}/classes</outputDirectory>
+							<resources>
+								<resource>
+									<directory>src/main/java/audio</directory>
+									<includes>
+										<include>plugin.json</include>
+									</includes>
+									<targetPath>com/crawldata/back_end/export_plugin_builder/audio</targetPath>
+								</resource>
+								<resource>
+									<directory>src/main/java/epub</directory>
+									<includes>
+										<include>plugin.json</include>
+									</includes>
+									<targetPath>com/crawldata/back_end/export_plugin_builder/epub</targetPath>
+								</resource>
+								<resource>
+									<directory>src/main/java/lightnovel</directory>
+									<includes>
+										<include>plugin.json</include>
+									</includes>
+									<targetPath>com/crawldata/back_end/novel_plugin_builder/lightnovel</targetPath>
+								</resource>
+								<resource>
+									<directory>src/main/java/metruyencv</directory>
+									<includes>
+										<include>plugin.json</include>
+									</includes>
+									<targetPath>com/crawldata/back_end/novel_plugin_builder/metruyencv</targetPath>
+								</resource>
+								<resource>
+									<directory>src/main/java/pdf</directory>
+									<includes>
+										<include>plugin.json</include>
+									</includes>
+									<targetPath>com/crawldata/back_end/export_plugin_builder/pdf</targetPath>
+								</resource>
+								<resource>
+									<directory>src/main/java/tangthuvien</directory>
+									<includes>
+										<include>plugin.json</include>
+									</includes>
+									<targetPath>com/crawldata/back_end/novel_plugin_builder/tangthuvien</targetPath>
+								</resource>
+								<resource>
+									<directory>src/main/java/truyenfull</directory>
+									<includes>
+										<include>plugin.json</include>
+									</includes>
+									<targetPath>com/crawldata/back_end/novel_plugin_builder/truyenfull</targetPath>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<version>1.8</version>
+				<executions>
+					<execution>
+						<id>copy-json-files</id>
+						<phase>process-resources</phase>
+						<configuration>
+							<tasks>
+								<!-- Copy plugin.json for audio -->
+								<copy file="${project.basedir}/src/main/java/com/crawldata/back_end/export_plugin_builder/audio/plugin.json" tofile="${project.build.outputDirectory}/com/crawldata/back_end/export_plugin_builder/audio/plugin.json" failonerror="false"/>
+								<!-- Copy plugin.json for epub -->
+								<copy file="${project.basedir}/src/main/java/com/crawldata/back_end/export_plugin_builder/epub/plugin.json" tofile="${project.build.outputDirectory}/com/crawldata/back_end/export_plugin_builder/epub/plugin.json" failonerror="false"/>
+								<copy file="${project.basedir}/src/main/java/com/crawldata/back_end/export_plugin_builder/epub/untitled.epub" tofile="${project.build.outputDirectory}/com/crawldata/back_end/export_plugin_builder/epub/untitled.epub" failonerror="false"/>
+								<!-- Copy plugin.json for lightnovel -->
+								<copy file="${project.basedir}/src/main/java/com/crawldata/back_end/novel_plugin_builder/lightnovel/plugin.json" tofile="${project.build.outputDirectory}/com/crawldata/back_end/novel_plugin_builder/lightnovel/plugin.json" failonerror="false"/>
+								<!-- Copy plugin.json for metruyencv -->
+								<copy file="${project.basedir}/src/main/java/com/crawldata/back_end/novel_plugin_builder/metruyencv/plugin.json" tofile="${project.build.outputDirectory}/com/crawldata/back_end/novel_plugin_builder/metruyencv/plugin.json" failonerror="false"/>
+								<!-- Copy plugin.json for pdf -->
+								<copy file="${project.basedir}/src/main/java/com/crawldata/back_end/export_plugin_builder/pdf/plugin.json" tofile="${project.build.outputDirectory}/com/crawldata/back_end/export_plugin_builder/pdf/plugin.json" failonerror="false"/>
+								<!-- Copy plugin.json for tangthuvien -->
+								<copy file="${project.basedir}/src/main/java/com/crawldata/back_end/novel_plugin_builder/tangthuvien/plugin.json" tofile="${project.build.outputDirectory}/com/crawldata/back_end/novel_plugin_builder/tangthuvien/plugin.json" failonerror="false"/>
+								<!-- Copy plugin.json for truyenfull -->
+								<copy file="${project.basedir}/src/main/java/com/crawldata/back_end/novel_plugin_builder/truyenfull/plugin.json" tofile="${project.build.outputDirectory}/com/crawldata/back_end/novel_plugin_builder/truyenfull/plugin.json" failonerror="false"/>
+							</tasks>
+						</configuration>
+						<goals>
+							<goal>run</goal>
+						</goals>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>
