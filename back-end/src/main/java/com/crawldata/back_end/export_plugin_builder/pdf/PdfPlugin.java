@@ -146,6 +146,7 @@ public class PdfPlugin implements ExportPluginFactory {
 
     private BaseFont getCustomFont() throws DocumentException, IOException {
         ClassPathResource fontResource = new ClassPathResource("fonts/ArialUnicodeMSRegular.ttf");
+        System.out.println(fontResource.getFile().getAbsolutePath());
         return BaseFont.createFont(fontResource.getPath(), BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
     }
 
