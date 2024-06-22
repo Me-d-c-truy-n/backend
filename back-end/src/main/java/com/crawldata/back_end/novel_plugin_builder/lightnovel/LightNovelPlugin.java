@@ -6,6 +6,7 @@ import com.crawldata.back_end.model.Novel;
 import com.crawldata.back_end.novel_plugin_builder.PluginFactory;
 import com.crawldata.back_end.response.DataResponse;
 import com.crawldata.back_end.utils.AppUtils;
+import com.crawldata.back_end.utils.ConnectJsoup;
 import com.crawldata.back_end.utils.DataResponseUtils;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -48,7 +49,8 @@ public class LightNovelPlugin implements PluginFactory {
     private final String CHAPTER_DETAIL_API = "https://lightnovel.vn/_next/data/%s/truyen/%s/%s.json";
     private final String IMAGE_URL_PREFIX = "https://static.lightnovel.vn/cdn-cgi/image/w=500,f=auto";
     private final String CRAW_CHAPTER_URL = "https://lightnovel.vn/truyen/%s/%s";
-    private static final String CHROME_DRIVER_PATH = "/plugins/chromedriver.exe";
+    private static final String CHROME_DRIVER_PATH = "/novel_plugins/chromedriver.exe";
+    private static final String USER_AGENT = "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.2; WOW64; Trident/6.0)";
 
     private final int MAX_RETRIES = 3;
     private final int LIST_CHAPTERS_CAP = 50;
@@ -109,6 +111,7 @@ public class LightNovelPlugin implements PluginFactory {
         while (attempt < MAX_RETRIES) {
             try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
                 HttpGet request = new HttpGet(url);
+                request.setHeader("User-Agent", USER_AGENT);
                 try (CloseableHttpResponse response = httpClient.execute(request)) {
                     int statusCode = response.getStatusLine().getStatusCode();
                     if (statusCode == 200) {
@@ -158,7 +161,11 @@ public class LightNovelPlugin implements PluginFactory {
         long currentTime = System.currentTimeMillis();
         if (currentTime - lastApiKeyUpdateTimestamp > UPDATE_INTERVAL) {
             String oldAPI = API_KEY;
-            updateApiKey();
+            try {
+                updateApiKey();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
             lastApiKeyUpdateTimestamp = currentTime;
             return oldUrl.replace(oldAPI, API_KEY);
         }
@@ -169,23 +176,25 @@ public class LightNovelPlugin implements PluginFactory {
      * Fetches a new API key from the specified URL and updates the API_KEY variable.
      * This method looks for a script tag containing '_buildManifest.js' in its 'src' attribute and extracts the key from it.
      */
-    private void updateApiKey() {
+    private void updateApiKey() throws IOException {
         try {
             // Fetch the webpage
-            Document doc = Jsoup.connect(GET_API_KEY_URL).get();
+            Document doc = ConnectJsoup.connect(GET_API_KEY_URL);
             // Look for the script tag containing _buildManifest.js
-            Element manifestElement = doc.select("script[src*='/_next/static/'][src*='_buildManifest.js']").first();
-
+            Element manifestElement = null;
+            if (doc != null) {
+                manifestElement = doc.select("script[src*='/_next/static/'][src*='_buildManifest.js']").first();
+            }
             if (manifestElement != null) {
                 String src = manifestElement.attr("src");
                 // Extract the KEY from the src attribute
                 String[] parts = src.split("/");
                 API_KEY = parts[3];
             } else {
-                System.out.println("Get API Key failed");
+                throw new IOException("Get API Key failed");
             }
         } catch (IOException e) {
-            System.out.println("Get API Key failed");
+            throw new IOException("Get API Key failed");
         }
     }
 
