@@ -66,20 +66,9 @@ public class NovelController {
     }
 
     @GetMapping("{pluginId}/tai-truyen/{novelId}/{fileType}")
-    public void export(@PathVariable("pluginId") String pluginId , @PathVariable(name = "fileType") String fileType,@PathVariable(name = "novelId") String novelId, @RequestParam(name = "fromChapterId", defaultValue = "") String fromChapterId, @RequestParam(name = "numChapters" , defaultValue = "0") int numChapters,
+    public ResponseEntity<?> export(@PathVariable("pluginId") String pluginId , @PathVariable(name = "fileType") String fileType,@PathVariable(name = "novelId") String novelId, @RequestParam(name = "fromChapterId", defaultValue = "") String fromChapterId, @RequestParam(name = "numChapters" , defaultValue = "0") int numChapters,
                        HttpServletResponse response) throws IOException {
         exportServiceImpl.export(fileType, pluginId, novelId, fromChapterId, numChapters, response);
+        return ResponseEntity.ok().build();
     }
-
-    @GetMapping("{pluginId}/tai-truyen/{novelId}")
-    public void test(@PathVariable("pluginId") String pluginId ,@PathVariable(name = "novelId") String novelId, @RequestParam(name = "fromChapterId", defaultValue = "") String fromChapterId, @RequestParam(name = "numChapters" , defaultValue = "0") int numChapters,
-                       HttpServletResponse response) throws IOException {
-        PluginFactory plugin = novelServiceImpl.getPluginFactory(pluginId);
-        EpubPlugin epub = new EpubPlugin();
-        epub.export(plugin, novelId,fromChapterId,numChapters,response);
-    }
-
-
-
-
 }

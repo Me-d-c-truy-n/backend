@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 import org.xeustechnologies.jcl.JarClassLoader;
 import org.xeustechnologies.jcl.JclObjectFactory;
 import org.xeustechnologies.jcl.JclUtils;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -18,7 +19,7 @@ import java.util.jar.JarFile;
  * Loads plugin classes and retrieves plugin information from JAR files.
  */
 @Component
-public class    PluginLoader {
+public class PluginLoader {
 
     private JarClassLoader jcl = new JarClassLoader();
 
@@ -44,7 +45,8 @@ public class    PluginLoader {
      */
     public PluginInformation loadPluginInformation(File pluginFile) {
         PluginInformation pluginInfo = JSONToPluginInformationAdapter(pluginFile);
-        pluginInfo.setPluginObject(loadPluginClass(pluginFile.getAbsolutePath(), pluginInfo.getClassName()));
+        System.out.println(pluginFile.getAbsolutePath());
+        pluginInfo.setPluginObject(loadPluginClass(pluginFile.getAbsolutePath(), pluginInfo.getClassName() ));
         return pluginInfo;
     }
 
