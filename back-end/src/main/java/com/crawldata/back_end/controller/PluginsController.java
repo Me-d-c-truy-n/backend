@@ -44,7 +44,9 @@ public class PluginsController {
 
     @PostMapping("/novel/upload")
     public String uploadNovelPlugin(@RequestParam("file") MultipartFile file) {
+        System.out.println("OK");
         try {
+            System.out.println(file.isEmpty());
             if(file.isEmpty())
             {
                 return "error";
@@ -52,6 +54,7 @@ public class PluginsController {
             novelSer.saveFile(file);
             return "redirect:/plugin/novel";
         } catch (IOException e) {
+            e.printStackTrace();
             return "error";
         }
     }

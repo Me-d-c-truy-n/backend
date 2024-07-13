@@ -43,6 +43,9 @@ public class HomeController {
         res.add((linkTo(methodOn(NovelController.class).export("tangthuvien", "pdf", "kiem-lai", "chuong-1", 2, null))).withRel("Example links to downloads novel into file pdf"));
         res.add((linkTo(methodOn(NovelController.class).export("tangthuvien", "audio", "kiem-lai", "chuong-1", 10, null))).withRel("Example links to downloads novel into file pdf"));
         res.add((linkTo(methodOn(NovelController.class).export("tangthuvien", "epub", "kiem-lai", "chuong-1", 1, null))).withRel("Example links to downloads novel into file pdf"));
+
+        //res.add((linkTo(methodOn(PluginsController.class).novelPluginRender(null))).withRel("Novel plugin management"));
+        //res.add((linkTo(methodOn(PluginsController.class).exportPluginRender(null))).withRel("Export plugin management"));
         return res;
     }
 }

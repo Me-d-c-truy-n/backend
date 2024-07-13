@@ -35,6 +35,9 @@
      <!--Side bar-->
                 <aside class="navbar navbar-vertical rounded-4 my-3 ms-4 me-4 position-fixed" style="width: 20%;"
                     id="sidenav-main" th:fragment="sidebar">
+                    <form th:action="@{/logout}" method="post" th:hidden="true" name="logoutForm">
+                        <input type="submit" value="Logout" />
+                    </form>
                     <div class="w-100">
                         <ul class="navbar-nav">
                             <li th:if="${fieldSideBarName eq 'novelplugin'}" class="nav-item my-2 active">
@@ -69,6 +72,15 @@
                                         <i class="fa-solid fa-book" style="color: #c07777; max-width: 20px;"></i>
                                     </span>
                                     <span class="nav-link-text ms-3">Export Plugin Management</span>
+                                </a>
+                            </li>
+
+                            <li  class="nav-item my-2">
+                                <a class="nav-link active ps-4 py-3" href="javascript: document.logoutForm.submit()">
+                                    <span class="nav-icon">
+                                     <i class="fa-solid fa-right-from-bracket" style="color: #c07777; max-width: 20px;"></i>
+                                    </span>
+                                    <span class="nav-link-text ms-3">Logout</span>
                                 </a>
                             </li>
                         </ul>

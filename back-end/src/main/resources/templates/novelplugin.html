@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html xmlns:th = "http://www.thymeleaf.org">
-<head th:replace="fragment :: html_file"/>
+<head th:replace="~{fragment :: html_file}"/>
 <body style="background-color: #f5f7f6;">
-   <div th:replace="fragment :: header"></div>
+   <div th:replace="~{fragment :: header}"></div>
 
     <div class="container-fluid w-100 m-0">
         <div class="row w-100">
             <div class="col-md-3">
-               <aside th:replace="fragment :: sidebar"></aside>
+               <aside th:replace="~{fragment :: sidebar}"></aside>
             </div>
             <div class="col-md-9">
                 <!--Body table student-->
