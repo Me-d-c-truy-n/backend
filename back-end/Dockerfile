@@ -1,18 +1,14 @@
-FROM maven:3.8.4-openjdk-17 AS build
+# Use the official Eclipse Temurin image as the base image
+FROM eclipse-temurin:17-jdk-alpine
 
-WORKDIR /app
+# Set the application JAR file
+ARG JAR_FILE=target/back-end-0.0.1-SNAPSHOT.jar
 
-COPY ./pom.xml /app
-COPY ./src /app/src
+# Copy the application's JAR file to the container
+COPY ${JAR_FILE} app.jar
 
-RUN mvn clean package -Dmaven.test.skip=true
-
-FROM openjdk:17-jdk
-
-WORKDIR /app
-
-COPY --from=build /app/target/*.jar app.jar
-
+# Expose port 8080
 EXPOSE 8080
 
-CMD ["java", "-jar", "app.jar"]
+# Run the application
+ENTRYPOINT ["java","-jar","/app.jar"]

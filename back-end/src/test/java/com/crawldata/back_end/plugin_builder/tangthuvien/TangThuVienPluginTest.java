@@ -124,7 +124,7 @@ class TangThuVienPluginTest {
     {
         String expectedStatus = "success";
         int currentPage = 1;
-        int totalPage = 600;
+        int totalPage = 601;
         int perPage = 20;
         int size = 20;
         DataResponse dataResponse = tangThuVienPlugin.getAllNovels(1, "");
